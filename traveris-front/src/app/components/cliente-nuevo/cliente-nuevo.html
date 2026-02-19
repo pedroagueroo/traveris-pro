@@ -1,0 +1,148 @@
+<div class="container animate-fade-in form-container-elite">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <span class="label-tech">GESTIÓN DE PASAJEROS</span>
+            <h2 class="fw-bold text-dark mb-0">
+                {{ clienteEditando.id ? 'Editar Ficha' : 'Nuevo Registro' }}
+            </h2>
+        </div>
+        <button type="button" class="btn btn-outline-dark btn-sm fw-bold px-3 border-2" (click)="botonCancelar()">
+            <i class="bi bi-x-lg me-1"></i> CANCELAR
+        </button>
+    </div>
+
+    <div class="glass-card p-0 shadow-lg overflow-hidden border-0">
+        
+        <ul class="nav nav-tabs nav-tabs-premium px-4" id="clienteTab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#datos">
+                    <i class="bi bi-person-fill me-2"></i>Cliente
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#documentos">
+                    <i class="bi bi-file-earmark-text-fill me-2"></i>Documentación
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#preferencias">
+                    <i class="bi bi-star-fill me-2"></i>Preferencias
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-4 p-md-5">
+            
+            <div class="tab-pane fade show active" id="datos">
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <label class="label-tech">NOMBRE COMPLETO</label>
+                        <input type="text" class="form-control" name="nombre" [(ngModel)]="clienteEditando.nombre_completo"
+                               #nombre="ngModel" required [class.is-invalid]="nombre.invalid && nombre.touched">
+                        <div class="invalid-feedback small fw-bold">El nombre es obligatorio.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="label-tech">NRO. DOCUMENTO (DNI)</label>
+                        <input type="text" class="form-control" name="dni" [(ngModel)]="clienteEditando.dni_pasaporte"
+                               #dni="ngModel" required minlength="7" [class.is-invalid]="dni.invalid && dni.touched">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-tech">CORREO ELECTRÓNICO</label>
+                        <input type="email" class="form-control" [(ngModel)]="clienteEditando.email" name="email" placeholder="ejemplo@correo.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-tech">TELÉFONO / CELULAR</label>
+                        <input type="text" class="form-control" [(ngModel)]="clienteEditando.telefono" name="tel" placeholder="+54 9 ...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-tech">FECHA DE NACIMIENTO</label>
+                        <input type="date" class="form-control" [(ngModel)]="clienteEditando.fecha_nacimiento" name="fec">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-tech">SEXO</label>
+                        <select class="form-select" [(ngModel)]="clienteEditando.sexo" name="sexo">
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
+                            <option value="X">Otro</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="documentos">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label class="label-tech">DNI EMISIÓN</label>
+                        <input type="date" class="form-control" [(ngModel)]="clienteEditando.dni_emision" name="dniEmi">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="label-tech">DNI VENCIMIENTO</label>
+                        <input type="date" class="form-control" [(ngModel)]="clienteEditando.dni_vencimiento" name="dniVen">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="label-tech">CUIT / CUIL</label>
+                        <input type="text" class="form-control" [(ngModel)]="clienteEditando.cuit_cuil" name="cuit">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-tech">NACIONALIDAD</label>
+                        <input type="text" class="form-control" [(ngModel)]="clienteEditando.nacionalidad" name="nac">
+                    </div>
+                    
+                    <div class="col-12"><hr class="my-2 opacity-10"></div>
+                    
+                    <div class="col-md-4">
+                        <label class="label-tech">NRO. PASAPORTE</label>
+                        <input type="text" class="form-control fw-bold text-primary" [(ngModel)]="clienteEditando.pasaporte_nro" name="pnro">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="label-tech">PAS. EMISIÓN</label>
+                        <input type="date" class="form-control" [(ngModel)]="clienteEditando.pasaporte_emision" name="pemi">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="label-tech text-danger">PAS. VENCIMIENTO</label>
+                        <input type="date" class="form-control border-danger border-opacity-25" [(ngModel)]="clienteEditando.pasaporte_vencimiento" name="pven">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="preferencias">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="label-tech">ASIENTO PREFERIDO</label>
+                        <select class="form-select" [(ngModel)]="clienteEditando.pref_asiento" name="asiento">
+                            <option value="VENTANILLA">Ventanilla</option>
+                            <option value="PASILLO">Pasillo</option>
+                            <option value="INDIFERENTE">Indiferente</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-tech">COMIDA ESPECIAL / ALERGIAS</label>
+                        <input type="text" class="form-control" [(ngModel)]="clienteEditando.pref_comida" name="comida" placeholder="Ej: Celíaco, Vegano...">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="label-tech text-danger">OBSERVACIONES MÉDICAS O DE SALUD</label>
+                        <textarea class="form-control shadow-none" rows="4" [(ngModel)]="clienteEditando.observaciones_salud" name="obs" placeholder="Indique detalles vitales para el viaje..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-light p-4 d-flex justify-content-end gap-3 border-top">
+            <button type="button" class="btn btn-light fw-bold px-4" (click)="botonCancelar()">Descartar</button>
+
+            <button *ngIf="!clienteEditando.id" type="button" 
+                    class="btn btn-elite px-5 shadow"
+                    (click)="guardarNuevoCliente()" 
+                    [disabled]="!clienteEditando.nombre_completo || !clienteEditando.dni_pasaporte || clienteEditando.dni_pasaporte.length < 7">
+                <i class="bi bi-person-plus-fill me-2"></i>Registrar Pasajero
+            </button>
+
+            <button *ngIf="clienteEditando.id" type="button" class="btn btn-elite px-5 shadow"
+                    (click)="actualizarCliente()">
+                <i class="bi bi-check-circle-fill me-2"></i>Guardar Cambios
+            </button>
+        </div>
+    </div>
+</div>

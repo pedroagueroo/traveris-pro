@@ -1,14 +1,11 @@
-const { Pool } = require('pg'); // Importamos la librería de Postgres
-require('dotenv').config();      // Cargamos las variables del archivo .env
+const { Pool } = require('pg');
+require('dotenv').config();
 
-// Configuramos el Pool con los datos del .env
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL.includes('render')
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
-// Exportamos el pool para usarlo en otros archivos
 module.exports = pool;

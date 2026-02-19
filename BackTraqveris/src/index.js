@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const pool = require('./db'); // Aquí llamamos a tu archivo de conexión
+const PORT = process.env.PORT || 3000;
+
 
 const clientesRoutes = require('./clientes.routes');
 const reservasRoutes = require('./reservas.routes');
@@ -31,7 +33,10 @@ app.get('/probar-conexion', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Servidor escuchando en http://localhost:3000");
+app.listen(PORT, () => {
+  console.log(`Servidor escuchando en puerto ${PORT}`);
 });
 
+app.get('/', (req, res) => {
+  res.send('Backend funcionando 🚀');
+});

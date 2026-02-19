@@ -1,0 +1,76 @@
+/* Navbar Estilo Glass/Premium */
+.navbar {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px); /* Efecto de desenfoque sutil */
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-brand {
+  color: var(--accent) !important;
+  letter-spacing: -0.5px;
+}
+
+.nav-link {
+  color: var(--text-muted) !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--accent-blue) !important;
+}
+
+/* Buscador Refinado */
+.search-wrapper .input-group-text {
+  background-color: var(--bg-body);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  color: var(--text-muted);
+}
+
+.search-wrapper .form-control {
+  background-color: var(--bg-body) !important;
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  font-size: 0.85rem;
+  color: var(--text-main) !important;
+}
+
+/* Dropdown de Resultados de Búsqueda */
+.search-dropdown {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+}
+
+.search-result-item {
+  color: var(--text-main) !important;
+  border-bottom: 1px solid var(--bg-body);
+  transition: background 0.2s;
+}
+
+.search-result-item:hover {
+  background-color: var(--bg-body);
+  color: var(--accent-blue) !important;
+}
+
+/* Botón Salir Estilo Elite */
+.btn-logout {
+  border: 1px solid #fee2e2;
+  background: #fef2f2;
+  color: var(--danger);
+  font-weight: 700;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.btn-logout:hover {
+  background: var(--danger);
+  color: white;
+}

@@ -1,0 +1,74 @@
+/* Contenedor de la tabla con efecto Glass */
+.table-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Cabecera de tabla refinada */
+.table thead th {
+    background-color: #f8fafc;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 16px;
+    border-bottom: 2px solid var(--border);
+}
+
+/* Filas con hover suave */
+.table tbody tr {
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.table td {
+    padding: 16px;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+/* Estilo para los Badges de Estado */
+.status-pill {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+}
+
+.status-pending {
+    background: #fef2f2;
+    color: var(--danger);
+    border-color: #fee2e2;
+}
+
+.status-paid {
+    background: #ecfdf5;
+    color: var(--success);
+    border-color: #d1fae5;
+}
+
+/* Botón Ver Detalles Estilo Elite */
+.btn-view {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.btn-view:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}

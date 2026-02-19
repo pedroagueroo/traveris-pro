@@ -1,0 +1,204 @@
+<div class="container-fluid p-4 pb-5">
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm bg-primary text-white p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small fw-bold opacity-75">Efectivo Total ARS</h6>
+                        <h2 class="fw-bold mb-0">$ {{ saldos.saldoARS | number:'1.2-2' }}</h2>
+                    </div>
+                    <i class="bi bi-wallet2 fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm bg-success text-white p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small fw-bold opacity-75">Efectivo Total USD</h6>
+                        <h2 class="fw-bold mb-0">USD {{ saldos.saldoUSD | number:'1.2-2' }}</h2>
+                    </div>
+                    <i class="bi bi-currency-dollar fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4 no-print">
+        <div class="col-md-3" *ngFor="let s of saldosDetallados">
+            <div class="card border-0 shadow-sm p-3 border-start border-4"
+                [ngClass]="s.saldo >= 0 ? 'border-success' : 'border-danger'">
+                <div class="d-flex align-items-center">
+                    <i class="bi fs-3 me-3" [ngClass]="{
+          'bi-cash-stack text-success': s.metodo_pago === 'EFECTIVO',
+          'bi-credit-card text-primary': s.metodo_pago === 'TARJETA',
+          'bi-bank text-info': s.metodo_pago === 'TRANSFERENCIA',
+          'bi-phone text-primary': s.metodo_pago === 'MERCADOPAGO'
+        }"></i>
+                    <div>
+                        <small class="text-uppercase fw-bold text-muted" style="font-size: 0.7rem;">{{ s.metodo_pago
+                            }}</small>
+                        <h5 class="fw-bold mb-0">{{ s.moneda }} {{ s.saldo | number:'1.2-2' }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card glass-card border-0 shadow-sm mb-4 no-print">
+        <div class="card-body">
+            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-calculator me-2"></i>Calculadora de Conversión</h5>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="small fw-bold text-muted">Monto a Convertir</label>
+                    <input type="number" class="form-control rounded-pill" [(ngModel)]="montoEntrada"
+                        (input)="calcular()">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small fw-bold text-muted">Dirección</label>
+                    <select class="form-select rounded-pill" [(ngModel)]="direccionConversion" (change)="calcular()">
+                        <option value="A_PESOS">Divisa a Pesos</option>
+                        <option value="A_DIVISA">Pesos a Divisa</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small fw-bold text-muted">Moneda</label>
+                    <select class="form-select rounded-pill" [(ngModel)]="monedaSeleccionada"
+                        (change)="actualizarPrecioManual()">
+                        <option value="USD">Dólar (USD)</option>
+                        <option value="EUR">Euro (EUR)</option>
+                        <option value="BRL">Real (BRL)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="d-flex justify-content-between">
+                        <label class="small fw-bold text-muted">Precio de Cambio</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" [(ngModel)]="modoPersonalizado"
+                                (change)="actualizarPrecioManual()">
+                            <label class="small text-muted">Editar</label>
+                        </div>
+                    </div>
+                    <input type="number" class="form-control rounded-pill" [(ngModel)]="tipoCambioUsado"
+                        [disabled]="!modoPersonalizado" (input)="calcular()">
+                </div>
+
+                <div class="col-md-3">
+                    <div class="bg-light p-3 rounded-4 border text-center">
+                        <small class="text-uppercase fw-bold text-muted d-block">
+                            Resultado en {{ direccionConversion === 'A_PESOS' ? 'Pesos (ARS)' : monedaSeleccionada }}
+                        </small>
+                        <h3 class="fw-bold mb-0"
+                            [ngClass]="direccionConversion === 'A_PESOS' ? 'text-success' : 'text-primary'">
+                            {{ direccionConversion === 'A_PESOS' ? '$' : '' }} {{ resultado | number:'1.2-2' }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card glass-card border-0 shadow-sm mb-4 no-print">
+        <div class="card-body">
+            <h5 class="fw-bold text-danger mb-3">
+                <i class="bi bi-arrow-down-circle me-2"></i>Registrar Gasto General (Personal/Oficina)
+            </h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="small fw-bold">Concepto / Descripción</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevoGasto.observaciones"
+                        placeholder="Ej: Pago Obra Social">
+                </div>
+                <div class="col-md-2">
+                    <label class="small fw-bold">Monto</label>
+                    <input type="number" class="form-control" [(ngModel)]="nuevoGasto.monto">
+                </div>
+                <div class="col-md-2">
+                    <label class="small fw-bold">Moneda</label>
+                    <select class="form-select" [(ngModel)]="nuevoGasto.moneda">
+                        <option value="ARS">Pesos (ARS)</option>
+                        <option value="USD">Dólares (USD)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="small fw-bold">Método</label>
+                    <select class="form-select" [(ngModel)]="nuevoGasto.metodo_pago">
+                        <option value="EFECTIVO">Efectivo</option>
+                        <option value="TRANSFERENCIA">Transferencia</option>
+                        <option value="TARJETA">Tarjeta</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-danger w-100 fw-bold" (click)="registrarGasto()">
+                        <i class="bi bi-save me-2"></i>Guardar Gasto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm print-section">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-journal-text me-2"></i>Movimientos del Día</h5>
+            <button class="btn btn-dark btn-sm no-print" (click)="imprimirCierreCaja()">
+                <i class="bi bi-printer me-2"></i>Imprimir Reporte
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Hora</th>
+                            <th class="text-start">Concepto / Referencia</th>
+                            <th>Método</th>
+                            <th class="text-end">Importe</th>
+                            <th class="no-print">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let m of movimientosHoy">
+                            <td class="small text-muted">{{ m.fecha_pago | date:'HH:mm' }}hs</td>
+                            <td class="text-start">
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">
+                                        {{ m.tipo_movimiento === 'EGRESO_GENERAL' ? m.observaciones : m.tipo_movimiento
+                                        }}
+                                    </span>
+                                    <small class="text-muted" *ngIf="m.id_reserva">
+                                        Legajo #{{ m.id_reserva }}
+                                    </small>
+                                    <small class="text-muted"
+                                        *ngIf="m.tipo_movimiento !== 'EGRESO_GENERAL' && m.observaciones">
+                                        {{ m.observaciones }}
+                                    </small>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ m.metodo_pago }}</span></td>
+                            <td [ngClass]="{'text-danger': m.monto_real < 0, 'text-success': m.monto_real > 0}"
+                                class="fw-bold text-end">
+                                {{ m.moneda }} {{ m.monto_real | number:'1.2-2' }}
+                            </td>
+
+                            <td class="no-print">
+                                <button class="btn btn-sm btn-outline-danger shadow-none"
+                                    (click)="eliminarMovimiento(m.id)" title="Eliminar movimiento">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr *ngIf="movimientosHoy.length === 0">
+                            <td colspan="5" class="py-4 text-muted text-center">No hay movimientos registrados hoy.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

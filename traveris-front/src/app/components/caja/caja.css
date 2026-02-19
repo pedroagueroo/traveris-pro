@@ -1,0 +1,17 @@
+/* Forzar visibilidad del icono de basura */
+.bi-trash3-fill {
+  color: #dc3545 !important; 
+  display: inline-block !important;
+  visibility: visible !important;
+}
+
+/* Efecto al pasar el mouse sobre el botón */
+.btn-outline-danger:hover .bi-trash3-fill {
+  color: white !important;
+}
+
+/* Estilo extra para que el botón resalte un poco más en la tabla */
+.btn-sm.btn-outline-danger {
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+}

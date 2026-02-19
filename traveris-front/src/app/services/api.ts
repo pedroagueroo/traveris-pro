@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../env';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private URL = 'http://localhost:3000'; // Tu puerto de Node.js
+  private URL = environment.apiUrl; // Tu puerto de Node.js
 
   constructor(private http: HttpClient) { }
 

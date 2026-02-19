@@ -13,3 +13,6 @@ dist/
 
 # Uploads (si no querés subir archivos)
 uploads/
+
+# Seguridad: Ignorar variables de entorno
+BackTraqveris/.env

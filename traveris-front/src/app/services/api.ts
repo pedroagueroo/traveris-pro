@@ -100,29 +100,29 @@ actualizarReserva(id: any, reserva: any): Observable<any> {
 
   // Cambiamos el POST para que use la nueva ruta de registro unificado
   crearMovimientoCaja(datos: any): Observable<any> {
-    return this.http.post(`${this.URL}/caja-contable/registrar`, datos);
+    return this.http.post(`${this.URL}/api/caja-contable/registrar`, datos);
   }
 
   getBalanceCaja(empresa: string): Observable<any> {
     // Cambiamos 'balance-general' por la ruta que configuramos en el back
-    return this.http.get(`${this.URL}/caja-contable/balance-general/${empresa}`);
+    return this.http.get(`${this.URL}/api/caja-contable/balance-general/${empresa}`);
   }
   // Actualizamos el reporte diario
   getReporteDiario(empresa: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.URL}/caja-contable/reporte-diario/${empresa}`);
+    return this.http.get<any[]>(`${this.URL}/api/caja-contable/reporte-diario/${empresa}`);
   }
 
   // Actualizamos las cotizaciones
   getCotizacionesCompletas(): Observable<any> {
-    return this.http.get(`${this.URL}/caja-contable/cotizaciones-completas`);
+    return this.http.get(`${this.URL}/api/caja-contable/cotizaciones-completas`);
   }
 
   eliminarMovimientoContable(id: number): Observable<any> {
-    return this.http.delete(`${this.URL}/caja-contable/${id}`);
+    return this.http.delete(`${this.URL}/api/caja-contable/${id}`);
   }
 
   getBalanceBilleteras(empresa: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.URL}/caja-contable/balance-billeteras/${empresa}`);
+    return this.http.get<any[]>(`${this.URL}/api/caja-contable/balance-billeteras/${empresa}`);
   }
 
 

@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://traveris-backend.onrender.com/api' // Poné la URL que te dio Render
+  // Quítale el /api del final para probar la ruta directa
+  apiUrl: 'https://traveris-backend.onrender.com' 
 };

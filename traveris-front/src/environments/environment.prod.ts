@@ -1,4 +1,4 @@
-export const environment = {
+export const environments = {
   production: true,
   apiUrl: 'https://traveris-backend.onrender.com/api' // Poné la URL que te dio Render
 };

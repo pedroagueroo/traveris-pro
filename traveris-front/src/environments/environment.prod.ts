@@ -1,5 +1,5 @@
+// environment.prod.ts
 export const environment = {
   production: true,
-  // Quítale el /api del final para probar la ruta directa
-  apiUrl: 'https://traveris-backend.onrender.com' 
+  apiUrl: 'https://traveris-backend.onrender.com/api' // Ahora SI incluimos el /api aquí
 };

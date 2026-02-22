@@ -10,16 +10,16 @@ const cajasRoutes = require('./caja.routes')
 const authRoutes = require('./auth.routes'); // Verifica que la ruta al archivo sea correcta
 const cajaContableRoutes = require('./cajaContable');
 const mailer = require('./mailer');
-
 const app = express();
+
 app.use(cors());
 app.use(express.json());
-app.use('/clientes', clientesRoutes);
-app.use('/reservas', reservasRoutes);
-app.use('/caja',cajasRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/caja-contable', cajaContableRoutes);
-app.use('/uploads', express.static('uploads'));
+// Modificá estas líneas en tu index.js de la carpeta backend
+app.use('/api/clientes', clientesRoutes);    // Agregamos /api
+app.use('/api/reservas', reservasRoutes);    // Agregamos /api
+app.use('/api/caja', cajasRoutes);            // Agregamos /api
+app.use('/api/auth', authRoutes);             // Ya lo tenía
+app.use('/api/caja-contable', cajaContableRoutes); // Ya lo tenía
 
 
 // Esta es una ruta de prueba para ver si la base de datos responde

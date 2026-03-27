@@ -1,9 +1,9 @@
-.bg-success-soft { background-color: #dcfce7; }
-.bg-danger-soft { background-color: #fee2e2; }
-.bg-dark-soft { background-color: #f1f5f9; }
+.bg-success-soft { background-color: var(--success-light); }
+.bg-danger-soft { background-color: var(--danger-light); }
+.bg-dark-soft { background-color: var(--bg-badge); }
 
 .table-hover tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--bg-card-hover);
   cursor: default;
 }
 
@@ -25,7 +25,7 @@
 }
 
 .btn-outline-danger:hover {
-    background-color: #dc3545;
+    background-color: var(--danger);
     color: white;
     transform: scale(1.1);
     transition: all 0.2s;

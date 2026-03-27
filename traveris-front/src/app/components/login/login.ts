@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../../services/auth'; // Verifica que la ruta sea correcta
-import { Router } from '@angular/router'; // <--- CAMBIA ESTO (debe ser @angular/router)
+import { AuthService } from '../../services/auth';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,25 +15,38 @@ import { FormsModule } from '@angular/forms';
 export class Login {
   credenciales = { user: '', pass: '' };
   errorLogin: boolean = false;
+  loading: boolean = false;
+  errorMessage: string = '';
 
   constructor(private auth: AuthService, private router: Router) {}
 
-  // En tu login.ts, dentro del ngOnInit
-ngOnInit() {
-  if (this.auth.estaLogueado()) {
-    this.router.navigate(['/dashboard']);
+  ngOnInit() {
+    if (this.auth.estaLogueado()) {
+      this.router.navigate(['/dashboard']);
+    }
   }
-}
 
   onLogin() {
+    this.errorLogin = false;
+    this.errorMessage = '';
+
+    if (!this.credenciales.user || !this.credenciales.pass) {
+      this.errorLogin = true;
+      this.errorMessage = 'Completá ambos campos para continuar.';
+      return;
+    }
+
+    this.loading = true;
+
     this.auth.login(this.credenciales).subscribe({
       next: (res) => {
-        console.log('Login exitoso:', res);
-        this.router.navigate(['/']); // Ahora sí reconocerá el método navigate
+        this.loading = false;
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
+        this.loading = false;
         this.errorLogin = true;
-        alert('Acceso denegado: Usuario o contraseña incorrectos.');
+        this.errorMessage = 'Usuario o contraseña incorrectos.';
       }
     });
   }

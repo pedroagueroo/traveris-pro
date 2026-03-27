@@ -3,6 +3,7 @@ import { NavigationEnd, RouterOutlet,Router } from '@angular/router';
 import { Navbar } from "./components/navbar/navbar";
 import { CommonModule } from '@angular/common'; 
 import { AuthService } from './services/auth'; 
+import { ThemeService } from './services/theme';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -14,15 +15,12 @@ import { filter } from 'rxjs/operators';
 })
 export class App {
   protected readonly title = signal('traveris-front');
-  // Dentro de la clase App
-esPaginaLogin: boolean = false;
+  esPaginaLogin: boolean = false;
 
-constructor(public auth: AuthService, private router: Router) {
-  // Escuchamos cada cambio de página
+constructor(public auth: AuthService, private router: Router, public theme: ThemeService) {
   this.router.events.pipe(
     filter(event => event instanceof NavigationEnd)
   ).subscribe((event: any) => {
-    // Si la URL es /login, marcamos que estamos en el login
     this.esPaginaLogin = event.url.includes('/login');
   });
 }}

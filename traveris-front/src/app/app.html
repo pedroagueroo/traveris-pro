@@ -1,5 +1,5 @@
 <app-navbar *ngIf="auth.estaLogueado() && !esPaginaLogin"></app-navbar>
 
-<div class="container mt-4">
+<main class="main-content" [class.with-sidebar]="auth.estaLogueado() && !esPaginaLogin">
   <router-outlet></router-outlet>
-</div>
+</main>

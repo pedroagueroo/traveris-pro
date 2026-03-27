@@ -1,127 +1,202 @@
-<div class="container mt-4 animate-fade-in" *ngIf="cliente">
+<div class="px-3 px-md-4 py-4 form-container-elite animate-fade-in" *ngIf="cliente" style="max-width: 1100px;">
     
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="form-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <div>
-            <span class="label-tech">LEGAJO TÉCNICO INDIVIDUAL</span>
-            <h2 class="fw-bold text-dark mb-0">{{ cliente.nombre_completo | uppercase }}</h2>
+            <span class="badge bg-light text-primary border border-primary px-3 py-2 shadow-sm mb-2">LEGAJO TÉCNICO INDIVIDUAL</span>
+            <h2 class="fw-bold mb-0">{{ cliente.nombre_completo | uppercase }}</h2>
+            <p class="text-muted small mb-0 mt-1">Ficha maestra de pasajero</p>
         </div>
-        <button class="btn btn-outline-dark btn-sm fw-bold px-3 border-2" routerLink="/clientes">
-            <i class="bi bi-arrow-left me-1"></i> VOLVER AL LISTADO
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill shadow-sm" routerLink="/clientes">
+                <i class="bi bi-arrow-left me-1"></i> Volver a Clientes
+            </button>
+            <button class="btn btn-elite fw-bold px-4 rounded-pill shadow-sm" [routerLink]="['/clientes/editar', cliente.id]">
+                <i class="bi bi-pencil-square me-1"></i> Editar Ficha
+            </button>
+        </div>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-4">
-            <div class="glass-card h-100 shadow-sm p-4">
-                <div class="info-title mb-4">
-                    <i class="bi bi-person-badge-fill text-primary me-2"></i> Identidad y Contacto
-                </div>
+        <!-- COLUMNA IZQUIERDA: PERFIL -->
+        <div class="col-lg-4">
+            <!-- Tarjeta de Perfil Principal -->
+            <div class="form-card h-100 p-4 border-top border-4 border-primary">
                 
-                <div class="row g-4">
-                    <div class="col-12">
-                        <span class="label-tech">ID DE SISTEMA</span>
-                        <span class="badge bg-light text-dark border px-3 py-2 fw-bold mt-1">#{{ cliente.id }}</span>
+                <div class="text-center mb-4 pb-4 border-bottom">
+                    <div class="d-inline-flex justify-content-center align-items-center bg-primary bg-opacity-10 rounded-circle mb-3 border border-primary border-opacity-25" style="width: 80px; height: 80px;">
+                        <i class="bi bi-person-bounding-box text-primary fs-1"></i>
                     </div>
+                    <h5 class="fw-bold mb-1">{{ cliente.nombre_completo }}</h5>
+                    <span class="badge bg-body text-muted border px-3 py-2 shadow-sm">ID #{{ cliente.id }}</span>
+                </div>
 
-                    <div class="col-12">
-                        <span class="label-tech">NACIONALIDAD</span>
-                        <div class="fw-bold text-dark mt-1">
-                            <i class="bi bi-globe-americas me-2 opacity-50"></i>{{ cliente.nacionalidad || 'Argentino' }}
+                <h6 class="fw-bold text-muted small text-uppercase mb-3"><i class="bi bi-person-lines-fill me-2"></i> Identidad y Contacto</h6>
+                
+                <div class="vstack gap-3">
+                    <div class="d-flex align-items-center p-3 rounded-3 bg-body shadow-sm border border-light">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="bi bi-globe-americas fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="small fw-bold text-muted" style="font-size: 0.7rem;">NACIONALIDAD</div>
+                            <div class="fw-bold">{{ cliente.nacionalidad || 'Argentino' }}</div>
                         </div>
                     </div>
 
-                    <div class="col-12">
-                        <span class="label-tech">FECHA DE NACIMIENTO</span>
-                        <div class="fs-5 text-primary fw-bold mt-1">
-                            <i class="bi bi-calendar-event me-2"></i>
-                            {{ cliente?.fecha_nacimiento ? (cliente.fecha_nacimiento | date:'dd/MM/yyyy') : '---' }}
+                    <div class="d-flex align-items-center p-3 rounded-3 bg-body shadow-sm border border-light">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="bi bi-envelope-at fs-5"></i>
+                        </div>
+                        <div class="text-truncate" style="max-width: 200px;">
+                            <div class="small fw-bold text-muted" style="font-size: 0.7rem;">CORREO ELECTRÓNICO</div>
+                            <div class="fw-bold text-truncate" [title]="cliente.email">{{ cliente.email || 'Sin registrar' }}</div>
                         </div>
                     </div>
 
-                    <div class="col-12">
-                        <span class="label-tech">CORREO ELECTRÓNICO</span>
-                        <div class="fw-semibold text-dark mt-1 text-break">
-                            <i class="bi bi-envelope-at me-2 opacity-50"></i>{{ cliente.email || 'Sin registrar' }}
+                    <div class="d-flex align-items-center p-3 rounded-3 bg-body shadow-sm border border-light">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="bi bi-whatsapp fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="small fw-bold text-muted" style="font-size: 0.7rem;">TELÉFONO / CELULAR</div>
+                            <div class="fw-bold">{{ cliente.telefono || 'Sin registrar' }}</div>
                         </div>
                     </div>
 
-                    <div class="col-12">
-                        <span class="label-tech">TELÉFONO / CELULAR</span>
-                        <div class="text-dark mt-1">
-                            <i class="bi bi-telephone me-2 opacity-50"></i>{{ cliente.telefono || 'Sin registrar' }}
+                    <div class="d-flex align-items-center p-3 rounded-3 bg-body shadow-sm border border-light">
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="bi bi-calendar-event fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="small fw-bold text-muted" style="font-size: 0.7rem;">FECHA DE NACIMIENTO</div>
+                            <div class="fw-bold">{{ cliente?.fecha_nacimiento ? (cliente.fecha_nacimiento | date:'dd/MM/yyyy') : 'No declarada' }}</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-8">
-            <div class="glass-card mb-4 shadow-sm p-4">
-                <div class="info-title mb-4">
-                    <i class="bi bi-shield-check text-primary me-2"></i> Documentación Legal
+        <!-- COLUMNA DERECHA: DOCUMENTACIÓN Y PREFERENCIAS -->
+        <div class="col-lg-8">
+            <!-- Bloque de Documentación Legal -->
+            <div class="form-card mb-4 p-4 p-md-5">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-dark text-white rounded-3 d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="bi bi-shield-check fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Documentación Legal Oficial</h5>
+                        <p class="text-muted small mb-0">Credenciales de viaje y facturación</p>
+                    </div>
                 </div>
-                <div class="row g-4">
+                
+                <div class="row g-4 mb-2">
                     <div class="col-md-4">
-                        <span class="label-tech">DNI / DOCUMENTO</span>
-                        <div class="fs-5 fw-bold text-dark mt-1">{{ cliente.dni_pasaporte }}</div>
+                        <div class="p-3 bg-body rounded-4 border shadow-sm h-100">
+                            <span class="small fw-bold text-muted d-block mb-1">DNI / DOCUMENTO MAIN</span>
+                            <div class="fs-5 fw-bold text-dark">{{ cliente.dni_pasaporte }}</div>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <span class="label-tech">DNI EMISIÓN</span>
-                        <div class="text-dark mt-1">{{ cliente?.dni_emision ? (cliente.dni_emision | date:'dd/MM/yyyy') : '---' }}</div>
+                        <div class="p-3 bg-body rounded-4 border shadow-sm h-100">
+                            <span class="small fw-bold text-muted d-block mb-1">DNI EMISIÓN</span>
+                            <div class="fw-bold">{{ cliente?.dni_emision ? (cliente.dni_emision | date:'dd/MM/yyyy') : '---' }}</div>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <span class="label-tech">DNI VENCIMIENTO</span>
-                        <div class="fw-bold text-danger mt-1">
-                            {{ cliente?.dni_vencimiento ? (cliente.dni_vencimiento | date:'dd/MM/yyyy') : '---' }}
+                        <div class="p-3 bg-body rounded-4 border shadow-sm h-100 border-start border-4 border-danger">
+                            <span class="small fw-bold text-danger d-block mb-1">DNI VENCIMIENTO</span>
+                            <div class="fw-bold text-danger">
+                                <i class="bi bi-calendar-x me-1" *ngIf="cliente?.dni_vencimiento"></i>
+                                {{ cliente?.dni_vencimiento ? (cliente.dni_vencimiento | date:'dd/MM/yyyy') : '---' }}
+                            </div>
                         </div>
                     </div>
 
                     <div class="col-md-4">
-                        <span class="label-tech">CUIT / CUIL</span>
-                        <div class="fw-semibold text-dark mt-1">{{ cliente.cuit_cuil || '---' }}</div>
+                        <div class="p-3 bg-body rounded-4 border border-primary border-opacity-25 shadow-sm h-100">
+                            <span class="small fw-bold text-primary d-block mb-1">PASAPORTE INTERNACIONAL</span>
+                            <div class="fs-5 fw-bold text-primary">{{ cliente.pasaporte_nro || 'No Declarado' }}</div>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <span class="label-tech">SEXO</span>
-                        <div class="fw-semibold text-dark mt-1">{{ cliente.sexo === 'M' ? 'Masculino' : 'Femenino' }}</div>
-                    </div>
-                    
-                    <div class="col-12"><hr class="my-2 opacity-10"></div>
-
-                    <div class="col-md-4">
-                        <span class="label-tech">NRO. PASAPORTE</span>
-                        <div class="fw-bold text-primary mt-1">{{ cliente.pasaporte_nro || 'No registrado' }}</div>
+                        <div class="p-3 bg-body rounded-4 border shadow-sm h-100">
+                            <span class="small fw-bold text-muted d-block mb-1">PAS. EMISIÓN</span>
+                            <div class="fw-bold">{{ cliente?.pasaporte_emision ? (cliente.pasaporte_emision | date:'dd/MM/yyyy') : '---' }}</div>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <span class="label-tech">PAS. FECHA EMISIÓN</span>
-                        <div class="text-dark mt-1">{{ cliente?.pasaporte_emision ? (cliente.pasaporte_emision | date:'dd/MM/yyyy') : '---' }}</div>
+                        <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 shadow-sm rounded-4 h-100">
+                            <span class="small fw-bold text-danger d-block mb-1">PAS. VENCIMIENTO</span>
+                            <div class="fw-bold text-danger">
+                                <i class="bi bi-exclamation-triangle-fill me-1" *ngIf="cliente?.pasaporte_vencimiento"></i>
+                                {{ cliente?.pasaporte_vencimiento ? (cliente.pasaporte_vencimiento | date:'dd/MM/yyyy') : '---' }}
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <span class="label-tech">PAS. VENCIMIENTO</span>
-                        <div class="fw-bold text-danger mt-1">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                            {{ cliente?.pasaporte_vencimiento ? (cliente.pasaporte_vencimiento | date:'dd/MM/yyyy') : '---' }}
+                </div>
+                
+                <hr class="my-4 border-light">
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center bg-body p-3 rounded-4 shadow-sm border">
+                            <i class="bi bi-briefcase text-muted fs-4 me-3"></i>
+                            <div>
+                                <div class="small fw-bold text-muted">CUIT / CUIL (FACTURACIÓN)</div>
+                                <div class="fw-bold">{{ cliente.cuit_cuil || 'Sin registrar' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center bg-body p-3 rounded-4 shadow-sm border">
+                            <i class="bi bi-gender-ambiguous text-muted fs-4 me-3"></i>
+                            <div>
+                                <div class="small fw-bold text-muted">GÉNERO / SEXO</div>
+                                <div class="fw-bold text-uppercase">{{ cliente.sexo === 'M' ? 'Masculino' : (cliente.sexo === 'F' ? 'Femenino' : 'Otro') }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="glass-card shadow-sm border-start border-danger border-5 p-4">
-                <div class="info-title mb-3">
-                    <i class="bi bi-heart-pulse-fill text-danger me-2"></i> Preferencias y Salud
+            <!-- Bloque de Preferencias -->
+            <div class="form-card border-start border-4 border-success p-4 p-md-5">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-success text-white rounded-3 d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="bi bi-heart-pulse-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0 text-success">Preferencias y Perfil Médico</h5>
+                        <p class="text-muted small mb-0">Información crucial pre-viaje</p>
+                    </div>
                 </div>
+
                 <div class="row g-4 align-items-start">
-                    <div class="col-md-4">
-                        <span class="label-tech">ASIENTO PREFERIDO</span>
-                        <div class="mt-2">
-                            <span class="btn-elite py-1 px-3 d-inline-block small text-uppercase">
-                                <i class="bi bi-airplane me-2"></i>{{ cliente.pref_asiento || 'INDIFERENTE' }}
+                    <div class="col-md-5">
+                        <div class="mb-4">
+                            <span class="small fw-bold text-muted d-block mb-2">ASIENTO PREFERIDO EN VUELOS</span>
+                            <span class="badge bg-body text-dark border px-3 py-2 fw-bold shadow-sm" style="font-size: 0.85rem;">
+                                <i class="bi bi-airplane me-2 text-primary"></i> 
+                                {{ cliente.pref_asiento || 'INDIFERENTE' }}
                             </span>
                         </div>
+                        <div>
+                            <span class="small fw-bold text-muted d-block mb-2">DIETA / COMIDA ESPECIAL</span>
+                            <div class="fw-bold">
+                                {{ cliente.pref_comida || 'Menú Estándar' }}
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-8 border-start ps-4">
-                        <span class="label-tech">OBSERVACIONES MÉDICAS / DIETA</span>
-                        <div class="bg-light p-3 rounded-3 mt-2 small text-dark border-0 italic">
-                            {{ cliente.observaciones_salud || 'El pasajero no presenta observaciones especiales registradas.' }}
+                    
+                    <div class="col-md-7">
+                        <div class="bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-4 p-4 h-100">
+                            <h6 class="fw-bold text-danger mb-2">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>Observaciones Médicas o Alertas
+                            </h6>
+                            <p class="mb-0 text-dark small" [class.fst-italic]="!cliente.observaciones_salud">
+                                {{ cliente.observaciones_salud || 'El pasajero no ha reportado observaciones o patologías de salud de relevancia para el viaje a la fecha.' }}
+                            </p>
                         </div>
                     </div>
                 </div>

@@ -4,12 +4,12 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Cabecera de tabla refinada */
 .table thead th {
-    background-color: #f8fafc;
+    background-color: var(--bg-table-header);
     color: var(--text-muted);
     font-size: 0.75rem;
     font-weight: 800;
@@ -22,11 +22,11 @@
 /* Filas con hover suave */
 .table tbody tr {
     transition: background 0.2s ease;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .table tbody tr:hover {
-    background-color: #f8fafc;
+    background-color: var(--bg-card-hover);
 }
 
 .table td {
@@ -45,20 +45,20 @@
 }
 
 .status-pending {
-    background: #fef2f2;
+    background: var(--danger-light);
     color: var(--danger);
-    border-color: #fee2e2;
+    border-color: var(--danger-border);
 }
 
 .status-paid {
-    background: #ecfdf5;
+    background: var(--success-light);
     color: var(--success);
-    border-color: #d1fae5;
+    border-color: var(--success-border);
 }
 
 /* Botón Ver Detalles Estilo Elite */
 .btn-view {
-    background: white;
+    background: var(--bg-card);
     border: 1px solid var(--border);
     color: var(--text-main);
     font-weight: 600;
@@ -71,4 +71,4 @@
     color: white;
     border-color: var(--accent);
     transform: translateY(-1px);
-}
+}

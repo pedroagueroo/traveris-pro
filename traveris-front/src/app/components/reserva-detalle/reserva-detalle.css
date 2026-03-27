@@ -1,34 +1,32 @@
-/* --- TUS ESTILOS ORIGINALES --- */
+/* --- ESTILOS PARA VISTA DOCUMENTO A4 --- */
 .doc-preview-container {
-    background: white;
-    color: #1a202c;
+    background: var(--bg-card);
+    color: var(--text-main);
     padding: 1.5cm;
     width: 210mm;
     min-height: 297mm;
     margin: auto;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     line-height: 1.4;
 }
 
 .doc-header {
     display: flex;
     justify-content: space-between;
-    border-bottom: 2px solid #2d3748;
+    border-bottom: 2px solid var(--border);
     padding-bottom: 20px;
     margin-bottom: 30px;
 }
 
-/* ... (resto de tus estilos de tabla y A4 sheet) ... */
-
 .doc-a4-sheet {
   width: 210mm;
   min-height: 297mm;
-  font-family: 'Helvetica', 'Arial', sans-serif;
-  color: #2c3e50;
+  font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
+  color: var(--text-main);
   box-sizing: border-box;
 }
 
-/* --- NUEVOS ESTILOS PARA CONTROL DE VENCIMIENTO --- */
+/* --- ESTILOS CONTROL DE VENCIMIENTO --- */
 .extra-small {
     font-size: 0.7rem;
     line-height: 1.2;
@@ -38,7 +36,7 @@
     border-color: rgba(239, 68, 68, 0.25) !important;
 }
 
-/* Resaltado del input de fecha cuando el agente está editando */
+/* Resaltado del input de fecha */
 input[type="date"].border-danger:focus {
     border-color: var(--danger) !important;
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;

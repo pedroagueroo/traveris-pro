@@ -1,17 +1,19 @@
-<div class="container mt-4 pb-5">
+<div class="px-3 px-md-4 py-4 pb-5">
   <div class="row mb-4 align-items-center">
-    <div class="col-md-6">
-      <h2 class="fw-bold text-dark mb-0">Panel de Control General</h2>
+    <div class="col-12 col-md-6 mb-3 mb-md-0">
+      <h2 class="fw-bold mb-0">Panel de Control General</h2>
       <p class="text-muted small mb-0">Sistema Integral de Gestión Turística</p>
     </div>
-    <div class="col-md-6 text-md-end mt-3 mt-md-0">
-      <span class="badge bg-light text-primary border border-primary px-3 py-2 me-2 shadow-sm">
-        <i class="bi bi-building-fill me-1"></i> Agencia: {{ nombreEmpresa }}
-      </span>
-      <span class="badge bg-dark text-white px-3 py-2 shadow-sm">
-        <i class="bi bi-currency-dollar text-success me-1"></i>
-        Dólar Oficial: Compra ${{ cotizacionBlue.compra }} | Venta ${{ cotizacionBlue.venta }}
-      </span>
+    <div class="col-12 col-md-6 text-md-end">
+      <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+        <span class="badge bg-light text-primary border border-primary px-3 py-2 shadow-sm">
+          <i class="bi bi-building-fill me-1"></i> Agencia: {{ nombreEmpresa }}
+        </span>
+        <span class="badge bg-dark text-white px-3 py-2 shadow-sm">
+          <i class="bi bi-currency-dollar text-success me-1"></i>
+          Dólar: ${{ cotizacionBlue.compra }} / ${{ cotizacionBlue.venta }}
+        </span>
+      </div>
     </div>
   </div>
 
@@ -81,8 +83,8 @@
   <div class="row">
     <div class="col-12">
       <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3">
-          <h5 class="mb-0 text-primary fw-bold"><i class="bi bi-clock-history me-2"></i>Últimos Movimientos de Caja</h5>
+        <div class="card-header py-3">
+          <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-accent"></i>Últimos Movimientos de Caja</h5>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">

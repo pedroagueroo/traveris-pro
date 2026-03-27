@@ -10,6 +10,7 @@ import { ClienteDetalle } from './components/cliente-detalle/cliente-detalle';
 import { Login } from './components/login/login';
 import { authGuard } from './guards/auth-guard';
 import { Caja } from './components/caja/caja';
+import { ImportClientesComponent } from './components/import-clientes/import-clientes';
 
 export const routes: Routes = [
   // 1. LA ÚNICA RUTA PÚBLICA
@@ -25,6 +26,7 @@ export const routes: Routes = [
       { path: 'clientes', component: ClientesListaComponent },
       { path: 'clientes/nuevo', component: ClienteNuevo },
       { path: 'clientes/detalle/:id', component: ClienteDetalle },
+      { path: 'clientes/importar', component: ImportClientesComponent },
       
       // Reservas
       { path: 'reservas', component: ReservasListaComponent },

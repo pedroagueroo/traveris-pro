@@ -165,5 +165,11 @@ actualizarReserva(id: any, reserva: any): Observable<any> {
   return this.http.post(`${this.URL}/clientes/enviar-saludo-cumple`, datos);
 }
 
+  // --- SECCIÓN IMPORTACIÓN MASIVA ---
+
+  importarClientesExcel(formData: FormData): Observable<any> {
+    return this.http.post(`${this.URL}/import-clientes/upload`, formData);
+  }
+
 }
 

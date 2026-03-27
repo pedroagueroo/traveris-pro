@@ -1,0 +1,225 @@
+/* =============================================
+   IMPORT CLIENTES - PREMIUM STYLES
+   ============================================= */
+
+/* ZONA DE UPLOAD */
+.upload-zone {
+    padding: 60px 40px;
+    text-align: center;
+    border: 2px dashed var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.02), rgba(99, 102, 241, 0.02));
+    transition: opacity 0.3s;
+    opacity: 0;
+}
+
+.upload-zone:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+}
+
+.upload-zone:hover::before {
+    opacity: 1;
+}
+
+.upload-zone.dragging {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.04);
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12);
+    transform: scale(1.01);
+}
+
+.upload-zone.has-file {
+    border-style: solid;
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.02);
+    padding: 30px 40px;
+}
+
+/* ICONO DE UPLOAD */
+.upload-icon-container {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #2563eb;
+    transition: transform 0.3s;
+}
+
+.upload-zone:hover .upload-icon-container {
+    transform: translateY(-4px);
+}
+
+.upload-zone.dragging .upload-icon-container {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+}
+
+/* PREVIEW DEL ARCHIVO */
+.file-preview {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+}
+
+.file-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #16a34a;
+    flex-shrink: 0;
+}
+
+.file-info {
+    flex: 1;
+}
+
+/* ALERTA DE ERROR PERSONALIZADA */
+.alert-error {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    color: #991b1b;
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 1px solid #fecaca;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* ALERTA DE ÉXITO */
+.alert-success {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
+    color: #166534;
+    border: 1px solid #bbf7d0 !important;
+    font-size: 0.95rem;
+}
+
+/* SPINNER DE PROCESAMIENTO */
+.processing-spinner {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+}
+
+.spinner-ring {
+    position: absolute;
+    inset: 0;
+    border: 4px solid #e2e8f0;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.processing-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    color: #3b82f6;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* BARRA DE PROGRESO CUSTOM */
+.progress-container {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.progress-bar-custom {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+/* TARJETAS DE ESTADÍSTICAS */
+.stat-card {
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin: 0 auto 12px;
+}
+
+.stat-icon.total {
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    color: #475569;
+}
+
+.stat-icon.success {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #16a34a;
+}
+
+.stat-icon.update {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #2563eb;
+}
+
+.stat-icon.error {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #dc2626;
+}
+
+/* TABLA DE ERRORES */
+.table thead th {
+    background-color: #f8fafc;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px;
+    border-bottom: 2px solid var(--border);
+}
+
+.table tbody tr {
+    transition: background 0.2s;
+}
+
+.table tbody tr:hover {
+    background: #f8fafc;
+}

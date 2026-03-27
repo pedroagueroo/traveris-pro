@@ -48,8 +48,8 @@ export class ClienteNuevo {
     if (this.clienteEditando.id) {
       this.cerrarModal();
     } else {
-      if(confirm('¿Deseas vaciar todos los campos del formulario?')) {
-        this.clienteEditando = { ...this.estadoInicial };
+      if(confirm('¿Estás seguro que deseas descartar este registro y volver a clientes?')) {
+        this.cerrarModal();
       }
     }
   }

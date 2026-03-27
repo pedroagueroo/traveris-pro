@@ -59,16 +59,12 @@
                             </div>
                         </td>
                         <td class="text-end pe-4">
-                            <button class="btn btn-view btn-sm px-3" [routerLink]="['/reservas', r.id]">
-                                <i class="bi bi-search me-1"></i> Detalles
-                            </button>
-                        <td class="text-end pe-4">
                             <div class="d-flex justify-content-end gap-2">
-                                <button class="btn btn-view btn-sm px-3" [routerLink]="['/reservas', r.id]"
+                                <button class="btn btn-primary btn-sm px-3 rounded-pill align-items-center d-flex gap-1 shadow-sm" [routerLink]="['/reservas', r.id]"
                                     title="Ver Detalle">
-                                    <i class="bi bi-search"></i>
+                                    <i class="bi bi-search"></i> <span class="d-none d-md-inline fw-bold">Detalle</span>
                                 </button>
-                                <button class="btn btn-light btn-sm border" [routerLink]="['/reservas/editar', r.id]"
+                                <button class="btn btn-light btn-sm border d-flex align-items-center" [routerLink]="['/reservas/editar', r.id]"
                                     title="Editar Legajo">
                                     <i class="bi bi-pencil-fill text-warning"></i>
                                 </button>

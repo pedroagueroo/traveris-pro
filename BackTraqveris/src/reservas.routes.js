@@ -10,26 +10,55 @@ const transporter = require('./mailer');
 router.post('/:id/enviar-documento', async (req, res) => {
     try {
         const { id } = req.params;
-        const { destinatario, nombreCliente, tipoDoc, destino } = req.body;
+        const { destinatario, nombreCliente, tipoDoc, destino, mensajePersonalizado, empresa } = req.body;
 
-        const mailOptions = {
-            from: 'Vicka Turismo <tu-email@gmail.com>',
+        const esVoucher = tipoDoc === 'Voucher';
+        const asunto = esVoucher
+            ? `🧳 Tu Voucher de Viaje a ${destino} — ${empresa}`
+            : `✈️ Propuesta de Viaje a ${destino} — ${empresa}`;
+
+        const htmlMail = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
+          <div style="background: #1a1a2e; padding: 32px 40px; text-align:center;">
+            <div style="color:rgba(255,255,255,0.6); font-size:11px; text-transform:uppercase; letter-spacing:2px; margin-bottom:8px;">
+              ${empresa}
+            </div>
+            <h1 style="color:white; font-size:22px; font-weight:900; margin:0;">
+              ${esVoucher ? '🧳 Tu Voucher de Viaje' : '✈️ Propuesta de Viaje'}
+            </h1>
+          </div>
+          <div style="padding: 32px 40px; background:#fafafa;">
+            <p style="font-size:16px;">¡Hola, <strong>${nombreCliente}</strong>!</p>
+            <p style="color:#555; margin-top:12px;">
+              ${mensajePersonalizado || (esVoucher
+                ? `Te enviamos tu <strong>Voucher de Servicios</strong> para tu próximo viaje a <strong>${destino}</strong>. Guardá este documento — es tu guía oficial durante el viaje.`
+                : `Te enviamos la <strong>Propuesta de Viaje</strong> para tu próxima aventura a <strong>${destino}</strong>. Quedamos a disposición para cualquier consulta.`
+              )}
+            </p>
+            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:20px; margin-top:20px;">
+              <div style="font-size:11px; text-transform:uppercase; font-weight:800; letter-spacing:1px; color:#888; margin-bottom:8px;">Detalles del documento</div>
+              <div><strong>Tipo:</strong> ${tipoDoc}</div>
+              <div><strong>Destino:</strong> ${destino}</div>
+              <div><strong>Ref. Legajo:</strong> #${id}</div>
+            </div>
+          </div>
+          <div style="background:#f0f0f0; padding:20px 40px; font-size:11px; color:#888; text-align:center;">
+            ${empresa} — Agencia de Viajes y Turismo<br>
+            Este correo fue generado automáticamente por Traveris Pro
+          </div>
+        </div>`;
+
+        await transporter.sendMail({
+            from: `${empresa} <vicka.turismo@gmail.com>`,
             to: destinatario,
-            subject: `📄 Tu ${tipoDoc} de viaje a ${destino} - Vicka Turismo`,
-            html: `
-                <div style="font-family: Arial, sans-serif; color: #333;">
-                    <h2>¡Hola, ${nombreCliente}!</h2>
-                    <p>Esperamos que estés muy bien. Te adjuntamos tu <b>${tipoDoc}</b> correspondiente a tu próximo viaje a <b>${destino}</b>.</p>
-                    <p>Cualquier duda, estamos a tu disposición.</p>
-                    <br><hr>
-                    <p style="font-size: 0.8rem; color: #777;">Vicka Turismo - Agencia de Viajes y Turismo</p>
-                </div>`
-        };
+            subject: asunto,
+            html: htmlMail
+        });
 
-        await transporter.sendMail(mailOptions);
         res.json({ success: true, message: "Email enviado con éxito" });
     } catch (err) {
-        res.status(500).json({ error: "Error al enviar el correo" });
+        console.error(err);
+        res.status(500).json({ error: "Error al enviar el correo: " + err.message });
     }
 });
 
@@ -177,6 +206,38 @@ router.get('/cliente/:idCliente', async (req, res) => {
     }
 });
 
+// COTIZACIÓN PARA EL CLIENTE (sin costos internos)
+router.get('/:id/cotizacion', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const reserva = await pool.query(`
+            SELECT r.*, c.nombre_completo, c.email, c.telefono
+            FROM reservas r JOIN clientes c ON r.id_titular = c.id
+            WHERE r.id = $1`, [id]);
+        
+        if (reserva.rows.length === 0) return res.status(404).json({ error: "Reserva no encontrada" });
+
+        const items = await pool.query(`
+            SELECT tipo_item, nombre_item, hotel_nombre, aerolinea, plan_asistencia, 
+                   crucero_nombre, excursion_nombre, servicio_descripcion,
+                   ciudad, check_in, check_out, origen, destino, nro_vuelo, regimen,
+                   venta_bruta_cliente
+            FROM reserva_items_detalle
+            WHERE id_reserva = $1`, [id]);
+
+        // Total visible al cliente
+        const totalCliente = items.rows.reduce((acc, i) => acc + parseFloat(i.venta_bruta_cliente || 0), 0);
+
+        res.json({
+            reserva: reserva.rows[0],
+            items: items.rows,
+            total_cliente: totalCliente
+        });
+    } catch (err) {
+        res.status(500).json({ error: "Error al generar cotización" });
+    }
+});
+
 // --- DASHBOARD STATS ---
 router.get('/dashboard/stats/:empresa', async (req, res) => {
     try {
@@ -206,6 +267,7 @@ router.put('/:id/estado', async (req, res) => {
         res.status(500).json({ error: "Error al cambiar estado" });
     }
 });
+
 
 // --- CREAR RESERVA (POST Acoplado) ---
 router.post('/', async (req, res) => {

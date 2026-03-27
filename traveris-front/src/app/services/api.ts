@@ -60,15 +60,15 @@ export class ApiService {
 
   // --- SECCIÓN RESERVAS (NUEVAS FUNCIONES PARA EDICIÓN) ---
 
-// Esta es la que trae el legajo con sus vuelos, pasajeros y servicios de una
-getReservaDetalleCompleto(id: any): Observable<any> {
-  return this.http.get(`${this.URL}/reservas/completa/${id}`);
-}
+  // Esta es la que trae el legajo con sus vuelos, pasajeros y servicios de una
+  getReservaDetalleCompleto(id: any): Observable<any> {
+    return this.http.get(`${this.URL}/reservas/completa/${id}`);
+  }
 
-// Esta es la que manda el payload gigante para sobreescribir los cambios
-actualizarReserva(id: any, reserva: any): Observable<any> {
-  return this.http.put(`${this.URL}/reservas/${id}`, reserva);
-}
+  // Esta es la que manda el payload gigante para sobreescribir los cambios
+  actualizarReserva(id: any, reserva: any): Observable<any> {
+    return this.http.put(`${this.URL}/reservas/${id}`, reserva);
+  }
 
   // --- SECCIÓN CAJA (MOVIMIENTOS) ---
   getMovimientosPorReserva(idReserva: number): Observable<any> {
@@ -162,14 +162,26 @@ actualizarReserva(id: any, reserva: any): Observable<any> {
   }
 
   enviarSaludoCumple(datos: { email: string, nombre: string }): Observable<any> {
-  return this.http.post(`${this.URL}/clientes/enviar-saludo-cumple`, datos);
-}
+    return this.http.post(`${this.URL}/clientes/enviar-saludo-cumple`, datos);
+  }
 
   // --- SECCIÓN IMPORTACIÓN MASIVA ---
 
   importarClientesExcel(formData: FormData): Observable<any> {
     return this.http.post(`${this.URL}/import-clientes/upload`, formData);
   }
+
+  pagarDeudaTarjeta(datos: { monto: number, nombre_tarjeta: string, observaciones: string, empresa_nombre: string }): Observable<any> {
+    return this.http.post(`${this.URL}/caja-contable/pagar-tarjeta`, datos);
+  }
+
+  getCierreMensual(empresa: string, mes: number, anio: number): Observable<any> {
+    return this.http.get(`${this.URL}/caja-contable/cierre-mensual/${empresa}?mes=${mes}&anio=${anio}`);
+  }
+
+  getCotizacionCliente(idReserva: number): Observable<any> {
+  return this.http.get(`${this.URL}/reservas/${idReserva}/cotizacion`);
+}
 
 }
 

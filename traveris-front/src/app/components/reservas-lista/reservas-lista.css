@@ -58,17 +58,17 @@
 
 /* Botón Ver Detalles Estilo Elite */
 .btn-view {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--text-main);
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-main) !important;
     font-weight: 600;
     border-radius: 8px;
     transition: all 0.2s;
 }
 
 .btn-view:hover {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
+    background: var(--accent) !important;
+    color: white !important;
+    border-color: var(--accent) !important;
     transform: translateY(-1px);
 }

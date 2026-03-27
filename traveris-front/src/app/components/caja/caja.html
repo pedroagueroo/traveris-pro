@@ -1,5 +1,5 @@
 <div class="px-3 px-md-4 py-4 pb-5 animate-fade-in" style="max-width: 1400px; margin: 0 auto;">
-    
+
     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
         <div>
             <h2 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
@@ -8,8 +8,8 @@
             <p class="text-muted small mb-0 mt-1">Visión financiera diaria y gestión de egresos operativos.</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-dark rounded-pill fw-bold shadow-sm px-4 no-print" (click)="imprimirCierreCaja()">
-                <i class="bi bi-printer me-2"></i> Reporte Cierre
+            <button class="btn btn-outline-dark btn-sm rounded-pill fw-bold" (click)="generarCierreMensual()">
+                <i class="bi bi-file-earmark-ruled me-1"></i> Reporte de Cierre
             </button>
         </div>
     </div>
@@ -17,45 +17,53 @@
     <!-- ROW 1: Saldos Generales Principales -->
     <div class="row g-4 mb-4">
         <div class="col-md-6">
-             <!-- Card ARS -->
-             <div class="form-card p-4 h-100 position-relative overflow-hidden text-white shadow" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
-                <i class="bi bi-wallet2 position-absolute opacity-10" style="font-size: 8rem; right: -20px; bottom: -30px;"></i>
+            <!-- Card ARS -->
+            <div class="form-card p-4 h-100 position-relative overflow-hidden text-white shadow"
+                style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                <i class="bi bi-wallet2 position-absolute opacity-10"
+                    style="font-size: 8rem; right: -20px; bottom: -30px;"></i>
                 <div class="d-flex justify-content-between align-items-start position-relative z-1 mb-3">
-                    <span class="badge bg-white text-dark shadow-sm px-3 py-2 rounded-pill fw-bold">SALDO EN PESOS</span>
+                    <span class="badge bg-white text-dark shadow-sm px-3 py-2 rounded-pill fw-bold">SALDO EN
+                        PESOS</span>
                     <div class="bg-white bg-opacity-10 p-2 rounded-circle"><i class="bi bi-cash-stack"></i></div>
                 </div>
                 <div class="position-relative z-1">
-                    <h1 class="fw-bold mb-0 display-5" style="letter-spacing: -1px;">
-                        <span class="opacity-75 fs-4 me-1">$</span>{{ saldos.saldoARS | number:'1.2-2' }}
+                    <h1 class="fw-bold mb-0 display-5 text-white" style="letter-spacing: -1px;">
+                        <span class="opacity-75 fs-4 me-1 text-white">$</span>{{ saldos.saldoARS | number:'1.2-2' }}
                     </h1>
                 </div>
-             </div>
+            </div>
         </div>
         <div class="col-md-6">
-             <!-- Card USD -->
-             <div class="form-card p-4 h-100 position-relative overflow-hidden text-white shadow" style="background: linear-gradient(135deg, var(--bs-primary) 0%, #4338ca 100%);">
-                <i class="bi bi-currency-dollar position-absolute opacity-10" style="font-size: 8rem; right: -20px; bottom: -30px;"></i>
+            <!-- Card USD -->
+            <div class="form-card p-4 h-100 position-relative overflow-hidden text-white shadow"
+                style="background: linear-gradient(135deg, var(--bs-primary) 0%, #4338ca 100%);">
+                <i class="bi bi-currency-dollar position-absolute opacity-10"
+                    style="font-size: 8rem; right: -20px; bottom: -30px;"></i>
                 <div class="d-flex justify-content-between align-items-start position-relative z-1 mb-3">
-                    <span class="badge bg-white text-primary shadow-sm px-3 py-2 rounded-pill fw-bold">SALDO EN DÓLARES</span>
+                    <span class="badge bg-white text-primary shadow-sm px-3 py-2 rounded-pill fw-bold">SALDO EN
+                        DÓLARES</span>
                     <div class="bg-white bg-opacity-10 p-2 rounded-circle"><i class="bi bi-bank"></i></div>
                 </div>
                 <div class="position-relative z-1">
-                    <h1 class="fw-bold mb-0 display-5" style="letter-spacing: -1px;">
-                        <span class="opacity-75 fs-4 me-1">USD</span>{{ saldos.saldoUSD | number:'1.2-2' }}
+                    <h1 class="fw-bold mb-0 display-5 text-white" style="letter-spacing: -1px;">
+                        <span class="opacity-75 fs-4 me-1 text-white">USD</span>{{ saldos.saldoUSD | number:'1.2-2' }}
                     </h1>
                 </div>
-             </div>
+            </div>
         </div>
     </div>
 
     <!-- ROW 2: Detalles de métodos de pago -->
-    <h6 class="fw-bold text-muted text-uppercase small mb-3 no-print"><i class="bi bi-pie-chart-fill me-2"></i> Desglose por Método de Ingreso</h6>
+    <h6 class="fw-bold text-muted text-uppercase small mb-3 no-print"><i class="bi bi-pie-chart-fill me-2"></i> Desglose
+        por Método de Ingreso</h6>
     <div class="row g-3 mb-5 no-print">
         <div class="col-6 col-md-3" *ngFor="let s of saldosDetallados">
             <div class="form-card p-3 h-100 d-flex flex-column justify-content-center"
-                 [ngClass]="{'border-start border-4 border-success': s.saldo >= 0, 'border-start border-4 border-danger': s.saldo < 0}">
+                [ngClass]="{'border-start border-4 border-success': s.saldo >= 0, 'border-start border-4 border-danger': s.saldo < 0}">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">{{ s.metodo_pago }}</div>
+                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">{{ s.metodo_pago }}
+                    </div>
                     <i class="bi fs-5" [ngClass]="{
                       'bi-cash-coin text-success': s.metodo_pago === 'EFECTIVO',
                       'bi-credit-card-2-front text-primary': s.metodo_pago === 'TARJETA',
@@ -63,37 +71,91 @@
                       'bi-phone-vibrate text-primary': s.metodo_pago === 'MERCADOPAGO'
                     }"></i>
                 </div>
-                <h5 class="fw-bold mb-0 text-dark">{{ s.moneda === 'ARS' ? '$' : 'USD' }} {{ s.saldo | number:'1.2-2' }}</h5>
+                <h5 class="fw-bold mb-0 text-dark">{{ s.moneda === 'ARS' ? '$' : 'USD' }} {{ s.saldo | number:'1.2-2' }}
+                </h5>
             </div>
         </div>
     </div>
 
+    <!-- Modal pago de tarjeta -->
+    <div class="modal fade" id="modalPagarTarjeta" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-credit-card me-2"></i>Pagar Deuda de Tarjeta</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted mb-2">TARJETA A CANCELAR</label>
+                        <select class="form-select premium-standalone" [(ngModel)]="pagTarjeta.nombre_tarjeta">
+                            <option value="NARANJA X">Naranja X</option>
+                            <option value="TARJETA">Tarjeta Genérica</option>
+                            <option value="VISA">Visa</option>
+                            <option value="MASTERCARD">Mastercard</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted mb-2">MONTO A PAGAR (ARS)</label>
+                        <input type="number" class="form-control premium-standalone fw-bold text-danger border-danger"
+                            [(ngModel)]="pagTarjeta.monto" placeholder="0.00">
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted mb-2">OBSERVACIONES</label>
+                        <input type="text" class="form-control premium-standalone"
+                            [(ngModel)]="pagTarjeta.observaciones" placeholder="Resumen de tarjeta Mayo 2025...">
+                    </div>
+                    <div class="alert alert-warning d-flex align-items-center gap-2 small">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Se debitará de <strong>Efectivo</strong> y se cancelará el saldo negativo en <strong>{{
+                                pagTarjeta.nombre_tarjeta || 'la tarjeta' }}</strong>.</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-danger rounded-pill fw-bold px-4" (click)="confirmarPagoTarjeta()">
+                        <i class="bi bi-check-circle me-1"></i> Confirmar Pago
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón que abre el modal (agregar junto a los botones de billeteras) -->
+    <button class="btn btn-outline-danger btn-sm rounded-pill fw-bold" data-bs-toggle="modal"
+        data-bs-target="#modalPagarTarjeta">
+        <i class="bi bi-credit-card-2-back me-1"></i> Pagar Deuda Tarjeta
+    </button>
+
     <!-- ROW 3: Herramientas Operativas -->
     <div class="row g-4 mb-5 no-print">
-        
+
         <!-- Calculadora -->
         <div class="col-lg-6">
             <div class="form-card h-100 p-0 overflow-hidden d-flex flex-column border-top border-4 border-info">
                 <div class="p-4 border-bottom bg-body">
                     <h5 class="fw-bold text-info text-dark mb-0 d-flex align-items-center">
-                        <div class="bg-info bg-opacity-10 p-2 rounded-3 me-2 text-info"><i class="bi bi-calculator-fill"></i></div> 
+                        <div class="bg-info bg-opacity-10 p-2 rounded-3 me-2 text-info"><i
+                                class="bi bi-calculator-fill"></i></div>
                         Conversor de Divisas
                     </h5>
                     <p class="small text-muted mb-0 mt-1 ms-5 ps-1">Utilidad rápida sin asentar movimientos.</p>
                 </div>
                 <div class="p-4 flex-grow-1 bg-body-secondary bg-opacity-25">
-                    
+
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="small fw-bold text-muted mb-2">DIRECCIÓN DE CAMBIO</label>
-                            <select class="form-select premium-standalone" [(ngModel)]="direccionConversion" (change)="calcular()">
+                            <select class="form-select premium-standalone" [(ngModel)]="direccionConversion"
+                                (change)="calcular()">
                                 <option value="A_PESOS">De Divisa Extranjera ➔ Hacia ARS</option>
                                 <option value="A_DIVISA">De Pesos ARS ➔ Hacia Divisa</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="small fw-bold text-muted mb-2">MONEDA REFERENCIA</label>
-                            <select class="form-select premium-standalone" [(ngModel)]="monedaSeleccionada" (change)="actualizarPrecioManual()">
+                            <select class="form-select premium-standalone" [(ngModel)]="monedaSeleccionada"
+                                (change)="actualizarPrecioManual()">
                                 <option value="USD">Dólar (USD)</option>
                                 <option value="EUR">Euro (EUR)</option>
                                 <option value="BRL">Real (BRL)</option>
@@ -101,25 +163,33 @@
                         </div>
                         <div class="col-md-6">
                             <label class="small fw-bold text-muted mb-2">MONTO A CONVERTIR</label>
-                            <input type="number" class="form-control premium-standalone" [(ngModel)]="montoEntrada" (input)="calcular()" placeholder="Escribir importe...">
+                            <input type="number" class="form-control premium-standalone" [(ngModel)]="montoEntrada"
+                                (input)="calcular()" placeholder="Escribir importe...">
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label class="small fw-bold text-muted m-0">TIPO DE CAMBIO</label>
                                 <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
-                                    <input class="form-check-input mt-0 cursor-pointer shadow-sm" type="checkbox" [(ngModel)]="modoPersonalizado" (change)="actualizarPrecioManual()" id="modoCustom">
+                                    <input class="form-check-input mt-0 cursor-pointer shadow-sm" type="checkbox"
+                                        [(ngModel)]="modoPersonalizado" (change)="actualizarPrecioManual()"
+                                        id="modoCustom">
                                     <label class="small text-muted cursor-pointer m-0" for="modoCustom">Manual</label>
                                 </div>
                             </div>
-                            <input type="number" class="form-control premium-standalone fw-bold" [ngClass]="{'border-warning': modoPersonalizado}" [(ngModel)]="tipoCambioUsado" [disabled]="!modoPersonalizado" (input)="calcular()">
+                            <input type="number" class="form-control premium-standalone fw-bold"
+                                [ngClass]="{'border-warning': modoPersonalizado}" [(ngModel)]="tipoCambioUsado"
+                                [disabled]="!modoPersonalizado" (input)="calcular()">
                         </div>
                     </div>
 
                     <div class="p-4 bg-body rounded-4 border border-info border-opacity-25 shadow-sm text-center">
-                        <span class="small fw-bold text-muted d-block mb-1 text-uppercase">Equivalencia en {{ direccionConversion === 'A_PESOS' ? 'Pesos (ARS)' : monedaSeleccionada }}</span>
-                        <h2 class="fw-bold mb-0" [ngClass]="direccionConversion === 'A_PESOS' ? 'text-success' : 'text-primary'">
+                        <span class="small fw-bold text-muted d-block mb-1 text-uppercase">Equivalencia en {{
+                            direccionConversion === 'A_PESOS' ? 'Pesos (ARS)' : monedaSeleccionada }}</span>
+                        <h2 class="fw-bold mb-0"
+                            [ngClass]="direccionConversion === 'A_PESOS' ? 'text-success' : 'text-primary'">
                             {{ direccionConversion === 'A_PESOS' ? '$' : '' }} {{ resultado | number:'1.2-2' }}
-                            <span *ngIf="direccionConversion !== 'A_PESOS'" class="fs-5 text-muted ms-1">{{ monedaSeleccionada }}</span>
+                            <span *ngIf="direccionConversion !== 'A_PESOS'" class="fs-5 text-muted ms-1">{{
+                                monedaSeleccionada }}</span>
                         </h2>
                     </div>
 
@@ -133,20 +203,24 @@
                 <div class="p-4 border-bottom bg-body d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="fw-bold text-danger mb-0 d-flex align-items-center">
-                            <div class="bg-danger bg-opacity-10 p-2 rounded-3 me-2 text-danger"><i class="bi bi-arrow-down-circle-fill"></i></div> 
+                            <div class="bg-danger bg-opacity-10 p-2 rounded-3 me-2 text-danger"><i
+                                    class="bi bi-arrow-down-circle-fill"></i></div>
                             Nuevo Egreso / Gasto
                         </h5>
-                        <p class="small text-muted mb-0 mt-1 ms-5 ps-1">Impacta directamente en la contabilidad diaria.</p>
+                        <p class="small text-muted mb-0 mt-1 ms-5 ps-1">Impacta directamente en la contabilidad diaria.
+                        </p>
                     </div>
                 </div>
                 <div class="p-4 flex-grow-1">
-                    
+
                     <div class="row g-4 mb-4">
                         <div class="col-md-12">
                             <label class="small fw-bold text-muted mb-2">CONCEPTO / OBSERVACIONES</label>
                             <div class="input-premium-group">
                                 <span class="input-premium-icon"><i class="bi bi-card-text"></i></span>
-                                <input type="text" class="form-control input-premium" [(ngModel)]="nuevoGasto.observaciones" placeholder="Ej: Pago Alquiler, Sueldos, Compra Librería...">
+                                <input type="text" class="form-control input-premium"
+                                    [(ngModel)]="nuevoGasto.observaciones"
+                                    placeholder="Ej: Pago Alquiler, Sueldos, Compra Librería...">
                             </div>
                         </div>
 
@@ -169,11 +243,14 @@
 
                         <div class="col-md-4">
                             <label class="small fw-bold text-muted mb-2">IMPORTE</label>
-                            <input type="number" class="form-control premium-standalone fw-bold text-danger border-danger" [(ngModel)]="nuevoGasto.monto" placeholder="0.00">
+                            <input type="number"
+                                class="form-control premium-standalone fw-bold text-danger border-danger"
+                                [(ngModel)]="nuevoGasto.monto" placeholder="0.00">
                         </div>
                     </div>
 
-                    <button class="btn btn-danger w-100 fw-bold rounded-pill shadow mt-auto py-2" (click)="registrarGasto()" [disabled]="!nuevoGasto.monto || !nuevoGasto.observaciones">
+                    <button class="btn btn-danger w-100 fw-bold rounded-pill shadow mt-auto py-2"
+                        (click)="registrarGasto()" [disabled]="!nuevoGasto.monto || !nuevoGasto.observaciones">
                         <i class="bi bi-save me-2"></i> Asentar Gasto en Sistema
                     </button>
                 </div>
@@ -183,11 +260,14 @@
 
     <!-- ROW 4: Movimientos del dia -->
     <div class="form-card p-0 overflow-hidden print-section border border-secondary border-opacity-25 pb-3">
-        <div class="px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center bg-body border-bottom">
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-check me-2 text-primary"></i> Asientos Diarios (Libro Mayor)</h5>
-            <span class="badge bg-light text-muted border px-3 py-2 mt-2 mt-md-0 shadow-sm"><i class="bi bi-calendar-check me-1"></i> Movimientos del Día</span>
+        <div
+            class="px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center bg-body border-bottom">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-check me-2 text-primary"></i> Asientos Diarios
+                (Libro Mayor)</h5>
+            <span class="badge bg-light text-muted border px-3 py-2 mt-2 mt-md-0 shadow-sm"><i
+                    class="bi bi-calendar-check me-1"></i> Movimientos del Día</span>
         </div>
-        
+
         <div class="table-responsive px-2 mt-2">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-body text-muted small text-uppercase">
@@ -204,15 +284,21 @@
                         <td class="ps-4 small text-muted fw-bold">{{ m.fecha_pago | date:'HH:mm' }}hs</td>
                         <td>
                             <div class="d-flex align-items-center py-1">
-                                <div class="bg-body-secondary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px;">
-                                    <i class="bi text-muted" [ngClass]="{'bi-box-arrow-in-right text-success': m.monto_real > 0, 'bi-box-arrow-up-right text-danger': m.monto_real < 0}"></i>
+                                <div class="bg-body-secondary rounded-circle d-flex justify-content-center align-items-center me-3"
+                                    style="width: 35px; height: 35px;">
+                                    <i class="bi text-muted"
+                                        [ngClass]="{'bi-box-arrow-in-right text-success': m.monto_real > 0, 'bi-box-arrow-up-right text-danger': m.monto_real < 0}"></i>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark d-flex align-items-center gap-2">
-                                        {{ m.tipo_movimiento === 'EGRESO_GENERAL' ? m.observaciones : m.tipo_movimiento }}
-                                        <span class="badge bg-light border text-muted px-2 py-1" style="font-size: 0.65rem;" *ngIf="m.id_reserva">Legajo #{{ m.id_reserva }}</span>
+                                        {{ m.tipo_movimiento === 'EGRESO_GENERAL' ? m.observaciones : m.tipo_movimiento
+                                        }}
+                                        <span class="badge bg-light border text-muted px-2 py-1"
+                                            style="font-size: 0.65rem;" *ngIf="m.id_reserva">Legajo #{{ m.id_reserva
+                                            }}</span>
                                     </div>
-                                    <div class="small text-muted text-truncate" style="max-width: 400px;" *ngIf="m.tipo_movimiento !== 'EGRESO_GENERAL' && m.observaciones">
+                                    <div class="small text-muted text-truncate" style="max-width: 400px;"
+                                        *ngIf="m.tipo_movimiento !== 'EGRESO_GENERAL' && m.observaciones">
                                         <i class="bi bi-info-circle me-1"></i> {{ m.observaciones }}
                                     </div>
                                 </div>
@@ -234,21 +320,27 @@
                                 {{ m.metodo_pago | titlecase }}
                             </span>
                         </td>
-                        <td class="text-end fw-bold fs-6" [ngClass]="{'text-danger': m.monto_real < 0, 'text-success': m.monto_real > 0}">
-                            <span class="opacity-75 me-1 small fw-normal">{{ m.moneda }}</span>{{ m.monto_real > 0 ? '+' : '' }}{{ m.monto_real | number:'1.2-2' }}
+                        <td class="text-end fw-bold fs-6"
+                            [ngClass]="{'text-danger': m.monto_real < 0, 'text-success': m.monto_real > 0}">
+                            <span class="opacity-75 me-1 small fw-normal">{{ m.moneda }}</span>{{ m.monto_real > 0 ? '+'
+                            : '' }}{{ m.monto_real | number:'1.2-2' }}
                         </td>
                         <td class="text-center no-print pe-4">
-                            <button class="btn btn-light btn-sm rounded-circle text-danger shadow-sm border border-danger border-opacity-25 hover-bg-danger" (click)="eliminarMovimiento(m.id)" title="Revertir Movimiento" style="width: 32px; height: 32px; padding: 0;">
+                            <button
+                                class="btn btn-light btn-sm rounded-circle text-danger shadow-sm border border-danger border-opacity-25 hover-bg-danger"
+                                (click)="eliminarMovimiento(m.id)" title="Revertir Movimiento"
+                                style="width: 32px; height: 32px; padding: 0;">
                                 <i class="bi bi-trash3-fill"></i>
                             </button>
                         </td>
                     </tr>
-                    
+
                     <tr *ngIf="movimientosHoy.length === 0">
                         <td colspan="5" class="py-5 text-center bg-body-secondary bg-opacity-50">
                             <div class="mb-2"><i class="bi bi-journal-x fs-1 opacity-25"></i></div>
                             <h6 class="fw-bold text-muted mb-0">Sin Asientos en el Día</h6>
-                            <p class="small text-muted">Aún no se ha registrado actividad de caja financiera la jornada de hoy.</p>
+                            <p class="small text-muted">Aún no se ha registrado actividad de caja financiera la jornada
+                                de hoy.</p>
                         </td>
                     </tr>
                 </tbody>

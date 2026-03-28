@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api';
 import { AuthService } from '../../services/auth';
-import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,8 +22,7 @@ export class Dashboard implements OnInit {
 
   constructor(
     private api: ApiService,
-    public auth: AuthService,
-    private http: HttpClient
+    public auth: AuthService
   ) { }
 
   ngOnInit() {
@@ -56,7 +54,6 @@ export class Dashboard implements OnInit {
     });
   }
 
-  // Punto 1: Email con nombre real de agencia
   enviarFelicidades(persona: any) {
     if (!persona.email) {
       alert("Este cliente no tiene un correo electrónico registrado.");
@@ -66,7 +63,7 @@ export class Dashboard implements OnInit {
     this.api.enviarSaludoCumple({
       email: persona.email,
       nombre: persona.nombre_completo,
-      empresa_nombre: this.auth.getNombreEmpresa() // Envía nombre real de agencia
+      empresa_nombre: this.auth.getNombreEmpresa()
     }).subscribe({
       next: () => {
         alert("¡Email de felicitación enviado con éxito a " + persona.nombre_completo + "!");
@@ -95,7 +92,6 @@ export class Dashboard implements OnInit {
     });
   }
 
-  // CORREGIDO: eliminarMovimiento → eliminarMovimientoContable
   eliminarMovimiento(id: number) {
     if (confirm('¿Deseas anular este movimiento de caja?')) {
       this.api.eliminarMovimientoContable(id).subscribe({
@@ -111,24 +107,30 @@ export class Dashboard implements OnInit {
     }
   }
 
-  // Punto 5: Cotización del dólar con fallback
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COTIZACIÓN DEL DÓLAR — CORREGIDO
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CAUSA RAÍZ: El frontend llamaba directamente a https://dolarapi.com
+  // desde localhost:4200, lo cual es BLOQUEADO por CORS porque dolarapi.com
+  // no permite requests desde origins arbitrarios.
+  //
+  // SOLUCIÓN: Usar el endpoint del BACKEND /api/caja-contable/cotizaciones-completas
+  // que SÍ puede llamar a dolarapi.com (Node.js no tiene restricción CORS)
+  // y actúa como proxy. El backend ya tiene este endpoint implementado.
+  // ═══════════════════════════════════════════════════════════════════════════
   obtenerDolar() {
-    this.http.get('https://dolarapi.com/v1/dolares/oficial').subscribe({
+    this.api.getCotizacionesCompletas().subscribe({
       next: (data: any) => {
-        this.cotizacionBlue = data;
+        // El backend devuelve { dolar: X, euro: Y, real: Z }
+        // Lo mapeamos al formato que espera el template
+        this.cotizacionBlue = {
+          compra: data.dolar ? (data.dolar * 0.97).toFixed(0) : 0, // Estimación compra ~3% menos
+          venta: data.dolar || 0
+        };
       },
       error: () => {
-        // Fallback: intentar con otra API
-        this.http.get('https://dolarapi.com/v1/dolares/blue').subscribe({
-          next: (data: any) => {
-            this.cotizacionBlue = data;
-          },
-          error: () => {
-            // Si ambas fallan, usar valores por defecto
-            this.cotizacionBlue = { compra: 0, venta: 0 };
-            console.warn('No se pudo obtener cotización del dólar');
-          }
-        });
+        console.warn('No se pudo obtener cotización del dólar');
+        this.cotizacionBlue = { compra: 0, venta: 0 };
       }
     });
   }

@@ -18,31 +18,36 @@
     </div>
 
     <!-- ROW 1: Saldos Generales Principales -->
+    <!-- CORREGIDO: color white forzado con style inline para que no lo pise el tema claro -->
     <div class="row g-4 mb-4">
         <div class="col-md-6">
-             <div class="form-card p-4 h-100 position-relative overflow-hidden text-white shadow" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
-                <i class="bi bi-wallet2 position-absolute opacity-10" style="font-size: 8rem; right: -20px; bottom: -30px;"></i>
+             <div class="form-card p-4 h-100 position-relative overflow-hidden shadow" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff !important;">
+                <i class="bi bi-wallet2 position-absolute" style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.1; color: #ffffff;"></i>
                 <div class="d-flex justify-content-between align-items-start position-relative z-1 mb-3">
                     <span class="badge bg-white text-dark shadow-sm px-3 py-2 rounded-pill fw-bold">SALDO EN PESOS</span>
-                    <div class="bg-white bg-opacity-10 p-2 rounded-circle"><i class="bi bi-cash-stack"></i></div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(255,255,255,0.1); width: 40px; height: 40px;">
+                        <i class="bi bi-cash-stack" style="color: #ffffff;"></i>
+                    </div>
                 </div>
                 <div class="position-relative z-1">
-                    <h1 class="fw-bold mb-0 display-5" style="letter-spacing: -1px;">
-                        <span class="opacity-75 fs-4 me-1">$</span>{{ saldos.saldoARS | number:'1.2-2' }}
+                    <h1 class="fw-bold mb-0 display-5" style="letter-spacing: -1px; color: #ffffff !important;">
+                        <span style="opacity: 0.75; font-size: 1.5rem; color: #ffffff;">$</span>{{ saldos.saldoARS | number:'1.2-2' }}
                     </h1>
                 </div>
              </div>
         </div>
         <div class="col-md-6">
-             <div class="form-card p-4 h-100 position-relative overflow-hidden text-white shadow" style="background: linear-gradient(135deg, var(--bs-primary) 0%, #4338ca 100%);">
-                <i class="bi bi-currency-dollar position-absolute opacity-10" style="font-size: 8rem; right: -20px; bottom: -30px;"></i>
+             <div class="form-card p-4 h-100 position-relative overflow-hidden shadow" style="background: linear-gradient(135deg, #4361ee 0%, #4338ca 100%); color: #ffffff !important;">
+                <i class="bi bi-currency-dollar position-absolute" style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.1; color: #ffffff;"></i>
                 <div class="d-flex justify-content-between align-items-start position-relative z-1 mb-3">
-                    <span class="badge bg-white text-primary shadow-sm px-3 py-2 rounded-pill fw-bold">SALDO EN DÓLARES</span>
-                    <div class="bg-white bg-opacity-10 p-2 rounded-circle"><i class="bi bi-bank"></i></div>
+                    <span class="badge bg-white shadow-sm px-3 py-2 rounded-pill fw-bold" style="color: #4361ee;">SALDO EN DÓLARES</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(255,255,255,0.1); width: 40px; height: 40px;">
+                        <i class="bi bi-bank" style="color: #ffffff;"></i>
+                    </div>
                 </div>
                 <div class="position-relative z-1">
-                    <h1 class="fw-bold mb-0 display-5" style="letter-spacing: -1px;">
-                        <span class="opacity-75 fs-4 me-1">USD</span>{{ saldos.saldoUSD | number:'1.2-2' }}
+                    <h1 class="fw-bold mb-0 display-5" style="letter-spacing: -1px; color: #ffffff !important;">
+                        <span style="opacity: 0.75; font-size: 1.5rem; color: #ffffff;">USD</span>{{ saldos.saldoUSD | number:'1.2-2' }}
                     </h1>
                 </div>
              </div>
@@ -274,7 +279,6 @@
             </div>
         </div>
 
-        <!-- Preview rápido del cierre si está cargado -->
         <div *ngIf="cierreMensual && mostrarCierre" class="mt-4 p-4 bg-body-secondary rounded-4 border">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-bold mb-0"><i class="bi bi-check-circle text-success me-2"></i> Cierre {{ getNombreMes(cierreMensual.periodo.mes) }} {{ cierreMensual.periodo.anio }}</h6>
@@ -310,9 +314,7 @@
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<!-- MODAL: Pago de Deuda de Tarjeta -->
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══ MODAL: Pago de Deuda de Tarjeta ═══ -->
 <div class="modal fade" tabindex="-1" [ngClass]="{'show d-block': mostrarModalTarjeta}" *ngIf="mostrarModalTarjeta" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px);">
     <div class="modal-dialog modal-dialog-centered">
         <div class="form-card modal-content border-0 shadow-lg" style="border-radius: 20px;">

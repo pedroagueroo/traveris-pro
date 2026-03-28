@@ -1,6 +1,10 @@
 // ============================================================================
 // INDEX.JS — Servidor principal con autenticación JWT
 // ============================================================================
+// CORRECCIÓN CRÍTICA: La ruta /cotizaciones-completas debe ser accesible
+// sin JWT porque es datos públicos (cotización del dólar) y el dashboard
+// la necesita inmediatamente al cargar.
+// ============================================================================
 
 const express = require('express');
 const cors = require('cors');
@@ -23,8 +27,16 @@ app.use(express.json({ limit: '10mb' }));
 // Servir archivos estáticos (uploads)
 app.use('/uploads', express.static('uploads'));
 
-// ─── RUTA PÚBLICA (sin JWT) ─────────────────────────────────────────────────
+// ─── RUTAS PÚBLICAS (sin JWT) ───────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+
+// Cotizaciones es pública porque es solo lectura de datos públicos de API externa
+// y el dashboard la necesita antes de que el interceptor pueda adjuntar el token
+app.get('/api/caja-contable/cotizaciones-completas', (req, res, next) => {
+    // Redirigir al handler del router de cajaContable
+    req.url = '/cotizaciones-completas';
+    cajaContableRoutes(req, res, next);
+});
 
 // ─── RUTAS PROTEGIDAS (con JWT) ─────────────────────────────────────────────
 app.use('/api/clientes', verificarToken, clientesRoutes);

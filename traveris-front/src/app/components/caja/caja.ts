@@ -34,9 +34,21 @@ export class Caja implements OnInit {
   saldosDetallados: any[] = [];
   direccionConversion: 'A_PESOS' | 'A_DIVISA' = 'A_PESOS';
 
-  // Cierre mensual
+  // --- Cierre mensual ---
   cierreMensual: any = null;
-  mesSeleccionado: string = '';
+  mesSeleccionado: number = 0;
+  anioSeleccionado: number = 0;
+  cargandoCierre: boolean = false;
+  mostrarCierre: boolean = false;
+
+  // --- Modal Pago Tarjeta ---
+  mostrarModalTarjeta: boolean = false;
+  pagoTarjeta: any = {
+    monto: 0,
+    moneda: 'ARS',
+    metodo_pago_real: 'EFECTIVO',
+    observaciones: ''
+  };
 
   constructor(
     private api: ApiService,
@@ -47,25 +59,31 @@ export class Caja implements OnInit {
     this.cargarCaja();
     this.obtenerCotizaciones();
 
-    // Default: mes actual para cierre
+    // Default: mes y año actual
     const hoy = new Date();
-    this.mesSeleccionado = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+    this.mesSeleccionado = hoy.getMonth() + 1;
+    this.anioSeleccionado = hoy.getFullYear();
   }
+
+  // ============================================================
+  // CARGA DE DATOS
+  // ============================================================
 
   cargarCaja() {
     const miAgencia = this.auth.getNombreEmpresa();
 
-    // Saldo Global
     this.api.getBalanceCaja(miAgencia).subscribe((data: any) => this.saldos = data);
 
-    // Saldo por Billetera
     this.api.getBalanceBilleteras(miAgencia).subscribe((data: any[]) => {
       this.saldosDetallados = data;
     });
 
-    // Reporte Diario
     this.api.getReporteDiario(miAgencia).subscribe((data: any[]) => this.movimientosHoy = data);
   }
+
+  // ============================================================
+  // REGISTRAR GASTO
+  // ============================================================
 
   registrarGasto() {
     if (this.nuevoGasto.monto <= 0 || !this.nuevoGasto.observaciones) {
@@ -89,6 +107,10 @@ export class Caja implements OnInit {
       error: (err: any) => alert("Error al registrar el gasto")
     });
   }
+
+  // ============================================================
+  // COTIZACIONES
+  // ============================================================
 
   obtenerCotizaciones() {
     this.api.getCotizacionesCompletas().subscribe((data: any) => {
@@ -116,6 +138,10 @@ export class Caja implements OnInit {
     }
   }
 
+  // ============================================================
+  // ELIMINAR MOVIMIENTO
+  // ============================================================
+
   eliminarMovimiento(id: number) {
     if (confirm("¿Estás seguro de eliminar este registro? Esto alterará los saldos.")) {
       this.api.eliminarMovimientoContable(id).subscribe({
@@ -128,42 +154,82 @@ export class Caja implements OnInit {
     }
   }
 
+  // ============================================================
+  // IMPRIMIR
+  // ============================================================
+
   imprimirCierreCaja() {
     window.print();
   }
 
   // ============================================================
-  // PAGO CON TARJETA (stub — se completará en la feature de tarjetas)
+  // MODAL PAGO TARJETA (requerido por caja.html)
   // ============================================================
 
-  pagarDeudaTarjeta(datos: any) {
+  abrirModalTarjeta() {
+    this.pagoTarjeta = {
+      monto: 0,
+      moneda: 'ARS',
+      metodo_pago_real: 'EFECTIVO',
+      observaciones: ''
+    };
+    this.mostrarModalTarjeta = true;
+  }
+
+  cerrarModalTarjeta() {
+    this.mostrarModalTarjeta = false;
+  }
+
+  confirmarPagoTarjeta() {
+    if (!this.pagoTarjeta.monto || this.pagoTarjeta.monto <= 0) {
+      return alert("El monto debe ser mayor a 0");
+    }
+
     this.api.pagarDeudaTarjeta({
-      ...datos,
+      monto: this.pagoTarjeta.monto,
+      moneda: this.pagoTarjeta.moneda,
+      metodo_pago_real: this.pagoTarjeta.metodo_pago_real,
+      observaciones: this.pagoTarjeta.observaciones,
       empresa_nombre: this.auth.getNombreEmpresa()
     }).subscribe({
       next: (res: any) => {
-        alert("Pago con tarjeta registrado");
+        alert("Pago de tarjeta registrado correctamente");
+        this.cerrarModalTarjeta();
         this.cargarCaja();
       },
-      error: (err: any) => alert("Error al registrar pago con tarjeta")
+      error: (err: any) => alert("Error al registrar pago de tarjeta: " + (err.error?.error || "Error de servidor"))
     });
   }
 
   // ============================================================
-  // CIERRE MENSUAL (stub — se completará en la feature de cierre)
+  // CIERRE MENSUAL (requerido por caja.html)
   // ============================================================
 
-  getCierreMensual() {
-    if (!this.mesSeleccionado) return alert("Seleccioná un mes");
+  generarCierreMensual() {
+    if (!this.mesSeleccionado || !this.anioSeleccionado) {
+      return alert("Seleccioná mes y año");
+    }
 
-    this.api.getCierreMensual(this.auth.getNombreEmpresa(), this.mesSeleccionado).subscribe({
+    this.cargandoCierre = true;
+    const empresa = this.auth.getNombreEmpresa();
+
+    this.api.getCierreMensual(empresa, `?mes=${this.mesSeleccionado}&anio=${this.anioSeleccionado}`).subscribe({
       next: (data: any) => {
         this.cierreMensual = data;
+        this.mostrarCierre = true;
+        this.cargandoCierre = false;
       },
       error: (err: any) => {
         console.error("Error cierre mensual:", err);
         alert("Error al generar el cierre mensual");
+        this.cargandoCierre = false;
       }
     });
+  }
+
+  getNombreMes(mes: number): string {
+    const meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return meses[mes] || '';
   }
 }

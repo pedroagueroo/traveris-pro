@@ -20,6 +20,7 @@ export class Dashboard implements OnInit {
 
   alertasRadar: any[] = [];
   mostrarAlertas: boolean = false;
+  radarError: string = '';  // <-- FIX: faltaba esta propiedad que usa dashboard.html
 
   constructor(
     private api: ApiService,
@@ -57,16 +58,28 @@ export class Dashboard implements OnInit {
 
   cargarRadar() {
     const empresa = this.auth.getNombreEmpresa();
+    this.radarError = '';
 
-    this.api.getRadarVencimientos(empresa).subscribe((vencimientos: any[]) => {
-      const v = vencimientos.map((i: any) => ({ ...i, tipoAlerta: 'PAGO' }));
+    this.api.getRadarVencimientos(empresa).subscribe({
+      next: (vencimientos: any[]) => {
+        const v = vencimientos.map((i: any) => ({ ...i, tipoAlerta: 'PAGO' }));
 
-      this.api.getRadarCumpleanios(empresa).subscribe((cumples: any[]) => {
-        const c = cumples.map((i: any) => ({ ...i, tipoAlerta: 'CUMPLE' }));
-
-        this.alertasRadar = [...v, ...c];
-        this.mostrarAlertas = this.alertasRadar.length > 0;
-      });
+        this.api.getRadarCumpleanios(empresa).subscribe({
+          next: (cumples: any[]) => {
+            const c = cumples.map((i: any) => ({ ...i, tipoAlerta: 'CUMPLE' }));
+            this.alertasRadar = [...v, ...c];
+            this.mostrarAlertas = this.alertasRadar.length > 0;
+          },
+          error: (err: any) => {
+            this.radarError = 'Error al cargar cumpleaños';
+            console.error(err);
+          }
+        });
+      },
+      error: (err: any) => {
+        this.radarError = 'Error al cargar alertas de vencimiento';
+        console.error(err);
+      }
     });
   }
 

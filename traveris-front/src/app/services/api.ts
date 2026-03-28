@@ -182,16 +182,15 @@ export class ApiService {
   // ============================================================
 
   pagarDeudaTarjeta(datos: any): Observable<any> {
-    // Por ahora usa la misma ruta de caja contable
-    return this.http.post(`${this.URL}/caja-contable/registrar`, datos);
+    return this.http.post(`${this.URL}/caja-contable/pagar-tarjeta`, datos);
   }
 
   // ============================================================
   // SECCIÓN CIERRE MENSUAL
   // ============================================================
 
-  getCierreMensual(empresa: string, mes: string): Observable<any> {
-    return this.http.get(`${this.URL}/caja-contable/cierre-mensual/${empresa}/${mes}`);
+  getCierreMensual(empresa: string, queryParams: string): Observable<any> {
+    return this.http.get(`${this.URL}/caja-contable/cierre-mensual/${empresa}${queryParams}`);
   }
 
   // ============================================================

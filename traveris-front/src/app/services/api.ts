@@ -14,7 +14,7 @@ export class ApiService {
   // ═══════════════════════════════════════════════════════════════════════════
   // SECCIÓN CLIENTES
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
   getClientesPorAgencia(empresa: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.URL}/clientes/agencia/${empresa}`);
   }
@@ -38,7 +38,7 @@ export class ApiService {
   // ═══════════════════════════════════════════════════════════════════════════
   // SECCIÓN RESERVAS (LEGAJOS)
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
   getReservasPorAgencia(empresa: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.URL}/reservas/agencia/${empresa}`);
   }
@@ -78,7 +78,7 @@ export class ApiService {
   // ═══════════════════════════════════════════════════════════════════════════
   // SECCIÓN CAJA OPERATIVA
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
   getMovimientosPorReserva(idReserva: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.URL}/caja/reserva/${idReserva}`);
   }
@@ -94,7 +94,7 @@ export class ApiService {
   // ═══════════════════════════════════════════════════════════════════════════
   // SECCIÓN CAJA CONTABLE (Módulo financiero)
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
   crearMovimientoCaja(datos: any): Observable<any> {
     return this.http.post(`${this.URL}/caja-contable/registrar`, datos);
   }
@@ -137,7 +137,7 @@ export class ApiService {
   // ═══════════════════════════════════════════════════════════════════════════
   // SECCIÓN RADAR Y VENCIMIENTOS
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
   getRadarVencimientos(empresa: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.URL}/reservas/radar/vencimientos/${empresa}`);
   }
@@ -153,7 +153,7 @@ export class ApiService {
   // ═══════════════════════════════════════════════════════════════════════════
   // SECCIÓN GESTIÓN DE ARCHIVOS
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
   subirArchivoReserva(idReserva: number, formData: FormData): Observable<any> {
     return this.http.post(`${this.URL}/reservas/${idReserva}/subir-archivo`, formData);
   }
@@ -169,7 +169,7 @@ export class ApiService {
   // ═══════════════════════════════════════════════════════════════════════════
   // SECCIÓN EMAILS Y DOCUMENTOS
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
   enviarMail(idReserva: number, datosMail: any): Observable<any> {
     return this.http.post(`${this.URL}/reservas/${idReserva}/enviar-documento`, datosMail);
   }
@@ -182,8 +182,30 @@ export class ApiService {
   // ═══════════════════════════════════════════════════════════════════════════
   // SECCIÓN IMPORTACIÓN MASIVA
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
   importarClientesExcel(formData: FormData): Observable<any> {
     return this.http.post(`${this.URL}/import-clientes/upload`, formData);
+  }
+
+  // --- SECCIÓN RECIBOS ---
+
+  generarRecibo(datos: any): Observable<any> {
+    return this.http.post(`${this.URL}/recibos/generar`, datos);
+  }
+
+  getRecibosPorReserva(idReserva: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/recibos/reserva/${idReserva}`);
+  }
+
+  getRecibosPorEmpresa(empresa: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/recibos/empresa/${empresa}`);
+  }
+
+  getReciboPorId(id: number): Observable<any> {
+    return this.http.get(`${this.URL}/recibos/${id}`);
+  }
+
+  anularRecibo(id: number): Observable<any> {
+    return this.http.put(`${this.URL}/recibos/anular/${id}`, {});
   }
 }

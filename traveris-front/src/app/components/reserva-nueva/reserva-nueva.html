@@ -300,38 +300,68 @@
 </div>
 
 <!-- ═══ Modal Alta Rápida de Cliente ═══ -->
-<div class="modal fade" tabindex="-1" [ngClass]="{'show d-block': mostrarModalCliente}" *ngIf="mostrarModalCliente" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px);">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="form-card w-100 p-0 overflow-hidden" style="max-width: 500px">
+<!-- 
+  IMPORTANTE: No usar clase .modal de Bootstrap — aplica pointer-events:none 
+  que impide interactuar con los inputs. Usamos overlay custom con separación 
+  de backdrop (no interactivo) y dialog (interactivo).
+-->
+<div *ngIf="mostrarModalCliente"
+     style="position: fixed; inset: 0; z-index: 1050; pointer-events: none;">
+  
+  <!-- Backdrop (solo visual, no captura eventos) -->
+  <div style="position: absolute; inset: 0; background: rgba(15, 23, 42, 0.75);"></div>
+
+  <!-- Dialog (sí interactivo) -->
+  <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
+    <div class="form-card p-0 overflow-hidden shadow-lg" style="width: 100%; max-width: 480px; z-index: 1;">
+      
       <div class="p-4 border-bottom">
-        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-person-plus me-2"></i>Alta Rápida de Cliente</h5>
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="bi bi-person-plus me-2"></i>Alta Rápida de Cliente
+        </h5>
         <p class="small text-muted mb-0 mt-1">Creá un cliente nuevo sin salir del formulario de reserva</p>
       </div>
+
       <div class="p-4">
         <label class="small fw-bold text-muted mb-2">NOMBRE COMPLETO *</label>
         <div class="input-premium-group mb-4">
           <span class="input-premium-icon"><i class="bi bi-person"></i></span>
-          <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.nombre_completo" placeholder="Nombre y Apellido">
+          <input type="text" class="form-control input-premium"
+                 [(ngModel)]="nuevoClienteRapido.nombre_completo"
+                 placeholder="Nombre y Apellido"
+                 autocomplete="off">
         </div>
-        
+
         <label class="small fw-bold text-muted mb-2">DNI / PASAPORTE *</label>
         <div class="input-premium-group mb-4">
           <span class="input-premium-icon"><i class="bi bi-card-text"></i></span>
-          <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.dni_pasaporte" placeholder="Número de documento">
+          <input type="text" class="form-control input-premium"
+                 [(ngModel)]="nuevoClienteRapido.dni_pasaporte"
+                 placeholder="Número de documento"
+                 autocomplete="off">
         </div>
-        
+
         <label class="small fw-bold text-muted mb-2">EMAIL (OPCIONAL)</label>
-        <div class="input-premium-group mb-2">
+        <div class="input-premium-group">
           <span class="input-premium-icon"><i class="bi bi-envelope"></i></span>
-          <input type="email" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.email" placeholder="correo@ejemplo.com">
+          <input type="email" class="form-control input-premium"
+                 [(ngModel)]="nuevoClienteRapido.email"
+                 placeholder="correo@ejemplo.com"
+                 autocomplete="off">
         </div>
       </div>
+
       <div class="bg-body p-4 border-top d-flex justify-content-end gap-2">
-        <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" (click)="mostrarModalCliente = false">Cancelar</button>
-        <button type="button" class="btn btn-elite px-4 rounded-pill shadow-sm" (click)="guardarClienteRapido()">
+        <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill"
+                (click)="mostrarModalCliente = false">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-elite px-4 rounded-pill shadow-sm"
+                (click)="guardarClienteRapido()">
           <i class="bi bi-check-lg me-1"></i> Guardar Cliente
         </button>
       </div>
+
     </div>
   </div>
 </div>

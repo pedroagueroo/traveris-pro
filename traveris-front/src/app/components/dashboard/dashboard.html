@@ -127,8 +127,13 @@
     </div>
   </div>
 
-  <div class="notification-wrapper" *ngIf="alertasRadar.length > 0">
-    <div class="notification-bell" (click)="mostrarAlertas = !mostrarAlertas">
+  <div class="notification-wrapper" *ngIf="alertasRadar.length > 0 || radarError">
+    <!-- Debug: error de API visible durante desarrollo -->
+    <div *ngIf="radarError" class="position-fixed bottom-0 start-0 m-3 p-2 bg-danger text-white rounded small" style="z-index:9999; max-width:300px;">
+      <i class="bi bi-exclamation-triangle me-1"></i> {{ radarError }}
+    </div>
+
+    <div class="notification-bell" (click)="mostrarAlertas = !mostrarAlertas" *ngIf="alertasRadar.length > 0">
       <i class="bi bi-bell-fill text-white"></i>
       <span class="bell-badge">{{ alertasRadar.length }}</span>
     </div>
@@ -144,9 +149,12 @@
           <div class="d-flex justify-content-between align-items-center">
             
             <div *ngIf="alerta.tipoAlerta === 'PAGO'" [routerLink]="['/reservas', alerta.id]" (click)="mostrarAlertas = false" style="cursor: pointer; flex: 1;">
-              <span class="d-block fw-bold text-dark small text-uppercase">{{ alerta.titular }}</span>
-              <small class="text-muted d-block">Legajo #{{alerta.id}} - Vence: {{alerta.fecha_limite_pago | date:'dd/MM/yy'}}</small>
-              <span class="badge bg-danger-subtle text-danger border mt-1" style="font-size: 0.6rem;">DEUDA: USD {{alerta.saldo_pendiente | number:'1.2-2'}}</span>
+              <span class="d-block fw-bold text-dark small text-uppercase">{{ alerta.nombre_titular }}</span>
+              <small class="text-muted d-block">Legajo #{{alerta.id}} — {{ alerta.destino_final }}</small>
+              <small class="text-muted d-block">Venció: {{alerta.fecha_limite_pago | date:'dd/MM/yy'}}</small>
+              <span class="badge bg-danger-subtle text-danger border border-danger mt-1" style="font-size: 0.6rem;">
+                ⚠ VENCIDO — USD {{alerta.saldo_pendiente | number:'1.2-2'}}
+              </span>
             </div>
 
             <div *ngIf="alerta.tipoAlerta === 'CUMPLE'" style="flex: 1;">
@@ -169,4 +177,5 @@
       </div>
     </div>
   </div>
-</div>
+
+</div>

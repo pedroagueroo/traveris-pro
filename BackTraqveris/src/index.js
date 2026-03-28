@@ -18,6 +18,7 @@ const cajasRoutes = require('./caja.routes');
 const authRoutes = require('./auth.routes');
 const cajaContableRoutes = require('./cajaContable');
 const importClientesRoutes = require('./importClientes.routes');
+const recibosRoutes = require('./recibos.routes');
 
 const app = express();
 
@@ -44,6 +45,9 @@ app.use('/api/reservas', verificarToken, reservasRoutes);
 app.use('/api/caja', verificarToken, cajasRoutes);
 app.use('/api/caja-contable', verificarToken, cajaContableRoutes);
 app.use('/api/import-clientes', verificarToken, importClientesRoutes);
+
+app.use('/api/recibos', recibosRoutes);
+
 
 // ─── RUTA DE PRUEBA ─────────────────────────────────────────────────────────
 app.get('/probar-conexion', async (req, res) => {

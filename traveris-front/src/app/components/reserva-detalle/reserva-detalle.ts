@@ -14,6 +14,12 @@ import { AuthService } from '../../services/auth';
 })
 export class ReservaDetalleComponent implements OnInit {
 
+  // --- NUEVAS PROPIEDADES (agregar junto a las existentes) ---
+
+  recibos: any[] = [];
+  reciboPreview: any = null;
+  mostrarRecibo: boolean = false;
+
   mostrarPreview: boolean = false;
   tipoDoc: 'VOUCHER' | 'COTIZACION' = 'VOUCHER';
   today = new Date();
@@ -45,16 +51,58 @@ export class ReservaDetalleComponent implements OnInit {
   datosCotizacion: any = null;
 
   constructor(
-    private route: ActivatedRoute, 
-    private api: ApiService, 
+    private route: ActivatedRoute,
+    private api: ApiService,
     public auth: AuthService
   ) { }
+
+  // Datos de configuración de empresa (pueden venir de AuthService o hardcodeados)
+  empresaConfig = {
+    nombre: '',       // Se llena en ngOnInit
+    cuit: '',
+    domicilio: '',
+    titular: ''
+  };
+
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.idReserva = parseInt(idParam, 10);
       this.cargarData();
+      this.empresaConfig.nombre = this.auth.getNombreEmpresa();
+      // Nota: CUIT, domicilio y titular se pueden configurar en un futuro settings.
+      // Por ahora se envían vacíos y se llenan manualmente si se desea.
+    }
+  }
+
+  // --- NUEVOS MÉTODOS (agregar a la clase) ---
+
+  cargarRecibos() {
+    this.api.getRecibosPorReserva(this.idReserva).subscribe({
+      next: (data) => this.recibos = data,
+      error: (err) => console.error("Error al cargar recibos:", err)
+    });
+  }
+
+  verRecibo(recibo: any) {
+    this.reciboPreview = recibo;
+    this.mostrarRecibo = true;
+  }
+
+  imprimirRecibo() {
+    setTimeout(() => window.print(), 200);
+  }
+
+  anularRecibo(id: number) {
+    if (confirm("¿Estás seguro de anular este recibo? La operación no se puede deshacer.")) {
+      this.api.anularRecibo(id).subscribe({
+        next: () => {
+          alert("Recibo anulado correctamente");
+          this.cargarRecibos();
+        },
+        error: () => alert("Error al anular el recibo")
+      });
     }
   }
 
@@ -115,7 +163,7 @@ export class ReservaDetalleComponent implements OnInit {
     const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp',
       'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain'];
-    
+
     if (!tiposPermitidos.includes(file.type)) {
       alert("Tipo de archivo no permitido. Solo se aceptan: PDF, imágenes, documentos Office y texto.");
       return;
@@ -135,7 +183,7 @@ export class ReservaDetalleComponent implements OnInit {
 
   previsualizar(tipo: 'VOUCHER' | 'COTIZACION') {
     this.tipoDoc = tipo;
-    
+
     // Si es cotización, cargar datos seguros del endpoint dedicado
     if (tipo === 'COTIZACION') {
       this.api.getCotizacionReserva(this.idReserva).subscribe({
@@ -180,6 +228,7 @@ export class ReservaDetalleComponent implements OnInit {
 
         this.obtenerMovimientos();
         this.obtenerArchivos();
+        this.cargarRecibos();
       },
       error: (err) => {
         alert("Error al cargar la reserva: " + (err.error?.error || 'No encontrada'));
@@ -221,34 +270,71 @@ export class ReservaDetalleComponent implements OnInit {
     this.porcentajeCobrado = totalVenta > 0 ? (this.totalCobradoUSD / totalVenta) * 100 : 0;
   }
 
+  // --- REEMPLAZAR guardarPago() CON ESTE ---
+
   guardarPago() {
-    if (this.nuevoPago.monto <= 0) {
-      alert("El monto debe ser mayor a 0");
-      return;
+    if (!this.nuevoPago.monto || this.nuevoPago.monto <= 0) {
+      return alert("El monto debe ser mayor a 0");
     }
 
     this.nuevoPago.id_reserva = this.idReserva;
 
-    const pagoFinal = {
+    // Preparar datos para caja contable
+    const payloadCaja: any = {
       ...this.nuevoPago,
-      categoria: 'RESERVA',
-      empresa_nombre: this.auth.getNombreEmpresa()
+      empresa_nombre: this.auth.getNombreEmpresa(),
+      categoria: 'RESERVA'
     };
 
-    this.api.crearMovimientoCaja(pagoFinal).subscribe({
-      next: () => {
-        alert("Movimiento asentado correctamente");
-        this.cargarData();
-        this.nuevoPago.monto = 0;
-        this.nuevoPago.observaciones = '';
+    // 1. Registrar el movimiento en caja
+    this.api.crearMovimientoCaja(payloadCaja).subscribe({
+      next: (movimientoCreado: any) => {
+
+        // 2. Generar recibo automático
+        const payloadRecibo: any = {
+          id_reserva: this.idReserva,
+          id_movimiento: movimientoCreado.id,
+          id_cliente: this.reserva.id_titular,
+          empresa_nombre: this.auth.getNombreEmpresa(),
+          empresa_cuit: this.empresaConfig.cuit || null,
+          empresa_domicilio: this.empresaConfig.domicilio || null,
+          empresa_titular: this.empresaConfig.titular || null,
+          monto: this.nuevoPago.monto,
+          moneda: this.nuevoPago.moneda,
+          metodo_pago: this.nuevoPago.metodo_pago || 'EFECTIVO',
+          cliente_nombre: this.reserva.nombre_titular,
+          cliente_dni: this.reserva.dni_titular,
+          observaciones: this.nuevoPago.observaciones,
+          concepto: `Pago legajo #${this.idReserva} - ${this.reserva.destino_final || ''}`,
+          tipo_recibo: 'RECIBO_X'
+        };
+
+        this.api.generarRecibo(payloadRecibo).subscribe({
+          next: (reciboRes: any) => {
+            alert(`Movimiento asentado. Recibo X N° ${reciboRes.recibo.nro_recibo} generado.`);
+            this.cargarData();
+            this.cargarRecibos();
+            this.nuevoPago.monto = 0;
+            this.nuevoPago.observaciones = '';
+          },
+          error: (err: any) => {
+            // El pago se registró pero el recibo falló — no es crítico
+            console.error("Error al generar recibo:", err);
+            alert("Pago registrado, pero no se pudo generar el recibo automático.");
+            this.cargarData();
+            this.nuevoPago.monto = 0;
+          }
+        });
       },
-      error: (err) => alert("Error: " + (err.error?.error || 'Error de conexión'))
+      error: (err: any) => {
+        alert("Error al registrar el pago: " + (err.error?.error || "Error de servidor"));
+      }
     });
   }
 
   cambiarEstado() {
     this.api.actualizarEstadoReserva(this.idReserva, this.reserva.estado).subscribe({
-      next: () => {},
+      next: () => { },
       error: (err) => alert("Error al cambiar estado: " + (err.error?.error || 'Error'))
     });
   }

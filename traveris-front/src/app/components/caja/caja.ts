@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth';
-import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-caja',
@@ -33,13 +32,24 @@ export class Caja implements OnInit {
   };
 
   saldosDetallados: any[] = [];
-
-  pagTarjeta = { monto: 0, nombre_tarjeta: 'NARANJA X', observaciones: '' };
-
-
   direccionConversion: 'A_PESOS' | 'A_DIVISA' = 'A_PESOS';
 
-  // Corregí el constructor agregando private http: HttpClient
+  // ── NUEVO: Modal pago de tarjeta ──
+  mostrarModalTarjeta: boolean = false;
+  pagoTarjeta = {
+    monto: 0,
+    moneda: 'ARS',
+    metodo_pago_real: 'EFECTIVO',
+    observaciones: ''
+  };
+
+  // ── NUEVO: Cierre mensual ──
+  mostrarCierre: boolean = false;
+  cierreMensual: any = null;
+  mesSeleccionado: number = new Date().getMonth() + 1;
+  anioSeleccionado: number = new Date().getFullYear();
+  cargandoCierre: boolean = false;
+
   constructor(
     private api: ApiService,
     private auth: AuthService
@@ -52,39 +62,9 @@ export class Caja implements OnInit {
 
   cargarCaja() {
     const miAgencia = this.auth.getNombreEmpresa();
-
-    // Saldo Global
     this.api.getBalanceCaja(miAgencia).subscribe(data => this.saldos = data);
-
-    // NUEVO: Saldo por Billetera (Usando la función del servicio)
-    this.api.getBalanceBilleteras(miAgencia).subscribe(data => {
-      this.saldosDetallados = data;
-    });
-
-    // Reporte Diario
+    this.api.getBalanceBilleteras(miAgencia).subscribe(data => this.saldosDetallados = data);
     this.api.getReporteDiario(miAgencia).subscribe(data => this.movimientosHoy = data);
-  }
-
-  confirmarPagoTarjeta() {
-    if (!this.pagTarjeta.monto || this.pagTarjeta.monto <= 0) {
-      alert('Ingresá un monto válido');
-      return;
-    }
-    const payload = {
-      ...this.pagTarjeta,
-      empresa_nombre: this.auth.getNombreEmpresa()
-    };
-    this.api.pagarDeudaTarjeta(payload).subscribe({
-      next: (res) => {
-        alert(res.mensaje);
-        // Cerrar modal manualmente
-        const modal = document.getElementById('modalPagarTarjeta');
-        (window as any).bootstrap.Modal.getInstance(modal)?.hide();
-        this.pagTarjeta = { monto: 0, nombre_tarjeta: 'NARANJA X', observaciones: '' };
-        this.cargarCaja();
-      },
-      error: (err) => alert('Error: ' + err.error?.error)
-    });
   }
 
   registrarGasto() {
@@ -104,16 +84,250 @@ export class Caja implements OnInit {
         alert("Gasto registrado con éxito");
         this.nuevoGasto.monto = 0;
         this.nuevoGasto.observaciones = '';
-        this.cargarCaja(); // Recarga saldos y tabla automáticamente
+        this.cargarCaja();
       },
-      error: (err) => alert("Error al registrar el gasto")
+      error: (err) => alert("Error al registrar el gasto: " + (err.error?.error || 'Error de conexión'))
     });
   }
 
+  // ── NUEVO: Pago de deuda de tarjeta ──────────────────────────────────────
+  abrirModalTarjeta() {
+    this.pagoTarjeta = { monto: 0, moneda: 'ARS', metodo_pago_real: 'EFECTIVO', observaciones: '' };
+    this.mostrarModalTarjeta = true;
+  }
+
+  cerrarModalTarjeta() {
+    this.mostrarModalTarjeta = false;
+  }
+
+  confirmarPagoTarjeta() {
+    if (this.pagoTarjeta.monto <= 0) {
+      alert("El monto debe ser mayor a 0");
+      return;
+    }
+
+    const payload = {
+      ...this.pagoTarjeta,
+      empresa_nombre: this.auth.getNombreEmpresa()
+    };
+
+    this.api.pagarDeudaTarjeta(payload).subscribe({
+      next: (res) => {
+        alert(res.mensaje || "Deuda de tarjeta cancelada correctamente");
+        this.mostrarModalTarjeta = false;
+        this.cargarCaja();
+      },
+      error: (err) => alert("Error: " + (err.error?.error || 'Error al procesar pago'))
+    });
+  }
+
+  // ── NUEVO: Cierre mensual real ───────────────────────────────────────────
+  generarCierreMensual() {
+    this.cargandoCierre = true;
+    this.mostrarCierre = true;
+    
+    this.api.getCierreMensual(
+      this.auth.getNombreEmpresa(), 
+      this.mesSeleccionado, 
+      this.anioSeleccionado
+    ).subscribe({
+      next: (data) => {
+        this.cierreMensual = data;
+        this.cargandoCierre = false;
+      },
+      error: (err) => {
+        alert("Error al generar cierre: " + (err.error?.error || 'Error de conexión'));
+        this.cargandoCierre = false;
+      }
+    });
+  }
+
+  imprimirCierreCaja() {
+    if (!this.cierreMensual) {
+      this.generarCierreMensual();
+      // Esperar un momento para que cargue
+      setTimeout(() => {
+        if (this.cierreMensual) {
+          this.imprimirReporte();
+        }
+      }, 2000);
+    } else {
+      this.imprimirReporte();
+    }
+  }
+
+  private imprimirReporte() {
+    // Generar HTML del reporte de cierre
+    const html = this.buildCierreHTML();
+    const ventana = window.open('', '_blank', 'width=800,height=600');
+    if (ventana) {
+      ventana.document.write(html);
+      ventana.document.close();
+      ventana.onload = () => {
+        ventana.print();
+      };
+    }
+  }
+
+  private buildCierreHTML(): string {
+    const c = this.cierreMensual;
+    if (!c) return '<h1>Sin datos</h1>';
+
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const mesNombre = meses[(c.periodo.mes - 1)] || '';
+
+    let detalleRows = '';
+    if (c.detalle && c.detalle.length > 0) {
+      c.detalle.forEach((m: any) => {
+        const fecha = new Date(m.fecha_pago).toLocaleDateString('es-AR');
+        const signo = parseFloat(m.monto_real) >= 0 ? '+' : '';
+        detalleRows += `
+          <tr>
+            <td>${fecha}</td>
+            <td>${m.tipo_movimiento}</td>
+            <td>${m.metodo_pago || '-'}</td>
+            <td>${m.moneda}</td>
+            <td style="text-align:right; color: ${parseFloat(m.monto_real) >= 0 ? '#198754' : '#dc3545'}; font-weight:bold;">
+              ${signo}${parseFloat(m.monto_real).toFixed(2)}
+            </td>
+            <td>${m.nombre_titular || m.observaciones || '-'}</td>
+          </tr>`;
+      });
+    }
+
+    let resumenTiposRows = '';
+    if (c.resumenTipos && c.resumenTipos.length > 0) {
+      c.resumenTipos.forEach((t: any) => {
+        resumenTiposRows += `
+          <tr>
+            <td>${t.tipo_movimiento}</td>
+            <td>${t.moneda}</td>
+            <td style="text-align:center">${t.cantidad}</td>
+            <td style="text-align:right; font-weight:bold;">${parseFloat(t.monto_neto).toFixed(2)}</td>
+          </tr>`;
+      });
+    }
+
+    let resumenMetodosRows = '';
+    if (c.resumenMetodos && c.resumenMetodos.length > 0) {
+      c.resumenMetodos.forEach((m: any) => {
+        resumenMetodosRows += `
+          <tr>
+            <td>${m.metodo_pago}</td>
+            <td>${m.moneda}</td>
+            <td style="text-align:right; font-weight:bold; color: ${parseFloat(m.saldo) >= 0 ? '#198754' : '#dc3545'}">
+              ${parseFloat(m.saldo).toFixed(2)}
+            </td>
+          </tr>`;
+      });
+    }
+
+    return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cierre Mensual — ${mesNombre} ${c.periodo.anio}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; padding: 30px; font-size: 12px; }
+    h1 { font-size: 20px; margin-bottom: 5px; }
+    h2 { font-size: 14px; margin: 20px 0 10px; padding-bottom: 5px; border-bottom: 2px solid #1a1a2e; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #1a1a2e; }
+    .header-right { text-align: right; }
+    .totals-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
+    .total-box { border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; text-align: center; }
+    .total-box .label { font-size: 10px; text-transform: uppercase; color: #6c757d; font-weight: bold; }
+    .total-box .value { font-size: 18px; font-weight: bold; margin-top: 4px; }
+    .positive { color: #198754; }
+    .negative { color: #dc3545; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11px; }
+    th { background: #1a1a2e; color: white; padding: 8px 6px; text-align: left; font-size: 10px; text-transform: uppercase; }
+    td { padding: 6px; border-bottom: 1px solid #e9ecef; }
+    tr:nth-child(even) { background: #f8f9fa; }
+    .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #dee2e6; text-align: center; font-size: 10px; color: #6c757d; }
+    @media print { body { padding: 15px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>${c.empresa}</h1>
+      <p style="color:#6c757d;">Empresa de Viajes y Turismo | Ley 18.829</p>
+    </div>
+    <div class="header-right">
+      <div style="font-size:16px; font-weight:bold;">CIERRE DE CAJA</div>
+      <div style="font-size:14px; color:#4361ee;">${mesNombre} ${c.periodo.anio}</div>
+      <div style="font-size:10px; color:#6c757d;">Generado: ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR')}</div>
+    </div>
+  </div>
+
+  <div class="totals-grid">
+    <div class="total-box">
+      <div class="label">Saldo ARS</div>
+      <div class="value ${parseFloat(c.totales.totalARS) >= 0 ? 'positive' : 'negative'}">$ ${parseFloat(c.totales.totalARS).toFixed(2)}</div>
+    </div>
+    <div class="total-box">
+      <div class="label">Saldo USD</div>
+      <div class="value ${parseFloat(c.totales.totalUSD) >= 0 ? 'positive' : 'negative'}">US$ ${parseFloat(c.totales.totalUSD).toFixed(2)}</div>
+    </div>
+    <div class="total-box">
+      <div class="label">Movimientos</div>
+      <div class="value">${c.totales.cantidadMovimientos}</div>
+    </div>
+    <div class="total-box">
+      <div class="label">Utilidad Bruta</div>
+      <div class="value positive">US$ ${parseFloat(c.rentabilidad.utilidadBruta).toFixed(2)}</div>
+    </div>
+  </div>
+
+  <h2>Resumen por Tipo de Movimiento</h2>
+  <table>
+    <thead><tr><th>Tipo</th><th>Moneda</th><th style="text-align:center">Cantidad</th><th style="text-align:right">Monto Neto</th></tr></thead>
+    <tbody>${resumenTiposRows || '<tr><td colspan="4" style="text-align:center">Sin movimientos en el período</td></tr>'}</tbody>
+  </table>
+
+  <h2>Saldo por Método de Pago</h2>
+  <table>
+    <thead><tr><th>Método</th><th>Moneda</th><th style="text-align:right">Saldo</th></tr></thead>
+    <tbody>${resumenMetodosRows || '<tr><td colspan="3" style="text-align:center">Sin datos</td></tr>'}</tbody>
+  </table>
+
+  <h2>Rentabilidad del Período</h2>
+  <table>
+    <thead><tr><th>Concepto</th><th style="text-align:right">USD</th></tr></thead>
+    <tbody>
+      <tr><td>Ventas totales</td><td style="text-align:right; font-weight:bold;">US$ ${parseFloat(c.rentabilidad.ventasTotales).toFixed(2)}</td></tr>
+      <tr><td>Costos operador</td><td style="text-align:right; color:#dc3545; font-weight:bold;">US$ ${parseFloat(c.rentabilidad.costosTotales).toFixed(2)}</td></tr>
+      <tr style="background:#e8f5e9;"><td style="font-weight:bold;">Utilidad bruta</td><td style="text-align:right; font-weight:bold; color:#198754;">US$ ${parseFloat(c.rentabilidad.utilidadBruta).toFixed(2)}</td></tr>
+      <tr><td>Reservas del período</td><td style="text-align:right;">${c.rentabilidad.reservasDelMes}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Detalle de Movimientos</h2>
+  <table>
+    <thead><tr><th>Fecha</th><th>Tipo</th><th>Método</th><th>Moneda</th><th style="text-align:right">Monto</th><th>Referencia</th></tr></thead>
+    <tbody>${detalleRows || '<tr><td colspan="6" style="text-align:center">Sin movimientos</td></tr>'}</tbody>
+  </table>
+
+  <div class="footer">
+    <p><strong>${c.empresa}</strong> — Reporte generado automáticamente por Traveris Pro</p>
+    <p>Este documento tiene carácter informativo. Consulte con su contador para validación oficial.</p>
+  </div>
+</body>
+</html>`;
+  }
+
   obtenerCotizaciones() {
-    this.api.getCotizacionesCompletas().subscribe(data => {
-      this.preciosAPI = data;
-      this.actualizarPrecioManual();
+    this.api.getCotizacionesCompletas().subscribe({
+      next: (data) => {
+        this.preciosAPI = data;
+        this.actualizarPrecioManual();
+      },
+      error: () => {
+        // Si falla la API de cotizaciones, no bloquear la caja
+        console.warn("No se pudieron obtener cotizaciones actuales");
+      }
     });
   }
 
@@ -128,151 +342,29 @@ export class Caja implements OnInit {
 
   calcular() {
     if (!this.tipoCambioUsado || this.tipoCambioUsado === 0) return;
-
     if (this.direccionConversion === 'A_PESOS') {
-      // Ejemplo: 100 USD * 1000 = 100.000 ARS
       this.resultado = this.montoEntrada * this.tipoCambioUsado;
     } else {
-      // Ejemplo: 100.000 ARS / 1000 = 100 USD
       this.resultado = this.montoEntrada / this.tipoCambioUsado;
     }
   }
 
   eliminarMovimiento(id: number) {
-    if (confirm("¿Estás seguro de eliminar este registro? Esto alterará los saldos.")) {
+    if (confirm("¿Estás seguro de anular este movimiento? Se generará un contramovimiento de reversión.")) {
       this.api.eliminarMovimientoContable(id).subscribe({
         next: () => {
-          alert("Movimiento eliminado");
-          this.cargarCaja(); // 👈 ESTO dispara getBalanceCaja y getReporteDiario de nuevo
+          alert("Movimiento anulado correctamente");
+          this.cargarCaja();
         },
-        error: (err) => console.error("Error al borrar:", err)
+        error: (err) => alert("Error: " + (err.error?.error || "Error al anular"))
       });
     }
   }
 
-  imprimirCierreCaja() {
-    window.print(); // Usaremos CSS para ocultar los formularios y mostrar solo la tabla y totales
+  // Helper para nombres de meses
+  getNombreMes(mes: number): string {
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return meses[mes - 1] || '';
   }
-
-  generarCierreMensual() {
-  const hoy = new Date();
-  const mes = hoy.getMonth() + 1;
-  const anio = hoy.getFullYear();
-  const empresa = this.auth.getNombreEmpresa();
-
-  this.api.getCierreMensual(empresa, mes, anio).subscribe({
-    next: (data) => {
-      const html = this.buildCierreHTML(data);
-      const ventana = window.open('', '_blank');
-      ventana!.document.write(html);
-      ventana!.document.close();
-      ventana!.print();
-    },
-    error: () => alert('Error al generar el cierre')
-  });
-}
-
-private buildCierreHTML(data: any): string {
-  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const nomMes = meses[data.periodo.mes - 1];
-
-  const filasMov = data.movimientos.map((m: any) => {
-    const esIngreso = ['PAGO_CLIENTE','INGRESO_GENERAL','CONVERSION_ENTRADA'].includes(m.tipo_movimiento);
-    return `
-      <tr>
-        <td>${new Date(m.fecha_pago).toLocaleDateString('es-AR')}</td>
-        <td>${m.nro_legajo ? '#' + m.nro_legajo : '-'}</td>
-        <td style="font-size:0.8rem;">${m.tipo_movimiento}</td>
-        <td>${m.metodo_pago || '-'}</td>
-        <td>${m.moneda}</td>
-        <td style="text-align:right; color: ${esIngreso ? '#166534' : '#991b1b'}; font-weight:600;">
-          ${esIngreso ? '+' : '-'} ${parseFloat(m.monto).toLocaleString('es-AR', {minimumFractionDigits:2})}
-        </td>
-        <td style="font-size:0.75rem; color:#666;">${m.observaciones || ''}</td>
-      </tr>`;
-  }).join('');
-
-  const filasSaldos = data.saldos_por_cuenta.map((s: any) => `
-    <tr>
-      <td>${s.metodo_pago}</td>
-      <td>${s.moneda}</td>
-      <td style="text-align:right; font-weight:700; color: ${parseFloat(s.saldo_al_cierre) >= 0 ? '#166534' : '#991b1b'};">
-        ${parseFloat(s.saldo_al_cierre).toLocaleString('es-AR', {minimumFractionDigits:2})}
-      </td>
-    </tr>`).join('');
-
-  const filasTotales = data.totales_periodo.map((t: any) => `
-    <tr>
-      <td style="font-weight:700">${t.moneda}</td>
-      <td style="text-align:right; color:#166534; font-weight:700;">
-        + ${parseFloat(t.total_ingresos).toLocaleString('es-AR', {minimumFractionDigits:2})}
-      </td>
-      <td style="text-align:right; color:#991b1b; font-weight:700;">
-        - ${parseFloat(t.total_egresos).toLocaleString('es-AR', {minimumFractionDigits:2})}
-      </td>
-      <td style="text-align:right; font-weight:900; font-size:1.1rem;">
-        ${(parseFloat(t.total_ingresos) - parseFloat(t.total_egresos)).toLocaleString('es-AR', {minimumFractionDigits:2})}
-      </td>
-    </tr>`).join('');
-
-  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
-  <title>Cierre ${nomMes} ${data.periodo.anio} - ${data.empresa}</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: 'Arial', sans-serif; color: #1a1a1a; padding: 32px; font-size: 13px; }
-    .header { border-bottom: 3px solid #1a1a1a; padding-bottom: 16px; margin-bottom: 24px; display:flex; justify-content:space-between; align-items:flex-end; }
-    .header h1 { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
-    .header .meta { text-align: right; font-size: 11px; color: #555; }
-    .seccion { margin-bottom: 28px; }
-    .seccion h2 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-bottom: 12px; }
-    table { width: 100%; border-collapse: collapse; }
-    th { background: #f4f4f4; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; padding: 7px 10px; text-align: left; border: 1px solid #e0e0e0; }
-    td { padding: 7px 10px; border: 1px solid #e8e8e8; vertical-align: top; }
-    tr:nth-child(even) td { background: #fafafa; }
-    .footer { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 16px; font-size: 10px; color: #888; display: flex; justify-content:space-between; }
-    @media print { body { padding: 0; } }
-  </style></head><body>
-  <div class="header">
-    <div>
-      <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:#888; margin-bottom:4px;">Resumen de Movimientos</div>
-      <h1>${data.empresa}</h1>
-      <div style="font-size:12px; color:#444; margin-top:4px;">Cierre Contable — ${nomMes} ${data.periodo.anio}</div>
-    </div>
-    <div class="meta">
-      <div>Período: ${data.periodo.desde} al ${data.periodo.hasta}</div>
-      <div>Emisión: ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}</div>
-      <div>Hoja 1</div>
-    </div>
-  </div>
-
-  <div class="seccion">
-    <h2>Resumen del Período</h2>
-    <table>
-      <thead><tr><th>Moneda</th><th>Ingresos</th><th>Egresos</th><th>Resultado Neto</th></tr></thead>
-      <tbody>${filasTotales}</tbody>
-    </table>
-  </div>
-
-  <div class="seccion">
-    <h2>Saldos de Cuentas al Cierre</h2>
-    <table>
-      <thead><tr><th>Cuenta / Billetera</th><th>Moneda</th><th>Saldo</th></tr></thead>
-      <tbody>${filasSaldos}</tbody>
-    </table>
-  </div>
-
-  <div class="seccion">
-    <h2>Detalle de Movimientos</h2>
-    <table>
-      <thead><tr><th>Fecha</th><th>Legajo</th><th>Tipo</th><th>Método</th><th>Mon.</th><th>Importe</th><th>Observaciones</th></tr></thead>
-      <tbody>${filasMov}</tbody>
-    </table>
-  </div>
-
-  <div class="footer">
-    <div>${data.empresa} — Documento generado automáticamente por Traveris Pro</div>
-    <div>Período: ${data.periodo.desde} / ${data.periodo.hasta}</div>
-  </div>
-  </body></html>`;
-}
 }

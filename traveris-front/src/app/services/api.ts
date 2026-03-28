@@ -7,12 +7,14 @@ import { environment } from '../../environments/env';
   providedIn: 'root'
 })
 export class ApiService {
-  private URL = environment.apiUrl; // Tu puerto de Node.js
+  private URL = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
-  // --- SECCIÓN CLIENTES ---
-  // Ahora usamos siempre la versión por agencia para el listado principal
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN CLIENTES
+  // ═══════════════════════════════════════════════════════════════════════════
+  
   getClientesPorAgencia(empresa: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.URL}/clientes/agencia/${empresa}`);
   }
@@ -33,7 +35,10 @@ export class ApiService {
     return this.http.delete(`${this.URL}/clientes/${id}`);
   }
 
-  // --- SECCIÓN RESERVAS (LEGAJOS) ---
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN RESERVAS (LEGAJOS)
+  // ═══════════════════════════════════════════════════════════════════════════
+  
   getReservasPorAgencia(empresa: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.URL}/reservas/agencia/${empresa}`);
   }
@@ -46,73 +51,62 @@ export class ApiService {
     return this.http.post(`${this.URL}/reservas`, reserva);
   }
 
+  actualizarReserva(id: number, datos: any): Observable<any> {
+    return this.http.put(`${this.URL}/reservas/${id}`, datos);
+  }
+
   eliminarReserva(id: number): Observable<any> {
     return this.http.delete(`${this.URL}/reservas/${id}`);
+  }
+
+  getReservaCompleta(id: number): Observable<any> {
+    return this.http.get(`${this.URL}/reservas/completa/${id}`);
   }
 
   actualizarEstadoReserva(id: number, estado: string): Observable<any> {
     return this.http.put(`${this.URL}/reservas/${id}/estado`, { estado });
   }
 
-  getReservasPorCliente(idCliente: string): Observable<any> {
-    return this.http.get(`${this.URL}/reservas/cliente/${idCliente}`);
+  getReservasPorCliente(idCliente: any): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/reservas/cliente/${idCliente}`);
   }
 
-  // --- SECCIÓN RESERVAS (NUEVAS FUNCIONES PARA EDICIÓN) ---
-
-  // Esta es la que trae el legajo con sus vuelos, pasajeros y servicios de una
-  getReservaDetalleCompleto(id: any): Observable<any> {
-    return this.http.get(`${this.URL}/reservas/completa/${id}`);
+  getDashboardStats(empresa: string): Observable<any> {
+    return this.http.get(`${this.URL}/reservas/dashboard/stats/${empresa}`);
   }
 
-  // Esta es la que manda el payload gigante para sobreescribir los cambios
-  actualizarReserva(id: any, reserva: any): Observable<any> {
-    return this.http.put(`${this.URL}/reservas/${id}`, reserva);
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN CAJA OPERATIVA
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  getMovimientosPorReserva(idReserva: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/caja/reserva/${idReserva}`);
   }
 
-  // --- SECCIÓN CAJA (MOVIMIENTOS) ---
-  getMovimientosPorReserva(idReserva: number): Observable<any> {
-    return this.http.get(`${this.URL}/caja/reserva/${idReserva}`);
-  }
-
-  eliminarMovimiento(id: number): Observable<any> {
-    // Verificamos que no se cuelen caracteres extraños
-    return this.http.delete(`${this.URL}/caja/${id}`);
+  getUltimosMovimientos(empresa: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/caja/ultimos/${empresa}`);
   }
 
   convertirMoneda(datos: any): Observable<any> {
     return this.http.post(`${this.URL}/caja/convertir-moneda`, datos);
   }
 
-  // --- SECCIÓN DASHBOARD (FILTRADO CRÍTICO) ---
-
-  // Esta función arregla los paneles de colores (Azul, Rojo, Verde)
-  getDashboardStats(empresa: string): Observable<any> {
-    return this.http.get(`${this.URL}/reservas/dashboard/stats/${empresa}`);
-  }
-
-  // Esta función arregla la tabla de movimientos del Dashboard
-  getUltimosMovimientos(empresa: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.URL}/caja/ultimos/${empresa}`);
-  }
-
-  // --- SECCIÓN CAJA CONTABLE (NUEVAS RUTAS) ---
-
-  // Cambiamos el POST para que use la nueva ruta de registro unificado
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN CAJA CONTABLE (Módulo financiero)
+  // ═══════════════════════════════════════════════════════════════════════════
+  
   crearMovimientoCaja(datos: any): Observable<any> {
     return this.http.post(`${this.URL}/caja-contable/registrar`, datos);
   }
 
   getBalanceCaja(empresa: string): Observable<any> {
-    // Cambiamos 'balance-general' por la ruta que configuramos en el back
     return this.http.get(`${this.URL}/caja-contable/balance-general/${empresa}`);
   }
-  // Actualizamos el reporte diario
+
   getReporteDiario(empresa: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.URL}/caja-contable/reporte-diario/${empresa}`);
   }
 
-  // Actualizamos las cotizaciones
   getCotizacionesCompletas(): Observable<any> {
     return this.http.get(`${this.URL}/caja-contable/cotizaciones-completas`);
   }
@@ -125,63 +119,71 @@ export class ApiService {
     return this.http.get<any[]>(`${this.URL}/caja-contable/balance-billeteras/${empresa}`);
   }
 
+  // NUEVO: Pago de deuda de tarjeta
+  pagarDeudaTarjeta(datos: any): Observable<any> {
+    return this.http.post(`${this.URL}/caja-contable/pagar-tarjeta`, datos);
+  }
 
+  // NUEVO: Cierre mensual
+  getCierreMensual(empresa: string, mes?: number, anio?: number): Observable<any> {
+    let url = `${this.URL}/caja-contable/cierre-mensual/${empresa}`;
+    const params: string[] = [];
+    if (mes) params.push(`mes=${mes}`);
+    if (anio) params.push(`anio=${anio}`);
+    if (params.length > 0) url += '?' + params.join('&');
+    return this.http.get(url);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN RADAR Y VENCIMIENTOS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
   getRadarVencimientos(empresa: string): Observable<any[]> {
-    // Quitamos el '/api' inicial porque tus rutas de reserva no lo usan
     return this.http.get<any[]>(`${this.URL}/reservas/radar/vencimientos/${empresa}`);
   }
 
-
-  // --- SECCIÓN GESTIÓN DE ARCHIVOS ---
-
-  // Subir un archivo (PDF, Imagen, etc.) al legajo
-  subirArchivoReserva(idReserva: number, formData: FormData): Observable<any> {
-    return this.http.post(`${this.URL}/reservas/${idReserva}/subir-archivo`, formData);
-  }
-
-  // Obtener la lista de archivos asociados a una reserva
-  getArchivosReserva(idReserva: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.URL}/reservas/${idReserva}/archivos`);
-  }
-
-  // Opcional: Eliminar un archivo si te equivocaste al subirlo
-  eliminarArchivoReserva(idArchivo: number): Observable<any> {
-    return this.http.delete(`${this.URL}/reservas/archivo/${idArchivo}`);
-  }
-
-  // --- SECCIÓN DE NOTIFICACIONES Y CORREO ---
-
-  // Envía documentación (Voucher/Cotización) por email al cliente
-  enviarMail(idReserva: number, datosMail: any): Observable<any> {
-    return this.http.post(`${this.URL}/reservas/${idReserva}/enviar-documento`, datosMail);
-  }
-
-  // Obtiene los cumpleañeros del día para el radar
   getRadarCumpleanios(empresa: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.URL}/clientes/radar/cumpleanios/${empresa}`);
   }
 
-  enviarSaludoCumple(datos: { email: string, nombre: string }): Observable<any> {
+  enviarSaludoCumple(datos: { email: string, nombre: string, empresa_nombre?: string }): Observable<any> {
     return this.http.post(`${this.URL}/clientes/enviar-saludo-cumple`, datos);
   }
 
-  // --- SECCIÓN IMPORTACIÓN MASIVA ---
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN GESTIÓN DE ARCHIVOS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  subirArchivoReserva(idReserva: number, formData: FormData): Observable<any> {
+    return this.http.post(`${this.URL}/reservas/${idReserva}/subir-archivo`, formData);
+  }
 
+  getArchivosReserva(idReserva: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/reservas/${idReserva}/archivos`);
+  }
+
+  eliminarArchivoReserva(idArchivo: number): Observable<any> {
+    return this.http.delete(`${this.URL}/reservas/archivo/${idArchivo}`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN EMAILS Y DOCUMENTOS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  enviarMail(idReserva: number, datosMail: any): Observable<any> {
+    return this.http.post(`${this.URL}/reservas/${idReserva}/enviar-documento`, datosMail);
+  }
+
+  // NUEVO: Cotización segura (sin exponer costos internos)
+  getCotizacionReserva(idReserva: number): Observable<any> {
+    return this.http.get(`${this.URL}/reservas/${idReserva}/cotizacion`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN IMPORTACIÓN MASIVA
+  // ═══════════════════════════════════════════════════════════════════════════
+  
   importarClientesExcel(formData: FormData): Observable<any> {
     return this.http.post(`${this.URL}/import-clientes/upload`, formData);
   }
-
-  pagarDeudaTarjeta(datos: { monto: number, nombre_tarjeta: string, observaciones: string, empresa_nombre: string }): Observable<any> {
-    return this.http.post(`${this.URL}/caja-contable/pagar-tarjeta`, datos);
-  }
-
-  getCierreMensual(empresa: string, mes: number, anio: number): Observable<any> {
-    return this.http.get(`${this.URL}/caja-contable/cierre-mensual/${empresa}?mes=${mes}&anio=${anio}`);
-  }
-
-  getCotizacionCliente(idReserva: number): Observable<any> {
-  return this.http.get(`${this.URL}/reservas/${idReserva}/cotizacion`);
 }
-
-}
-

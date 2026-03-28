@@ -9,14 +9,11 @@ import { environment } from '../../environments/env';
   providedIn: 'root'
 })
 export class AuthService {
-  // Asegúrate de que el servidor Node.js esté corriendo en el puerto 3000
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private router: Router) { }
 
-  // En tu auth.ts, cambiá la función login para que incluya '/auth'
   login(credenciales: { user: string, pass: string }): Observable<any> {
-    // Agregamos /auth antes de /login para que coincida con tu backend
     return this.http.post(`${this.apiUrl}/auth/login`, credenciales).pipe(
       tap((res: any) => {
         localStorage.setItem('token', res.token);
@@ -28,14 +25,19 @@ export class AuthService {
     );
   }
 
-  // Verifica con rigor si existe un token real para el Guard y el Navbar
   estaLogueado(): boolean {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
-      // Verificamos que no sea nulo, vacío o un texto de error
       return token !== null && token !== '' && token !== 'undefined';
     }
     return false;
+  }
+
+  getToken(): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
   }
 
   getNombreEmpresa(): string {
@@ -45,15 +47,24 @@ export class AuthService {
     return 'Agencia';
   }
 
-  // MÉTODO DE CIERRE TOTAL (Soluciona el error del botón "Atrás")
+  getNombreUsuario(): string {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem('nombre_usuario') || '';
+    }
+    return '';
+  }
+
+  getRol(): string {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem('user_rol') || 'EMPRESA';
+    }
+    return 'EMPRESA';
+  }
+
   logout() {
-    // 1. Borramos rastro de sesión y búsqueda
     localStorage.clear();
     sessionStorage.clear();
-
-    // 2. Navegamos al login borrando el historial de navegación actual
     this.router.navigate(['/login'], { replaceUrl: true }).then(() => {
-      // 3. Recargamos para resetear los estados de los componentes y el Guard
       window.location.reload();
     });
   }

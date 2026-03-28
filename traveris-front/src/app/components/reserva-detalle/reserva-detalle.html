@@ -1,14 +1,18 @@
 <div class="px-3 px-md-4 py-4 animate-fade-in" style="max-width: 1400px; margin: 0 auto;" *ngIf="reserva">
 
   <!-- HEADER -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom no-print">
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom no-print">
     <div>
-      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 shadow-sm mb-2">LEGAJO #{{ reserva.id }}</span>
+      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 shadow-sm mb-2">LEGAJO
+        #{{ reserva.id }}</span>
       <h2 class="fw-bold mb-0">{{ reserva.destino_final }}</h2>
-      <p class="text-muted small mb-0 mt-1">{{ reserva.nombre_titular }} &bull; {{ reserva.fecha_viaje_salida | date:'dd/MM/yyyy' }} al {{ reserva.fecha_viaje_regreso | date:'dd/MM/yyyy' }}</p>
+      <p class="text-muted small mb-0 mt-1">{{ reserva.nombre_titular }} &bull; {{ reserva.fecha_viaje_salida |
+        date:'dd/MM/yyyy' }} al {{ reserva.fecha_viaje_regreso | date:'dd/MM/yyyy' }}</p>
     </div>
     <div class="d-flex gap-2 mt-2 mt-md-0 align-items-center">
-      <select class="form-select form-select-sm fw-bold rounded-pill border-2 no-print" [(ngModel)]="reserva.estado" (change)="cambiarEstado()" style="width: auto;">
+      <select class="form-select form-select-sm fw-bold rounded-pill border-2 no-print" [(ngModel)]="reserva.estado"
+        (change)="cambiarEstado()" style="width: auto;">
         <option value="ABIERTO" class="text-success fw-bold">🟢 ABIERTO</option>
         <option value="CERRADO" class="text-danger fw-bold">🔴 CERRADO</option>
       </select>
@@ -21,11 +25,12 @@
   <div class="row g-4 h-100">
     <!-- COLUMNA 1: INFO Y PASAJEROS -->
     <div class="col-lg-3 d-flex flex-column gap-4">
-      
+
       <!-- Card Información Base -->
       <div class="form-card p-4 h-100 border-top border-4 border-primary">
-        <h6 class="fw-bold mb-4 text-primary text-uppercase small"><i class="bi bi-info-circle-fill me-2"></i> Datos Generales</h6>
-        
+        <h6 class="fw-bold mb-4 text-primary text-uppercase small"><i class="bi bi-info-circle-fill me-2"></i> Datos
+          Generales</h6>
+
         <div class="vstack gap-3">
           <div>
             <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">TITULAR RESPONSABLE</div>
@@ -45,24 +50,28 @@
           </div>
           <div *ngIf="reserva.observaciones_internas">
             <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">NOTAS INTERNAS</div>
-            <div class="small text-muted fst-italic bg-body-secondary p-2 rounded">{{ reserva.observaciones_internas }}</div>
+            <div class="small text-muted fst-italic bg-body-secondary p-2 rounded">{{ reserva.observaciones_internas }}
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Card Deadline de Pago -->
       <div class="form-card p-4 no-print">
-        <h6 class="fw-bold mb-3 text-dark text-uppercase small"><i class="bi bi-alarm me-2 text-danger"></i> Deadline Pago</h6>
-        <input type="date" class="form-control bg-body border-2 fw-bold rounded-3 mb-2" [(ngModel)]="fechaLimiteEditable">
-        
-        <div class="text-danger small fw-bold mt-2 p-2 bg-danger bg-opacity-10 rounded-2" *ngIf="reserva.fecha_limite_pago && deudaCliente > 0 && fechaLimiteEditable <= (today | date:'yyyy-MM-dd')">
+        <h6 class="fw-bold mb-3 text-dark text-uppercase small"><i class="bi bi-alarm me-2 text-danger"></i> Deadline
+          Pago</h6>
+        <input type="date" class="form-control bg-body border-2 fw-bold rounded-3 mb-2"
+          [(ngModel)]="fechaLimiteEditable">
+
+        <div class="text-danger small fw-bold mt-2 p-2 bg-danger bg-opacity-10 rounded-2"
+          *ngIf="reserva.fecha_limite_pago && deudaCliente > 0 && fechaLimiteEditable <= (today | date:'yyyy-MM-dd')!">
           <i class="bi bi-exclamation-triangle-fill me-1"></i> ¡PLAZO VENCIDO!
         </div>
-        
+
         <div class="small text-muted mb-3 fst-italic" style="font-size: 0.75rem;" *ngIf="!reserva.fecha_limite_pago">
           <i class="bi bi-info-circle-fill me-1"></i> Sugerencia automática: 30 días previo salida.
         </div>
-        
+
         <button class="btn btn-danger btn-sm w-100 fw-bold rounded-pill shadow-sm" (click)="actualizarFechaPago()">
           <i class="bi bi-save me-1"></i> Fijar Deadline
         </button>
@@ -71,17 +80,22 @@
       <!-- Card Pasajeros -->
       <div class="form-card p-4 flex-grow-1">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h6 class="fw-bold m-0 text-dark text-uppercase small"><i class="bi bi-people-fill text-muted me-2"></i> Acompañantes</h6>
+          <h6 class="fw-bold m-0 text-dark text-uppercase small"><i class="bi bi-people-fill text-muted me-2"></i>
+            Acompañantes</h6>
           <span class="badge bg-secondary rounded-pill">{{ reserva.pasajeros?.length || 0 }}</span>
         </div>
-        
-        <div *ngIf="!reserva.pasajeros || reserva.pasajeros.length === 0" class="text-center py-3 text-muted border border-dashed rounded-3">
+
+        <div *ngIf="!reserva.pasajeros || reserva.pasajeros.length === 0"
+          class="text-center py-3 text-muted border border-dashed rounded-3">
           <i class="bi bi-person-x fs-4 opacity-50"></i>
           <p class="small mb-0 mt-2">No hay acompañantes.</p>
         </div>
 
-        <div *ngFor="let p of reserva.pasajeros" class="d-flex align-items-start p-3 border rounded-4 mb-2 bg-body shadow-sm">
-          <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 38px; height: 38px;">
+        <div *ngFor="let p of reserva.pasajeros"
+          class="d-flex align-items-start p-3 border rounded-4 mb-2 bg-body shadow-sm">
+          <div
+            class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0"
+            style="width: 38px; height: 38px;">
             <i class="bi bi-person-fill fs-5"></i>
           </div>
           <div class="flex-grow-1 overflow-hidden">
@@ -89,7 +103,8 @@
             <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
               DNI: {{ p.dni_pasaporte }} &bull; {{ p.tipo_pasajero }}
             </div>
-            <div class="text-danger small mt-1 py-1 px-2 bg-danger bg-opacity-10 rounded-2 d-inline-block" style="font-size: 0.7rem;" *ngIf="p.notas_medicas_alergias">
+            <div class="text-danger small mt-1 py-1 px-2 bg-danger bg-opacity-10 rounded-2 d-inline-block"
+              style="font-size: 0.7rem;" *ngIf="p.notas_medicas_alergias">
               <i class="bi bi-heart-pulse-fill me-1"></i> {{ p.notas_medicas_alergias }}
             </div>
           </div>
@@ -105,31 +120,45 @@
           <p class="small text-muted mb-0 mt-1">Todos los servicios confirmados para esta operación.</p>
         </div>
         <div class="p-4 flex-grow-1 overflow-auto" style="max-height: 75vh;">
-          <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0" class="text-center py-5 text-muted">
+          <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0"
+            class="text-center py-5 text-muted">
             <i class="bi bi-calendar-x fs-1 opacity-25"></i>
             <p class="mt-2 fw-bold">Sin servicios cargados</p>
           </div>
 
-          <div *ngFor="let s of reserva.servicios_items; let i = index" class="border rounded-4 mb-3 overflow-hidden shadow-sm">
+          <div *ngFor="let s of reserva.servicios_items; let i = index"
+            class="border rounded-4 mb-3 overflow-hidden shadow-sm">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-body">
               <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-dark text-white px-3 py-2 rounded-pill text-uppercase fw-bold" style="font-size: 0.65rem;">{{ s.tipo_item }}</span>
-                <span class="fw-bold text-dark">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item || 'Servicio' }}</span>
+                <span class="badge bg-dark text-white px-3 py-2 rounded-pill text-uppercase fw-bold"
+                  style="font-size: 0.65rem;">{{ s.tipo_item }}</span>
+                <span class="fw-bold text-dark">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item ||
+                  'Servicio' }}</span>
               </div>
-              <span class="badge bg-success-subtle text-success border border-success px-2" *ngIf="s.pnr">PNR: {{ s.pnr }}</span>
+              <span class="badge bg-success-subtle text-success border border-success px-2" *ngIf="s.pnr">PNR: {{ s.pnr
+                }}</span>
             </div>
             <div class="p-3">
               <div class="row g-2 small">
-                <div class="col-6" *ngIf="s.ciudad"><span class="text-muted">Ciudad:</span> <strong>{{ s.ciudad }}</strong></div>
-                <div class="col-6" *ngIf="s.check_in"><span class="text-muted">Check-in:</span> <strong>{{ s.check_in | date:'dd/MM/yy' }}</strong></div>
-                <div class="col-6" *ngIf="s.check_out"><span class="text-muted">Check-out:</span> <strong>{{ s.check_out | date:'dd/MM/yy' }}</strong></div>
-                <div class="col-6" *ngIf="s.origen"><span class="text-muted">Ruta:</span> <strong>{{ s.origen }} → {{ s.destino }}</strong></div>
-                <div class="col-6" *ngIf="s.nro_vuelo"><span class="text-muted">Vuelo:</span> <strong>{{ s.nro_vuelo }}</strong></div>
-                <div class="col-6" *ngIf="s.regimen"><span class="text-muted">Régimen:</span> <strong>{{ s.regimen }}</strong></div>
-                <div class="col-6" *ngIf="s.plan_asistencia"><span class="text-muted">Plan:</span> <strong>{{ s.plan_asistencia }}</strong></div>
-                <div class="col-6" *ngIf="s.nro_poliza"><span class="text-muted">Póliza:</span> <strong>{{ s.nro_poliza }}</strong></div>
+                <div class="col-6" *ngIf="s.ciudad"><span class="text-muted">Ciudad:</span> <strong>{{ s.ciudad
+                    }}</strong></div>
+                <div class="col-6" *ngIf="s.check_in"><span class="text-muted">Check-in:</span> <strong>{{ s.check_in |
+                    date:'dd/MM/yy' }}</strong></div>
+                <div class="col-6" *ngIf="s.check_out"><span class="text-muted">Check-out:</span> <strong>{{ s.check_out
+                    | date:'dd/MM/yy' }}</strong></div>
+                <div class="col-6" *ngIf="s.origen"><span class="text-muted">Ruta:</span> <strong>{{ s.origen }} → {{
+                    s.destino }}</strong></div>
+                <div class="col-6" *ngIf="s.nro_vuelo"><span class="text-muted">Vuelo:</span> <strong>{{ s.nro_vuelo
+                    }}</strong></div>
+                <div class="col-6" *ngIf="s.regimen"><span class="text-muted">Régimen:</span> <strong>{{ s.regimen
+                    }}</strong></div>
+                <div class="col-6" *ngIf="s.plan_asistencia"><span class="text-muted">Plan:</span> <strong>{{
+                    s.plan_asistencia }}</strong></div>
+                <div class="col-6" *ngIf="s.nro_poliza"><span class="text-muted">Póliza:</span> <strong>{{ s.nro_poliza
+                    }}</strong></div>
               </div>
-              <div class="bg-body p-3 mt-2 rounded-3 small text-muted border border-dashed fst-italic" style="white-space: pre-wrap;" *ngIf="s.servicio_descripcion">
+              <div class="bg-body p-3 mt-2 rounded-3 small text-muted border border-dashed fst-italic"
+                style="white-space: pre-wrap;" *ngIf="s.servicio_descripcion">
                 <i class="bi bi-info-circle me-1"></i> {{ s.servicio_descripcion }}
               </div>
             </div>
@@ -140,58 +169,70 @@
 
     <!-- COLUMNA 3: FINANZAS Y GESTIÓN -->
     <div class="col-lg-3 d-flex flex-column gap-4">
-      
+
       <!-- Card Estado Contable -->
       <div class="form-card p-4 border-top border-4 border-success h-100">
-        <h6 class="fw-bold mb-4 text-success text-uppercase small"><i class="bi bi-graph-up-arrow me-2"></i> Estado Contable</h6>
-        
+        <h6 class="fw-bold mb-4 text-success text-uppercase small"><i class="bi bi-graph-up-arrow me-2"></i> Estado
+          Contable</h6>
+
         <div class="row g-2 mb-4">
           <div class="col-6">
             <div class="p-3 bg-body border rounded-4 text-center h-100 shadow-sm">
               <div class="small fw-bold text-muted mb-1" style="font-size: 0.65rem;">COSTE (NETO)</div>
-              <div class="fw-bold text-danger text-truncate">US$ {{ reserva.costo_total_operador_usd | number:'1.0-0' }}</div>
+              <div class="fw-bold text-danger text-truncate">US$ {{ reserva.costo_total_operador_usd | number:'1.0-0' }}
+              </div>
             </div>
           </div>
           <div class="col-6">
             <div class="p-3 bg-body border rounded-4 text-center h-100 shadow-sm border-success border-opacity-50">
               <div class="small fw-bold text-success mb-1" style="font-size: 0.65rem;">VENTA (FINAL)</div>
-              <div class="fw-bold text-success text-truncate">US$ {{ reserva.total_venta_final_usd | number:'1.0-0' }}</div>
+              <div class="fw-bold text-success text-truncate">US$ {{ reserva.total_venta_final_usd | number:'1.0-0' }}
+              </div>
             </div>
           </div>
         </div>
 
         <div class="vstack gap-3">
-          <div class="p-3 bg-danger bg-opacity-10 rounded-4 border border-danger border-opacity-25 shadow-sm text-center">
+          <div
+            class="p-3 bg-danger bg-opacity-10 rounded-4 border border-danger border-opacity-25 shadow-sm text-center">
             <div class="small fw-bold text-danger mb-1" style="font-size: 0.7rem;">SALDO PENDIENTE (COBRAR)</div>
             <div class="h4 fw-bold text-danger m-0">US$ {{ deudaCliente | number:'1.2-2' }}</div>
           </div>
-          
-          <div class="p-3 bg-warning bg-opacity-10 rounded-4 border border-warning border-opacity-25 shadow-sm text-center">
-            <div class="small fw-bold text-warning text-dark mb-1" style="font-size: 0.7rem;">DEUDA OPERADOR (PAGAR)</div>
-            <div class="h5 fw-bold text-dark m-0">US$ {{ (deudaProveedor > 0 ? deudaProveedor : 0) | number:'1.2-2' }}</div>
+
+          <div
+            class="p-3 bg-warning bg-opacity-10 rounded-4 border border-warning border-opacity-25 shadow-sm text-center">
+            <div class="small fw-bold text-warning text-dark mb-1" style="font-size: 0.7rem;">DEUDA OPERADOR (PAGAR)
+            </div>
+            <div class="h5 fw-bold text-dark m-0">US$ {{ (deudaProveedor > 0 ? deudaProveedor : 0) | number:'1.2-2' }}
+            </div>
           </div>
-          
+
           <div class="p-3 bg-success text-white rounded-4 shadow-sm text-center bg-gradient mt-2">
-            <div class="small fw-bold text-white text-opacity-75 mb-1" style="font-size: 0.7rem;"><i class="bi bi-piggy-bank me-1"></i> RENTABILIDAD</div>
-            <div class="h4 fw-bold text-white m-0">US$ {{ (reserva.total_venta_final_usd - reserva.costo_total_operador_usd) | number:'1.2-2' }}</div>
+            <div class="small fw-bold text-white text-opacity-75 mb-1" style="font-size: 0.7rem;"><i
+                class="bi bi-piggy-bank me-1"></i> RENTABILIDAD</div>
+            <div class="h4 fw-bold text-white m-0">US$ {{ (reserva.total_venta_final_usd -
+              reserva.costo_total_operador_usd) | number:'1.2-2' }}</div>
           </div>
         </div>
       </div>
 
       <!-- Card Registrar Movimiento -->
       <div class="form-card p-4 no-print border-top border-4 border-info">
-        <h6 class="fw-bold mb-3 text-info text-dark text-uppercase small"><i class="bi bi-cash-coin me-2"></i> Pago / Cobro</h6>
-        
-        <select class="form-select mb-3 bg-body text-dark fw-bold border-secondary shadow-sm rounded-pill" [(ngModel)]="nuevoPago.tipo_movimiento">
+        <h6 class="fw-bold mb-3 text-info text-dark text-uppercase small"><i class="bi bi-cash-coin me-2"></i> Pago /
+          Cobro</h6>
+
+        <select class="form-select mb-3 bg-body text-dark fw-bold border-secondary shadow-sm rounded-pill"
+          [(ngModel)]="nuevoPago.tipo_movimiento">
           <option value="PAGO_CLIENTE">Cobro Recibido (Cliente)</option>
           <option value="PAGO_PROVEEDOR">Pago Emitido (Operador)</option>
         </select>
-        
+
         <div class="row g-2 mb-3">
           <div class="col-7">
             <div class="input-premium-group h-100">
               <span class="input-premium-icon bg-body"><i class="bi bi-currency-dollar"></i></span>
-              <input type="number" class="form-control input-premium bg-body fw-bold" [(ngModel)]="nuevoPago.monto" placeholder="0.00">
+              <input type="number" class="form-control input-premium bg-body fw-bold" [(ngModel)]="nuevoPago.monto"
+                placeholder="0.00">
             </div>
           </div>
           <div class="col-5">
@@ -210,27 +251,35 @@
           <option value="MERCADOPAGO">MercadoPago</option>
         </select>
 
-        <input type="text" class="form-control mb-3 bg-body border-2 rounded-3" [(ngModel)]="nuevoPago.observaciones" placeholder="Observaciones (opcional)">
-        
-        <button class="btn btn-dark w-100 fw-bold rounded-pill shadow" (click)="guardarPago()" [disabled]="!nuevoPago.monto || nuevoPago.monto <= 0">
+        <input type="text" class="form-control mb-3 bg-body border-2 rounded-3" [(ngModel)]="nuevoPago.observaciones"
+          placeholder="Observaciones (opcional)">
+
+        <button class="btn btn-dark w-100 fw-bold rounded-pill shadow" (click)="guardarPago()"
+          [disabled]="!nuevoPago.monto || nuevoPago.monto <= 0">
           <i class="bi bi-wallet2 me-2"></i> Asentar Movimiento
         </button>
       </div>
 
       <!-- Card Generar Docs y Archivos -->
       <div class="form-card p-4 no-print d-flex flex-column gap-3">
-        <h6 class="fw-bold m-0 text-dark text-uppercase small"><i class="bi bi-file-earmark-arrow-down me-2"></i> Emisión Docs</h6>
-        
+        <h6 class="fw-bold m-0 text-dark text-uppercase small"><i class="bi bi-file-earmark-arrow-down me-2"></i>
+          Emisión Docs</h6>
+
         <div class="d-grid gap-2">
-          <button class="btn btn-outline-primary fw-bold rounded-pill shadow-sm d-flex justify-content-between align-items-center px-4" (click)="previsualizar('VOUCHER')">
+          <button
+            class="btn btn-outline-primary fw-bold rounded-pill shadow-sm d-flex justify-content-between align-items-center px-4"
+            (click)="previsualizar('VOUCHER')">
             <span><i class="bi bi-ticket-perforated me-2"></i> Gen. Voucher</span>
             <i class="bi bi-arrow-right"></i>
           </button>
-          <button class="btn btn-outline-success fw-bold rounded-pill shadow-sm d-flex justify-content-between align-items-center px-4" (click)="previsualizar('COTIZACION')">
+          <button
+            class="btn btn-outline-success fw-bold rounded-pill shadow-sm d-flex justify-content-between align-items-center px-4"
+            (click)="previsualizar('COTIZACION')">
             <span><i class="bi bi-calculator me-2"></i> Gen. Cotización</span>
             <i class="bi bi-arrow-right"></i>
           </button>
-          <button class="btn btn-body border rounded-pill shadow-sm mt-2 text-muted fw-bold hover-bg-light" (click)="enviarPorMail()">
+          <button class="btn btn-body border rounded-pill shadow-sm mt-2 text-muted fw-bold hover-bg-light"
+            (click)="enviarPorMail()">
             <i class="bi bi-envelope-paper me-2"></i> Enviar por Email
           </button>
         </div>
@@ -238,14 +287,16 @@
         <hr class="my-2 border-light">
 
         <h6 class="fw-bold m-0 text-muted text-uppercase small"><i class="bi bi-cloud-arrow-up me-2"></i> Archivos</h6>
-        
+
         <div class="vstack gap-2">
-          <div *ngFor="let a of archivos" class="d-flex justify-content-between align-items-center p-2 bg-body rounded-3 border shadow-sm">
+          <div *ngFor="let a of archivos"
+            class="d-flex justify-content-between align-items-center p-2 bg-body rounded-3 border shadow-sm">
             <div class="d-flex align-items-center gap-2 overflow-hidden">
               <i class="bi bi-file-earmark text-muted"></i>
               <span class="small fw-bold text-truncate">{{ a.nombre_archivo }}</span>
             </div>
-            <button class="btn btn-sm btn-outline-danger rounded-circle flex-shrink-0" (click)="eliminarArchivo(a.id)" style="width:28px;height:28px;padding:0;">
+            <button class="btn btn-sm btn-outline-danger rounded-circle flex-shrink-0" (click)="eliminarArchivo(a.id)"
+              style="width:28px;height:28px;padding:0;">
               <i class="bi bi-x"></i>
             </button>
           </div>
@@ -254,7 +305,8 @@
 
         <label class="btn btn-outline-secondary btn-sm rounded-pill mt-1 w-100">
           <i class="bi bi-upload me-1"></i> Subir Archivo (máx 10MB)
-          <input type="file" class="d-none" (change)="onFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.txt">
+          <input type="file" class="d-none" (change)="onFileSelected($event)"
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.txt">
         </label>
       </div>
     </div>
@@ -263,33 +315,41 @@
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <!-- MODAL PREVIEW DOCUMENTOS (Voucher / Cotización) -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <div *ngIf="mostrarPreview" class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center overflow-auto py-4" style="z-index: 9999; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);">
-    
-    <div class="d-flex justify-content-between align-items-center mb-3 no-print bg-dark border border-secondary border-opacity-50 p-3 rounded-4 shadow-lg mx-auto" style="width: 100%; max-width: 210mm;">
+  <div *ngIf="mostrarPreview"
+    class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center overflow-auto py-4"
+    style="z-index: 9999; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);">
+
+    <div
+      class="d-flex justify-content-between align-items-center mb-3 no-print bg-dark border border-secondary border-opacity-50 p-3 rounded-4 shadow-lg mx-auto"
+      style="width: 100%; max-width: 210mm;">
       <h5 class="fw-bold text-white m-0 d-flex align-items-center gap-2">
         <i class="bi bi-printer text-primary"></i> Vista Previa {{ tipoDoc === 'VOUCHER' ? 'Voucher' : 'Cotización' }}
       </h5>
       <div class="d-flex gap-2">
-        <button class="btn btn-primary rounded-pill fw-bold shadow px-4" (click)="imprimir()"><i class="bi bi-printer-fill me-2"></i> Imprimir a PDF</button>
+        <button class="btn btn-primary rounded-pill fw-bold shadow px-4" (click)="imprimir()"><i
+            class="bi bi-printer-fill me-2"></i> Imprimir a PDF</button>
         <button class="btn btn-outline-light rounded-pill px-4" (click)="mostrarPreview = false">Cerrar</button>
       </div>
     </div>
 
     <div class="modal-body p-0 d-flex justify-content-center">
-      
+
       <!-- Hoja A4 Imprimible -->
-      <div class="p-5 shadow-lg rounded-2 mb-5" id="documento-imprimible" style="background-color: white !important; width: 100%; max-width: 210mm; min-height: 297mm; color: black !important;">
-        
+      <div class="p-5 shadow-lg rounded-2 mb-5" id="documento-imprimible"
+        style="background-color: white !important; width: 100%; max-width: 210mm; min-height: 297mm; color: black !important;">
+
         <!-- HEADER DEL DOCUMENTO -->
         <div class="d-flex justify-content-between border-bottom border-2 border-dark pb-4 mb-5">
           <div>
-            <h1 class="h2 fw-bold text-primary m-0 text-uppercase d-flex align-items-center gap-2" style="letter-spacing: -1px;">
+            <h1 class="h2 fw-bold text-primary m-0 text-uppercase d-flex align-items-center gap-2"
+              style="letter-spacing: -1px;">
               <i class="bi bi-globe-americas text-dark"></i> {{ auth.getNombreEmpresa() }}
             </h1>
             <p class="small text-muted mb-0 mt-2 fw-bold">Empresa de Viajes y Turismo | Legajo EVT: Ley 18.829</p>
           </div>
           <div class="text-end">
-            <div class="badge bg-dark px-3 py-2 text-uppercase fs-6 mb-3 rounded-pill">{{ tipoDoc === 'VOUCHER' ? 'Voucher Maestro de Servicios' : 'Cotización de Viaje' }}</div>
+            <div class="badge bg-dark px-3 py-2 text-uppercase fs-6 mb-3 rounded-pill">{{ tipoDoc === 'VOUCHER' ?
+              'Voucher Maestro de Servicios' : 'Cotización de Viaje' }}</div>
             <div class="fw-bold fs-5">OP-ID: <span class="text-primary">#{{ reserva.id }}</span></div>
             <div class="small fw-bold text-muted">Emisión oficial: {{ today | date:'dd/MM/yyyy' }}</div>
           </div>
@@ -297,7 +357,7 @@
 
         <!-- CONTENIDO DINÁMICO DEL DOCUMENTO -->
         <div [ngSwitch]="tipoDoc">
-          
+
           <!-- ═══ ESTILO VOUCHER ═══ -->
           <div *ngSwitchCase="'VOUCHER'">
             <div class="bg-light p-4 rounded-3 mb-5 border">
@@ -317,35 +377,42 @@
             <h5 class="fw-bold border-bottom border-dark pb-2 mb-4 d-flex align-items-center gap-2 text-uppercase">
               <i class="bi bi-card-checklist"></i> Detalle de Servicios Contratados
             </h5>
-            
+
             <div class="vstack gap-3">
-              <div *ngFor="let s of reserva.servicios_items" class="p-4 border border-1 border-secondary border-opacity-25 rounded-3" style="background-color: white !important; page-break-inside: avoid;">
+              <div *ngFor="let s of reserva.servicios_items"
+                class="p-4 border border-1 border-secondary border-opacity-25 rounded-3"
+                style="background-color: white !important; page-break-inside: avoid;">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                   <div>
-                    <span class="badge border border-dark text-dark mb-2 px-3 py-2 text-uppercase fw-bold rounded-pill" style="font-size: 0.7rem;">
+                    <span class="badge border border-dark text-dark mb-2 px-3 py-2 text-uppercase fw-bold rounded-pill"
+                      style="font-size: 0.7rem;">
                       {{ s.tipo_item }}
                     </span>
-                    <div class="fs-5 fw-bold text-dark">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item }}</div>
+                    <div class="fs-5 fw-bold text-dark">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre ||
+                      s.nombre_item }}</div>
                   </div>
                   <div class="text-end" *ngIf="s.pnr">
                     <div class="small text-muted fw-bold">Récord PNR</div>
                     <div class="fs-5 fw-bold bg-dark text-white px-3 py-1 rounded">{{ s.pnr }}</div>
                   </div>
                 </div>
-                
-                <div class="bg-light p-3 rounded text-dark fs-6" style="white-space: pre-wrap; font-family: monospace;">{{ s.servicio_descripcion || s.crucero_itinerario || 'Detalles en anexo. Vuelo: ' + (s.nro_vuelo || '') }}</div>
+
+                <div class="bg-light p-3 rounded text-dark fs-6" style="white-space: pre-wrap; font-family: monospace;">
+                  {{ s.servicio_descripcion || s.crucero_itinerario || 'Detalles en anexo. Vuelo: ' + (s.nro_vuelo ||
+                  '') }}</div>
               </div>
             </div>
-            
+
             <div class="mt-5 pt-4 border-top text-center text-muted small">
               <p class="mb-0 fw-bold">Este documento es válido como confirmación de los servicios listados.</p>
-              <p>Por favor, presentarlo junto a su documentación de viaje oficial al momento de requerir los servicios.</p>
+              <p>Por favor, presentarlo junto a su documentación de viaje oficial al momento de requerir los servicios.
+              </p>
             </div>
           </div>
-          
+
           <!-- ═══ ESTILO COTIZACIÓN (CORREGIDO: ngSwitchCase en vez de ngSwitchDefault) ═══ -->
           <div *ngSwitchCase="'COTIZACION'">
-            
+
             <!-- Datos del titular -->
             <div class="bg-light p-4 rounded-3 mb-4 border">
               <h6 class="fw-bold text-uppercase text-muted small mb-3 border-bottom pb-2">Datos del Pasajero</h6>
@@ -393,20 +460,25 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let s of (datosCotizacion?.servicios_cotizacion || reserva.servicios_items)" class="border-bottom">
+                <tr *ngFor="let s of (datosCotizacion?.servicios_cotizacion || reserva.servicios_items)"
+                  class="border-bottom">
                   <td>
-                    <span class="badge border border-secondary text-dark px-2 py-1 rounded-pill" style="font-size: 0.65rem;">{{ s.tipo_item }}</span>
+                    <span class="badge border border-secondary text-dark px-2 py-1 rounded-pill"
+                      style="font-size: 0.65rem;">{{ s.tipo_item }}</span>
                   </td>
-                  <td class="fw-bold">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item || 'Servicio' }}</td>
+                  <td class="fw-bold">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item ||
+                    'Servicio' }}</td>
                   <td class="text-end fw-bold">US$ {{ (s.venta_bruta_cliente || 0) | number:'1.2-2' }}</td>
                 </tr>
                 <tr *ngIf="reserva.gastos_administrativos_usd > 0" class="border-bottom">
-                  <td><span class="badge border border-secondary text-dark px-2 py-1 rounded-pill" style="font-size: 0.65rem;">ADMIN</span></td>
+                  <td><span class="badge border border-secondary text-dark px-2 py-1 rounded-pill"
+                      style="font-size: 0.65rem;">ADMIN</span></td>
                   <td class="fw-bold">Gastos administrativos</td>
                   <td class="text-end fw-bold">US$ {{ reserva.gastos_administrativos_usd | number:'1.2-2' }}</td>
                 </tr>
                 <tr *ngIf="reserva.bonificacion_descuento_usd > 0" class="border-bottom text-success">
-                  <td><span class="badge border border-success text-success px-2 py-1 rounded-pill" style="font-size: 0.65rem;">DESC</span></td>
+                  <td><span class="badge border border-success text-success px-2 py-1 rounded-pill"
+                      style="font-size: 0.65rem;">DESC</span></td>
                   <td class="fw-bold">Bonificación / Descuento</td>
                   <td class="text-end fw-bold">- US$ {{ reserva.bonificacion_descuento_usd | number:'1.2-2' }}</td>
                 </tr>
@@ -414,7 +486,8 @@
               <tfoot>
                 <tr class="border-top border-3 border-dark">
                   <td colspan="2" class="fw-bold fs-5 text-uppercase">INVERSIÓN TOTAL</td>
-                  <td class="text-end fw-bold fs-5 text-primary">US$ {{ reserva.total_venta_final_usd | number:'1.2-2' }}</td>
+                  <td class="text-end fw-bold fs-5 text-primary">US$ {{ reserva.total_venta_final_usd | number:'1.2-2'
+                    }}</td>
                 </tr>
               </tfoot>
             </table>
@@ -422,17 +495,19 @@
             <div class="bg-light border rounded-3 p-4 mt-4" *ngIf="reserva.cotizacion_dolar">
               <div class="small fw-bold text-muted mb-1">COTIZACIÓN DE REFERENCIA</div>
               <div class="fw-bold">1 USD = $ {{ reserva.cotizacion_dolar | number:'1.2-2' }} ARS</div>
-              <div class="fw-bold text-dark mt-1">Equivalente en pesos: <strong class="text-primary">$ {{ (reserva.total_venta_final_usd * reserva.cotizacion_dolar) | number:'1.2-2' }} ARS</strong></div>
+              <div class="fw-bold text-dark mt-1">Equivalente en pesos: <strong class="text-primary">$ {{
+                  (reserva.total_venta_final_usd * reserva.cotizacion_dolar) | number:'1.2-2' }} ARS</strong></div>
             </div>
 
             <div class="mt-5 pt-4 border-top text-center text-muted small">
-              <p class="mb-0 fw-bold">Esta cotización tiene carácter informativo y está sujeta a disponibilidad y tipo de cambio vigente.</p>
+              <p class="mb-0 fw-bold">Esta cotización tiene carácter informativo y está sujeta a disponibilidad y tipo
+                de cambio vigente.</p>
               <p>Validez: 5 días hábiles desde la fecha de emisión. Consulte condiciones de pago.</p>
             </div>
           </div>
 
         </div>
-        
+
       </div>
     </div>
   </div>

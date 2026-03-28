@@ -59,7 +59,7 @@ export class ApiService {
     return this.http.delete(`${this.URL}/reservas/${id}`);
   }
 
-  getReservaCompleta(id: number): Observable<any> {
+  getReservaCompleta(id: string): Observable<any> {
     return this.http.get(`${this.URL}/reservas/completa/${id}`);
   }
 

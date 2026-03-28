@@ -13,13 +13,13 @@ import { HttpClient } from '@angular/common/http';
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-  stats: any = { totalLegajos: 0, legajosActivos: 0, saldoPendienteGlobal: 0 };
+  stats: any = { totalLegajos: 0, legajosActivos: 0, saldoPendienteGlobal: 0, deudaProveedoresGlobal: 0 };
   movimientos: any[] = [];
   nombreEmpresa: string = 'Cargando...';
   cotizacionBlue: any = { compra: 0, venta: 0 };
 
   alertasRadar: any[] = [];
-  mostrarAlertas: boolean = false; // 👈 Agregá esta línea
+  mostrarAlertas: boolean = false;
 
   constructor(
     private api: ApiService,
@@ -34,27 +34,30 @@ export class Dashboard implements OnInit {
   }
 
   cargarRadar() {
-  const empresa = this.auth.getNombreEmpresa();
-  
-  this.api.getRadarVencimientos(empresa).subscribe(vencimientos => {
-    // Si la lista de deudas está vacía, ocultamos la notificación
-    const v = vencimientos.map(i => ({ ...i, tipoAlerta: 'PAGO' }));
+    const empresa = this.auth.getNombreEmpresa();
     
-    // Filtramos cumpleaños para unificar la lista
-    this.api.getRadarCumpleanios(empresa).subscribe(cumples => {
-      const c = cumples.map(i => ({ ...i, tipoAlerta: 'CUMPLE' }));
-      
-      this.alertasRadar = [...v, ...c];
-      
-      // La campana solo se prende si hay deudas VENCIDAS o CUMPLES
-      this.mostrarAlertas = this.alertasRadar.length > 0;
+    this.api.getRadarVencimientos(empresa).subscribe({
+      next: (vencimientos) => {
+        const v = vencimientos.map((i: any) => ({ ...i, tipoAlerta: 'PAGO' }));
+        
+        this.api.getRadarCumpleanios(empresa).subscribe({
+          next: (cumples) => {
+            const c = cumples.map((i: any) => ({ ...i, tipoAlerta: 'CUMPLE' }));
+            this.alertasRadar = [...v, ...c];
+            this.mostrarAlertas = this.alertasRadar.length > 0;
+          },
+          error: () => {
+            this.alertasRadar = [...v];
+            this.mostrarAlertas = v.length > 0;
+          }
+        });
+      },
+      error: (err: any) => console.error('Error en radar:', err)
     });
-  });
-}
+  }
 
+  // Punto 1: Email con nombre real de agencia
   enviarFelicidades(persona: any) {
-
-    // Verificamos si tiene email antes de intentar enviar
     if (!persona.email) {
       alert("Este cliente no tiene un correo electrónico registrado.");
       return;
@@ -62,12 +65,13 @@ export class Dashboard implements OnInit {
 
     this.api.enviarSaludoCumple({
       email: persona.email,
-      nombre: persona.nombre_completo
+      nombre: persona.nombre_completo,
+      empresa_nombre: this.auth.getNombreEmpresa() // Envía nombre real de agencia
     }).subscribe({
       next: () => {
         alert("¡Email de felicitación enviado con éxito a " + persona.nombre_completo + "!");
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         alert("Error al enviar el correo. Revisá la configuración del servidor.");
       }
@@ -78,33 +82,28 @@ export class Dashboard implements OnInit {
     const miAgencia = this.auth.getNombreEmpresa();
     this.nombreEmpresa = miAgencia;
 
-    // Llamamos al nuevo endpoint enviando la agencia como parámetro
     this.api.getDashboardStats(miAgencia).subscribe({
-      next: (data) => {
-        // data ya trae: totalLegajos, legajosActivos, saldoPendienteGlobal
+      next: (data: any) => {
         this.stats = data;
-        console.log("Estadísticas actualizadas:", this.stats);
-        console.log("TOTAL VENTAS - PAGOS = ", data.saldoPendienteGlobal);
       },
-      error: (err) => console.error('Error al cargar estadísticas:', err)
+      error: (err: any) => console.error('Error al cargar estadísticas:', err)
     });
 
-    // También cargamos los movimientos para la tabla de abajo
     this.api.getUltimosMovimientos(miAgencia).subscribe({
-      next: (data) => this.movimientos = data,
-      error: (err) => console.error('Error en movimientos:', err)
+      next: (data: any) => this.movimientos = data,
+      error: (err: any) => console.error('Error en movimientos:', err)
     });
   }
 
+  // CORREGIDO: eliminarMovimiento → eliminarMovimientoContable
   eliminarMovimiento(id: number) {
     if (confirm('¿Deseas anular este movimiento de caja?')) {
-      this.api.eliminarMovimiento(id).subscribe({
+      this.api.eliminarMovimientoContable(id).subscribe({
         next: () => {
           alert('Movimiento anulado correctamente');
-          // Recargamos el dashboard para que stats.saldoPendienteGlobal se actualice
           this.cargarDashboard();
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Detalle del error:', err);
           alert('Error al eliminar el movimiento');
         }
@@ -112,11 +111,25 @@ export class Dashboard implements OnInit {
     }
   }
 
+  // Punto 5: Cotización del dólar con fallback
   obtenerDolar() {
-    // Cambiamos 'blue' por 'oficial' en la URL
     this.http.get('https://dolarapi.com/v1/dolares/oficial').subscribe({
-      next: (data: any) => this.cotizacionBlue = data, // Podes mantener el nombre de la variable o cambiarlo a cotizacionOficial
-      error: (err) => console.error('Error al obtener cotización:', err)
+      next: (data: any) => {
+        this.cotizacionBlue = data;
+      },
+      error: () => {
+        // Fallback: intentar con otra API
+        this.http.get('https://dolarapi.com/v1/dolares/blue').subscribe({
+          next: (data: any) => {
+            this.cotizacionBlue = data;
+          },
+          error: () => {
+            // Si ambas fallan, usar valores por defecto
+            this.cotizacionBlue = { compra: 0, venta: 0 };
+            console.warn('No se pudo obtener cotización del dólar');
+          }
+        });
+      }
     });
   }
 }

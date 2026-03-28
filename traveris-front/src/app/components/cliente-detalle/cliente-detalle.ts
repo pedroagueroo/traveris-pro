@@ -7,11 +7,11 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-cliente-detalle',
   standalone: true,
-  imports: [CommonModule,FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './cliente-detalle.html'
 })
 export class ClienteDetalle implements OnInit {
-  cliente: any = null; // Empezamos en null para saber cuando carga
+  cliente: any = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -19,16 +19,21 @@ export class ClienteDetalle implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Tomamos el ID de la URL
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.api.getClientePorId(id).subscribe({
-        next: (data) => {
+        next: (data: any) => {
           this.cliente = data;
-          console.log('Datos cargados:', this.cliente);
         },
-        error: (err) => console.error('Error al cargar perfil:', err)
+        error: (err: any) => console.error('Error al cargar perfil:', err)
       });
     }
+  }
+
+  estaVencido(fecha: string): boolean {
+    if (!fecha) return false;
+    const hoy = new Date();
+    const fechaDoc = new Date(fecha);
+    return fechaDoc < hoy;
   }
 }

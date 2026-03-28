@@ -10,7 +10,8 @@
             <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill shadow-sm" routerLink="/clientes">
                 <i class="bi bi-arrow-left me-1"></i> Volver a Clientes
             </button>
-            <button class="btn btn-elite fw-bold px-4 rounded-pill shadow-sm" [routerLink]="['/clientes/editar', cliente.id]">
+            <!-- Punto 9: CORREGIDO — Redirige a la lista de clientes (donde se abre el modal de edición) -->
+            <button class="btn btn-elite fw-bold px-4 rounded-pill shadow-sm" routerLink="/clientes">
                 <i class="bi bi-pencil-square me-1"></i> Editar Ficha
             </button>
         </div>
@@ -19,188 +20,119 @@
     <div class="row g-4">
         <!-- COLUMNA IZQUIERDA: PERFIL -->
         <div class="col-lg-4">
-            <!-- Tarjeta de Perfil Principal -->
             <div class="form-card h-100 p-4 border-top border-4 border-primary">
                 
                 <div class="text-center mb-4 pb-4 border-bottom">
                     <div class="d-inline-flex justify-content-center align-items-center bg-primary bg-opacity-10 rounded-circle mb-3 border border-primary border-opacity-25" style="width: 80px; height: 80px;">
-                        <i class="bi bi-person-bounding-box text-primary fs-1"></i>
+                        <i class="bi bi-person-fill fs-1 text-primary"></i>
                     </div>
-                    <h5 class="fw-bold mb-1">{{ cliente.nombre_completo }}</h5>
-                    <span class="badge bg-body text-muted border px-3 py-2 shadow-sm">ID #{{ cliente.id }}</span>
+                    <h4 class="fw-bold mb-1">{{ cliente.nombre_completo }}</h4>
+                    <span class="badge bg-light text-muted border px-3 py-1">{{ cliente.nacionalidad || 'Argentina' }}</span>
                 </div>
 
-                <h6 class="fw-bold text-muted small text-uppercase mb-3"><i class="bi bi-person-lines-fill me-2"></i> Identidad y Contacto</h6>
-                
                 <div class="vstack gap-3">
-                    <div class="d-flex align-items-center p-3 rounded-3 bg-body shadow-sm border border-light">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                            <i class="bi bi-globe-americas fs-5"></i>
-                        </div>
-                        <div>
-                            <div class="small fw-bold text-muted" style="font-size: 0.7rem;">NACIONALIDAD</div>
-                            <div class="fw-bold">{{ cliente.nacionalidad || 'Argentino' }}</div>
-                        </div>
+                    <div>
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">DNI / DOCUMENTO</div>
+                        <div class="fw-bold"><i class="bi bi-credit-card text-primary opacity-50 me-2"></i>{{ cliente.dni_pasaporte }}</div>
                     </div>
-
-                    <div class="d-flex align-items-center p-3 rounded-3 bg-body shadow-sm border border-light">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                            <i class="bi bi-envelope-at fs-5"></i>
-                        </div>
-                        <div class="text-truncate" style="max-width: 200px;">
-                            <div class="small fw-bold text-muted" style="font-size: 0.7rem;">CORREO ELECTRÓNICO</div>
-                            <div class="fw-bold text-truncate" [title]="cliente.email">{{ cliente.email || 'Sin registrar' }}</div>
-                        </div>
+                    <div *ngIf="cliente.email">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">EMAIL</div>
+                        <div class="fw-bold"><i class="bi bi-envelope text-primary opacity-50 me-2"></i>{{ cliente.email }}</div>
                     </div>
-
-                    <div class="d-flex align-items-center p-3 rounded-3 bg-body shadow-sm border border-light">
-                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                            <i class="bi bi-whatsapp fs-5"></i>
-                        </div>
-                        <div>
-                            <div class="small fw-bold text-muted" style="font-size: 0.7rem;">TELÉFONO / CELULAR</div>
-                            <div class="fw-bold">{{ cliente.telefono || 'Sin registrar' }}</div>
-                        </div>
+                    <div *ngIf="cliente.telefono">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">TELÉFONO</div>
+                        <div class="fw-bold"><i class="bi bi-telephone text-primary opacity-50 me-2"></i>{{ cliente.telefono }}</div>
                     </div>
-
-                    <div class="d-flex align-items-center p-3 rounded-3 bg-body shadow-sm border border-light">
-                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                            <i class="bi bi-calendar-event fs-5"></i>
-                        </div>
-                        <div>
-                            <div class="small fw-bold text-muted" style="font-size: 0.7rem;">FECHA DE NACIMIENTO</div>
-                            <div class="fw-bold">{{ cliente?.fecha_nacimiento ? (cliente.fecha_nacimiento | date:'dd/MM/yyyy') : 'No declarada' }}</div>
-                        </div>
+                    <div *ngIf="cliente.fecha_nacimiento">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">FECHA DE NACIMIENTO</div>
+                        <div class="fw-bold"><i class="bi bi-calendar-heart text-primary opacity-50 me-2"></i>{{ cliente.fecha_nacimiento | date:'dd/MM/yyyy' }}</div>
+                    </div>
+                    <div *ngIf="cliente.cuit_cuil">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">CUIT / CUIL</div>
+                        <div class="fw-bold">{{ cliente.cuit_cuil }}</div>
+                    </div>
+                    <div *ngIf="cliente.sexo">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">SEXO</div>
+                        <div class="fw-bold">{{ cliente.sexo === 'M' ? 'Masculino' : 'Femenino' }}</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- COLUMNA DERECHA: DOCUMENTACIÓN Y PREFERENCIAS -->
-        <div class="col-lg-8">
-            <!-- Bloque de Documentación Legal -->
-            <div class="form-card mb-4 p-4 p-md-5">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="bg-dark text-white rounded-3 d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
-                        <i class="bi bi-shield-check fs-4"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold mb-0">Documentación Legal Oficial</h5>
-                        <p class="text-muted small mb-0">Credenciales de viaje y facturación</p>
-                    </div>
-                </div>
+        <!-- COLUMNA CENTRAL: DOCUMENTACIÓN -->
+        <div class="col-lg-4">
+            <div class="form-card h-100 p-4 border-top border-4 border-info">
+                <h6 class="fw-bold mb-4 text-info text-uppercase small"><i class="bi bi-file-earmark-text-fill me-2"></i> Documentación</h6>
                 
-                <div class="row g-4 mb-2">
-                    <div class="col-md-4">
-                        <div class="p-3 bg-body rounded-4 border shadow-sm h-100">
-                            <span class="small fw-bold text-muted d-block mb-1">DNI / DOCUMENTO MAIN</span>
-                            <div class="fs-5 fw-bold text-dark">{{ cliente.dni_pasaporte }}</div>
+                <div class="vstack gap-3">
+                    <div *ngIf="cliente.pasaporte_nro">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">N° PASAPORTE</div>
+                        <div class="fw-bold">{{ cliente.pasaporte_nro }}</div>
+                    </div>
+                    <div *ngIf="cliente.pasaporte_emision">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">EMISIÓN PASAPORTE</div>
+                        <div class="fw-bold">{{ cliente.pasaporte_emision | date:'dd/MM/yyyy' }}</div>
+                    </div>
+                    <div *ngIf="cliente.pasaporte_vencimiento">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">VENCIMIENTO PASAPORTE</div>
+                        <div class="fw-bold" [ngClass]="{'text-danger': estaVencido(cliente.pasaporte_vencimiento)}">
+                            {{ cliente.pasaporte_vencimiento | date:'dd/MM/yyyy' }}
+                            <span class="badge bg-danger ms-2" *ngIf="estaVencido(cliente.pasaporte_vencimiento)">VENCIDO</span>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-body rounded-4 border shadow-sm h-100">
-                            <span class="small fw-bold text-muted d-block mb-1">DNI EMISIÓN</span>
-                            <div class="fw-bold">{{ cliente?.dni_emision ? (cliente.dni_emision | date:'dd/MM/yyyy') : '---' }}</div>
+                    <div *ngIf="cliente.dni_emision">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">EMISIÓN DNI</div>
+                        <div class="fw-bold">{{ cliente.dni_emision | date:'dd/MM/yyyy' }}</div>
+                    </div>
+                    <div *ngIf="cliente.dni_vencimiento">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">VENCIMIENTO DNI</div>
+                        <div class="fw-bold" [ngClass]="{'text-danger': estaVencido(cliente.dni_vencimiento)}">
+                            {{ cliente.dni_vencimiento | date:'dd/MM/yyyy' }}
+                            <span class="badge bg-danger ms-2" *ngIf="estaVencido(cliente.dni_vencimiento)">VENCIDO</span>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-body rounded-4 border shadow-sm h-100 border-start border-4 border-danger">
-                            <span class="small fw-bold text-danger d-block mb-1">DNI VENCIMIENTO</span>
-                            <div class="fw-bold text-danger">
-                                <i class="bi bi-calendar-x me-1" *ngIf="cliente?.dni_vencimiento"></i>
-                                {{ cliente?.dni_vencimiento ? (cliente.dni_vencimiento | date:'dd/MM/yyyy') : '---' }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="p-3 bg-body rounded-4 border border-primary border-opacity-25 shadow-sm h-100">
-                            <span class="small fw-bold text-primary d-block mb-1">PASAPORTE INTERNACIONAL</span>
-                            <div class="fs-5 fw-bold text-primary">{{ cliente.pasaporte_nro || 'No Declarado' }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-body rounded-4 border shadow-sm h-100">
-                            <span class="small fw-bold text-muted d-block mb-1">PAS. EMISIÓN</span>
-                            <div class="fw-bold">{{ cliente?.pasaporte_emision ? (cliente.pasaporte_emision | date:'dd/MM/yyyy') : '---' }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 shadow-sm rounded-4 h-100">
-                            <span class="small fw-bold text-danger d-block mb-1">PAS. VENCIMIENTO</span>
-                            <div class="fw-bold text-danger">
-                                <i class="bi bi-exclamation-triangle-fill me-1" *ngIf="cliente?.pasaporte_vencimiento"></i>
-                                {{ cliente?.pasaporte_vencimiento ? (cliente.pasaporte_vencimiento | date:'dd/MM/yyyy') : '---' }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <hr class="my-4 border-light">
-                
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center bg-body p-3 rounded-4 shadow-sm border">
-                            <i class="bi bi-briefcase text-muted fs-4 me-3"></i>
-                            <div>
-                                <div class="small fw-bold text-muted">CUIT / CUIL (FACTURACIÓN)</div>
-                                <div class="fw-bold">{{ cliente.cuit_cuil || 'Sin registrar' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center bg-body p-3 rounded-4 shadow-sm border">
-                            <i class="bi bi-gender-ambiguous text-muted fs-4 me-3"></i>
-                            <div>
-                                <div class="small fw-bold text-muted">GÉNERO / SEXO</div>
-                                <div class="fw-bold text-uppercase">{{ cliente.sexo === 'M' ? 'Masculino' : (cliente.sexo === 'F' ? 'Femenino' : 'Otro') }}</div>
-                            </div>
-                        </div>
+                    <div *ngIf="!cliente.pasaporte_nro && !cliente.dni_emision" class="text-center py-4 text-muted">
+                        <i class="bi bi-file-x fs-3 opacity-25"></i>
+                        <p class="small mt-2">Sin documentación registrada</p>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Bloque de Preferencias -->
-            <div class="form-card border-start border-4 border-success p-4 p-md-5">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="bg-success text-white rounded-3 d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
-                        <i class="bi bi-heart-pulse-fill fs-4"></i>
-                    </div>
+        <!-- COLUMNA DERECHA: PREFERENCIAS -->
+        <div class="col-lg-4">
+            <div class="form-card h-100 p-4 border-top border-4 border-success">
+                <h6 class="fw-bold mb-4 text-success text-uppercase small"><i class="bi bi-star-fill me-2"></i> Preferencias de Viaje</h6>
+                
+                <div class="vstack gap-3">
                     <div>
-                        <h5 class="fw-bold mb-0 text-success">Preferencias y Perfil Médico</h5>
-                        <p class="text-muted small mb-0">Información crucial pre-viaje</p>
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">ASIENTO</div>
+                        <div class="fw-bold">{{ cliente.pref_asiento || 'Indiferente' }}</div>
+                    </div>
+                    <div *ngIf="cliente.pref_comida">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">COMIDA</div>
+                        <div class="fw-bold">{{ cliente.pref_comida }}</div>
+                    </div>
+                    <div *ngIf="cliente.observaciones_salud">
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">OBSERVACIONES MÉDICAS</div>
+                        <div class="fw-bold text-danger bg-danger bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-heart-pulse-fill me-1"></i> {{ cliente.observaciones_salud }}
+                        </div>
                     </div>
                 </div>
 
-                <div class="row g-4 align-items-start">
-                    <div class="col-md-5">
-                        <div class="mb-4">
-                            <span class="small fw-bold text-muted d-block mb-2">ASIENTO PREFERIDO EN VUELOS</span>
-                            <span class="badge bg-body text-dark border px-3 py-2 fw-bold shadow-sm" style="font-size: 0.85rem;">
-                                <i class="bi bi-airplane me-2 text-primary"></i> 
-                                {{ cliente.pref_asiento || 'INDIFERENTE' }}
-                            </span>
-                        </div>
-                        <div>
-                            <span class="small fw-bold text-muted d-block mb-2">DIETA / COMIDA ESPECIAL</span>
-                            <div class="fw-bold">
-                                {{ cliente.pref_comida || 'Menú Estándar' }}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-7">
-                        <div class="bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-4 p-4 h-100">
-                            <h6 class="fw-bold text-danger mb-2">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>Observaciones Médicas o Alertas
-                            </h6>
-                            <p class="mb-0 text-dark small" [class.fst-italic]="!cliente.observaciones_salud">
-                                {{ cliente.observaciones_salud || 'El pasajero no ha reportado observaciones o patologías de salud de relevancia para el viaje a la fecha.' }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                <hr class="my-4">
+
+                <h6 class="fw-bold mb-3 text-muted text-uppercase small"><i class="bi bi-clock-history me-2"></i> Historial</h6>
+                <button class="btn btn-outline-primary w-100 rounded-pill fw-bold" [routerLink]="['/reservas-cliente', cliente.id]">
+                    <i class="bi bi-folder2-open me-2"></i> Ver Reservas del Cliente
+                </button>
             </div>
         </div>
     </div>
+</div>
+
+<div class="text-center py-5" *ngIf="!cliente">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-3 text-muted">Cargando ficha del pasajero...</p>
 </div>

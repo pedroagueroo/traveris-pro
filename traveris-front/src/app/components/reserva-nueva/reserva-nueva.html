@@ -35,26 +35,40 @@
 
   <main class="step-content">
     
-    <!-- PASO 1: DATOS GENERALES -->
+    <!-- ═══ PASO 1: DATOS GENERALES ═══ -->
     <div *ngIf="pasoActivo === 1" class="form-card animate-slide-up">
       <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-folder2-open me-2"></i>Información Principal</h5>
       
       <div class="row g-4">
+        <!-- Punto 3: Búsqueda de clientes con filtrado dinámico -->
         <div class="col-md-6">
           <label class="small fw-bold text-muted mb-2">TITULAR RESPONSABLE DEL LEGAJO</label>
+          
+          <!-- Input de búsqueda -->
+          <div class="input-premium-group mb-2">
+            <span class="input-premium-icon"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control input-premium" [(ngModel)]="busquedaCliente" 
+                   placeholder="Buscar cliente por nombre o DNI...">
+          </div>
+          
+          <!-- Select con clientes filtrados -->
           <div class="d-flex gap-2">
             <div class="input-premium-group flex-grow-1">
               <span class="input-premium-icon"><i class="bi bi-person-bounding-box"></i></span>
               <select class="form-select input-premium" [(ngModel)]="reserva.id_titular">
                 <option value="">-- Seleccionar Cliente Principal --</option>
-                <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre_completo }}</option>
+                <option *ngFor="let c of clientesFiltrados" [value]="c.id">{{ c.nombre_completo }} ({{ c.dni_pasaporte }})</option>
               </select>
             </div>
             <button type="button" class="btn btn-outline-primary rounded-3" (click)="abrirModalRapido(-1)" title="Nuevo Cliente Rápido">
               <i class="bi bi-person-plus-fill"></i>
             </button>
           </div>
+          <div class="small text-muted mt-1" *ngIf="busquedaCliente && busquedaCliente.length >= 2">
+            {{ clientesFiltrados.length }} resultado(s) encontrado(s)
+          </div>
         </div>
+
         <div class="col-md-6">
           <label class="small fw-bold text-muted mb-2">DESTINO PRINCIPAL</label>
           <div class="input-premium-group">
@@ -73,274 +87,210 @@
           </div>
         </div>
         <div class="col-md-4">
-          <label class="small fw-bold text-muted mb-2">NRO EXPEDIENTE OPERADOR</label>
+          <label class="small fw-bold text-muted mb-2">N° EXPEDIENTE / FILE</label>
           <div class="input-premium-group">
             <span class="input-premium-icon"><i class="bi bi-hash"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.nro_expediente_operador" placeholder="123456-A">
+            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.nro_expediente_operador" placeholder="Referencia Operador">
           </div>
         </div>
         <div class="col-md-4">
-          <label class="small fw-bold text-primary mb-2">COTIZACIÓN DÓLAR USD</label>
-          <div class="input-premium-group">
-            <span class="input-premium-icon border-primary text-primary fw-bold">$</span>
-            <input type="number" class="form-control input-premium fw-bold text-primary border-primary" [(ngModel)]="reserva.cotizacion_dolar" placeholder="Valor TC">
-          </div>
-        </div>
-        
-        <div class="section-divider">Fechas del Viaje</div>
-
-        <div class="col-md-6">
-          <label class="small fw-bold text-muted mb-2">FECHA SALIDA (CHECK-IN)</label>
-          <div class="input-premium-group">
-            <span class="input-premium-icon"><i class="bi bi-calendar-event"></i></span>
-            <input type="date" class="form-control input-premium" [(ngModel)]="reserva.fecha_viaje_salida">
-          </div>
-        </div>
-        <div class="col-md-6">
-          <label class="small fw-bold text-muted mb-2">FECHA REGRESO (CHECK-OUT)</label>
-          <div class="input-premium-group">
-            <span class="input-premium-icon"><i class="bi bi-calendar-check"></i></span>
-            <input type="date" class="form-control input-premium" [(ngModel)]="reserva.fecha_viaje_regreso">
-          </div>
-        </div>
-        
-        <div class="section-divider">Anotaciones</div>
-
-        <div class="col-12">
           <label class="small fw-bold text-muted mb-2">OBSERVACIONES INTERNAS</label>
-          <textarea class="form-control premium-standalone" [(ngModel)]="reserva.observaciones_internas" rows="3" placeholder="Anotaciones de uso exclusivo interno para la agencia..."></textarea>
+          <div class="input-premium-group">
+            <span class="input-premium-icon"><i class="bi bi-sticky"></i></span>
+            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.observaciones_internas" placeholder="Notas privadas...">
+          </div>
         </div>
+
+        <!-- Punto 10: Eliminados cotización dólar, fecha salida y fecha regreso del paso 1 -->
+        <!-- Estos campos se manejan en la pestaña de Itinerario y Finanzas -->
       </div>
     </div>
 
-    <!-- PASO 2: PASAJEROS -->
+    <!-- ═══ PASO 2: MANIFIESTO DE PASAJEROS ═══ -->
     <div *ngIf="pasoActivo === 2" class="form-card animate-slide-up">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-people me-2"></i>Manifiesto de Pasajeros</h5>
-        <button class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" (click)="agregarPasajero()"><i class="bi bi-plus-lg me-1"></i> Añadir Acompañante</button>
-      </div>
-      
-      <div *ngIf="acompaniantes.length === 0" class="text-center py-5 text-muted border rounded-4 bg-body border-dashed">
-        <i class="bi bi-person-x fs-1 opacity-25"></i>
-        <h6 class="mt-3">El titular viaja solo</h6>
-        <p class="small mb-0">No se han añadido acompañantes al manifiesto.</p>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold text-primary m-0"><i class="bi bi-people-fill me-2"></i>Manifiesto de Pasajeros</h5>
+        <button class="btn btn-outline-primary rounded-pill fw-bold px-3" (click)="agregarPasajero()">
+          <i class="bi bi-plus-lg me-1"></i> Agregar Pasajero
+        </button>
       </div>
 
-      <div *ngFor="let p of acompaniantes; let i = index" class="p-4 border rounded-4 bg-body mb-4 position-relative border-0 shadow-sm border-start border-4 border-primary">
-        <div class="position-absolute top-0 end-0 mt-3 me-3">
-          <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px; padding:0" (click)="quitarPasajero(i)" title="Remover Acompañante">
-            <i class="bi bi-x-lg"></i>
+      <div *ngIf="acompaniantes.length === 0" class="text-center py-5 text-muted">
+        <i class="bi bi-person-x fs-1 opacity-25"></i>
+        <p class="mt-2">Sin acompañantes. El titular viaja solo.</p>
+      </div>
+
+      <div *ngFor="let a of acompaniantes; let i = index" class="border rounded-4 p-4 mb-3 bg-body shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-person-fill text-primary me-2"></i> Pasajero {{ i + 1 }}</h6>
+          <button class="btn btn-sm btn-outline-danger rounded-pill" (click)="quitarPasajero(i)">
+            <i class="bi bi-trash me-1"></i> Quitar
           </button>
         </div>
-        
-        <h6 class="fw-bold text-muted mb-3 small text-uppercase">Acompañante {{i+1}}</h6>
-        
-        <div class="row g-4">
-          <div class="col-md-5">
-            <label class="small fw-bold text-muted mb-2">SELECCIONAR PASAJERO</label>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="small fw-bold text-muted mb-1">SELECCIONAR PASAJERO</label>
             <div class="d-flex gap-2">
-              <div class="input-premium-group flex-grow-1">
-                <span class="input-premium-icon"><i class="bi bi-person"></i></span>
-                <select class="form-select input-premium" [(ngModel)]="p.id_cliente">
-                  <option value="">-- Buscar Pasajero --</option>
-                  <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre_completo }}</option>
-                </select>
-              </div>
-              <button type="button" class="btn btn-outline-primary rounded-3" (click)="abrirModalRapido(i)">
-                <i class="bi bi-plus-lg"></i>
+              <select class="form-select" [(ngModel)]="a.id_cliente">
+                <option value="">-- Elegir --</option>
+                <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre_completo }}</option>
+              </select>
+              <button type="button" class="btn btn-outline-primary btn-sm rounded-3" (click)="abrirModalRapido(i)">
+                <i class="bi bi-person-plus-fill"></i>
               </button>
             </div>
           </div>
           <div class="col-md-3">
-            <label class="small fw-bold text-muted mb-2">TIPO</label>
-            <select class="form-select premium-standalone" [(ngModel)]="p.tipo_pasajero">
+            <label class="small fw-bold text-muted mb-1">TIPO</label>
+            <select class="form-select" [(ngModel)]="a.tipo_pasajero">
               <option value="ADULTO">Adulto</option>
               <option value="MENOR">Menor</option>
               <option value="INFANTE">Infante</option>
             </select>
           </div>
-          <div class="col-md-4">
-            <label class="small fw-bold text-muted mb-2">VENCIMIENTO VISA/DOC.</label>
-            <div class="input-premium-group">
-              <span class="input-premium-icon"><i class="bi bi-calendar-x"></i></span>
-              <input type="date" class="form-control input-premium" [(ngModel)]="p.tiene_visa_vencimiento">
-            </div>
-          </div>
-          
-          <div class="col-12"><hr class="my-0 border-light"></div>
-          
-          <div class="col-md-5">
-            <label class="small fw-bold text-muted mb-2">NRO PÓLIZA ASISTENCIA</label>
-            <div class="input-premium-group">
-              <span class="input-premium-icon"><i class="bi bi-shield-plus"></i></span>
-              <input type="text" class="form-control input-premium" [(ngModel)]="p.nro_asistencia_viajero" placeholder="Seguro Médico">
-            </div>
-          </div>
-          <div class="col-md-7">
-            <label class="small fw-bold text-danger mb-2">NOTAS MÉDICAS / ALERGIAS</label>
-            <div class="input-premium-group">
-              <span class="input-premium-icon text-danger border-danger"><i class="bi bi-heart-pulse"></i></span>
-              <input type="text" class="form-control input-premium border-danger" [(ngModel)]="p.notas_medicas_alergias" placeholder="Restricciones alimentarias o de salud">
-            </div>
+          <div class="col-md-3">
+            <label class="small fw-bold text-muted mb-1">NOTAS MÉDICAS</label>
+            <input type="text" class="form-control" [(ngModel)]="a.notas_medicas_alergias" placeholder="Alergias, etc.">
           </div>
         </div>
       </div>
     </div>
 
-    <!-- PASO 3: ITINERARIO Y FINANZAS -->
-    <div *ngIf="pasoActivo === 4" class="animate-fade-in">
-      
-      <div class="form-card mb-4">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-          <div>
-            <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-map me-2"></i>Servicios y Rentabilidad</h5>
-            <p class="text-muted small mb-0">Agrega todos los items del viaje para la cotización final</p>
-          </div>
-          
-          <div class="dropdown">
-            <button class="btn btn-elite rounded-pill px-4 shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-              <i class="bi bi-plus-circle me-1"></i> Agregar Servicio
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
-              <li><a class="dropdown-item py-2" (click)="agregarServicio('VUELO')"><i class="bi bi-airplane me-2 text-primary"></i> Vuelo</a></li>
-              <li><a class="dropdown-item py-2" (click)="agregarServicio('HOTEL')"><i class="bi bi-building me-2 text-info"></i> Hotel</a></li>
-              <li><a class="dropdown-item py-2" (click)="agregarServicio('CRUCERO')"><i class="bi bi-water me-2 text-primary"></i> Crucero</a></li>
-              <li><a class="dropdown-item py-2" (click)="agregarServicio('ASISTENCIA')"><i class="bi bi-shield-plus me-2 text-success"></i> Asistencia</a></li>
-              <li><a class="dropdown-item py-2" (click)="agregarServicio('VISA')"><i class="bi bi-passport me-2 text-warning"></i> Trámite/Visa</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item py-2 fw-bold" (click)="agregarServicio('SERVICIO')"><i class="bi bi-gear me-2 text-muted"></i> Servicio Genérico</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div *ngIf="servicios.length === 0" class="text-center py-5 text-muted border rounded-4 bg-body border-dashed border-2">
-          <i class="bi bi-bag-x fs-1 opacity-25"></i>
-          <h6 class="mt-3 mb-0">Sin servicios cargados</h6>
-          <p class="small mt-1">Hacé clic en "Agregar Servicio" para comenzar a armar el paquete.</p>
-        </div>
-
-        <div class="services-stack">
-          <div *ngFor="let s of servicios; let i = index" class="border border-2 rounded-4 p-4 mb-4 bg-body shadow-sm animate-slide-up position-relative overflow-hidden">
-            
-            <!-- Cinta decorativa lateral de color según servicio -->
-            <div class="position-absolute top-0 bottom-0 start-0" style="width: 5px;" 
-                 [ngClass]="{'bg-primary': s.tipo_item==='VUELO', 'bg-info': s.tipo_item==='HOTEL', 'bg-dark': s.tipo_item==='CRUCERO', 'bg-success': s.tipo_item==='ASISTENCIA', 'bg-warning': s.tipo_item==='VISA', 'bg-secondary': s.tipo_item==='SERVICIO'}"></div>
-
-            <div class="d-flex justify-content-between align-items-center mb-4 ps-3">
-              <span class="badge px-3 py-2 rounded-pill fw-bold" style="font-size: 0.75rem;"
-                    [ngClass]="{'bg-primary': s.tipo_item==='VUELO', 'bg-info': s.tipo_item==='HOTEL', 'bg-dark': s.tipo_item==='CRUCERO', 'bg-success': s.tipo_item==='ASISTENCIA', 'bg-warning text-dark': s.tipo_item==='VISA', 'bg-secondary': s.tipo_item==='SERVICIO'}">
-                <i class="bi me-1" [ngClass]="{'bi-airplane': s.tipo_item==='VUELO', 'bi-building': s.tipo_item==='HOTEL', 'bi-water': s.tipo_item==='CRUCERO', 'bi-shield-plus': s.tipo_item==='ASISTENCIA', 'bi-passport': s.tipo_item==='VISA', 'bi-gear': s.tipo_item==='SERVICIO'}"></i>
-                {{ s.tipo_item }}
-              </span>
-              <button class="btn btn-outline-danger btn-sm p-1 rounded-circle" style="width: 28px; height: 28px" (click)="quitarServicio(i)" title="Eliminar Item">
-                <i class="bi bi-x-lg"></i>
-              </button>
-            </div>
-
-            <div class="service-body ps-3">
-              <div [ngSwitch]="s.tipo_item" class="row g-4 mb-4">
-                
-                <!-- === VUELO === -->
-                <ng-container *ngSwitchCase="'VUELO'">
-                  <div class="col-md-3"><label class="small fw-bold text-muted mb-2">AEROLÍNEA</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.aerolinea" placeholder="E.g. Iberia"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">VUELO #</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.nro_vuelo" placeholder="IB000"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">RUTA (IATA)</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.origen" placeholder="EZE-MAD"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">PNR</label><input type="text" class="form-control premium-standalone fw-bold" [(ngModel)]="s.detalles.pnr" placeholder="XXXXXX"></div>
-                  <div class="col-md-3"><label class="small fw-bold text-muted mb-2">FECHA VUELO</label><input type="date" class="form-control premium-standalone" [(ngModel)]="s.detalles.fecha"></div>
-                </ng-container>
-
-                <!-- === HOTEL === -->
-                <ng-container *ngSwitchCase="'HOTEL'">
-                  <div class="col-md-4"><label class="small fw-bold text-muted mb-2">NOMBRE HOTEL</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.hotel_nombre" placeholder="Nombre completo"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">CIUDAD</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.ciudad" placeholder="Destino"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">CHECK-IN</label><input type="date" class="form-control premium-standalone" [(ngModel)]="s.detalles.check_in"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">CHECK-OUT</label><input type="date" class="form-control premium-standalone" [(ngModel)]="s.detalles.check_out"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">RÉGIMEN</label>
-                    <select class="form-select premium-standalone" [(ngModel)]="s.detalles.regimen">
-                      <option value="DESAYUNO">Desayuno</option>
-                      <option value="MEDIA_PENSION">Media Pensión</option>
-                      <option value="ALL_INCLUSIVE">All Inclusive</option>
-                    </select>
-                  </div>
-                </ng-container>
-
-                <!-- === CRUCERO === -->
-                <ng-container *ngSwitchCase="'CRUCERO'">
-                  <div class="col-md-5"><label class="small fw-bold text-muted mb-2">CRUCERO / NAVIERA</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.crucero_nombre" placeholder="Nombre de la naviera y barco"></div>
-                  <div class="col-md-3"><label class="small fw-bold text-muted mb-2">CABINA / CATEGORÍA</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.crucero_cabina" placeholder="Ej: Exterior con balcón"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">EMBARQUE</label><input type="date" class="form-control premium-standalone" [(ngModel)]="s.detalles.check_in"></div>
-                  <div class="col-md-2"><label class="small fw-bold text-muted mb-2">DESEMBARQUE</label><input type="date" class="form-control premium-standalone" [(ngModel)]="s.detalles.check_out"></div>
-                  <div class="col-12"><label class="small fw-bold text-muted mb-2">ITINERARIO / PUERTOS</label><textarea class="form-control premium-standalone" rows="2" [(ngModel)]="s.detalles.crucero_itinerario" placeholder="Puertos a visitar"></textarea></div>
-                </ng-container>
-
-                <!-- === ASISTENCIA === -->
-                <ng-container *ngSwitchCase="'ASISTENCIA'">
-                  <div class="col-md-4"><label class="small fw-bold text-muted mb-2">PLAN COBERTURA</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.plan" placeholder="Ej: AsistCard AC60"></div>
-                  <div class="col-md-3"><label class="small fw-bold text-muted mb-2">NRO PÓLIZA</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.nro_poliza"></div>
-                  <div class="col-md-5"><label class="small fw-bold text-muted mb-2">VIGENCIA / ZONA O DETALLES</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.cobertura"></div>
-                </ng-container>
-
-                <!-- === VISA === -->
-                <ng-container *ngSwitchCase="'VISA'">
-                  <div class="col-md-4"><label class="small fw-bold text-muted mb-2">PAÍS DESTINO</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.pais" placeholder="Ej: Estados Unidos"></div>
-                  <div class="col-md-4"><label class="small fw-bold text-muted mb-2">NRO TRÁMITE</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.nro_tramite"></div>
-                  <div class="col-md-4"><label class="small fw-bold text-muted mb-2">VENCIMIENTO</label><input type="date" class="form-control premium-standalone" [(ngModel)]="s.detalles.fecha_vencimiento"></div>
-                </ng-container>
-
-                <!-- === SERVICIO === -->
-                <ng-container *ngSwitchCase="'SERVICIO'">
-                  <div class="col-md-8"><label class="small fw-bold text-muted mb-2">TIPO DE SERVICIO LIBRE</label><input type="text" class="form-control premium-standalone" [(ngModel)]="s.detalles.nombre_servicio" placeholder="Ej: Traslado Aeropuerto-Hotel Privado"></div>
-                  <div class="col-md-4"><label class="small fw-bold text-muted mb-2">FECHA SERVICIO</label><input type="date" class="form-control premium-standalone" [(ngModel)]="s.detalles.fecha"></div>
-                  <div class="col-12">
-                    <label class="small fw-bold text-muted mb-2">DESCRIPCIÓN COMPLETA DEL VOUCHER</label>
-                    <textarea class="form-control premium-standalone" rows="4" [(ngModel)]="s.detalles.servicio_descripcion" placeholder="Escriba aquí todos los detalles operativos, horarios puntuales, guías, tipo de auto, etc."></textarea>
-                  </div>
-                </ng-container>
-              </div>
-
-              <!-- FINANZAS DEL SERVICIO -->
-              <div class="p-4 rounded-4" style="background: rgba(var(--bs-primary-rgb), 0.03); border: 1px dashed rgba(var(--bs-primary-rgb), 0.3);">
-                <div class="row g-4 align-items-center">
-                  <div class="col-md-6">
-                    <label class="small fw-bold text-muted mb-2">COSTO NETO OPERADOR</label>
-                    <div class="input-premium-group">
-                      <span class="input-premium-icon fw-bold">USD</span>
-                      <input type="number" class="form-control input-premium fw-bold" [(ngModel)]="s.costo_neto_operador" (input)="recalcularTodo()">
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="small fw-bold text-success mb-2">VENTA BRUTA CLIENTE</label>
-                    <div class="input-premium-group">
-                      <span class="input-premium-icon fw-bold border-success text-success bg-success bg-opacity-10">USD</span>
-                      <input type="number" class="form-control input-premium fw-bold text-success border-success" [(ngModel)]="s.venta_bruta_cliente" (input)="recalcularTodo()">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
+    <!-- ═══ PASO 3: ITINERARIO Y FINANZAS ═══ -->
+    <div *ngIf="pasoActivo === 4" class="form-card animate-slide-up">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold text-primary m-0"><i class="bi bi-airplane-engines-fill me-2"></i>Itinerario y Finanzas</h5>
+        <div class="dropdown">
+          <button class="btn btn-outline-primary rounded-pill fw-bold px-3 dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-plus-lg me-1"></i> Agregar Servicio
+          </button>
+          <ul class="dropdown-menu shadow-lg">
+            <li><a class="dropdown-item" (click)="agregarServicio('HOTEL')"><i class="bi bi-building me-2"></i> Hotel</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('VUELO')"><i class="bi bi-airplane me-2"></i> Vuelo</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('ASISTENCIA')"><i class="bi bi-shield-check me-2"></i> Asistencia</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('VISA')"><i class="bi bi-passport me-2"></i> Visa</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('CRUCERO')"><i class="bi bi-water me-2"></i> Crucero</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('SERVICIO')"><i class="bi bi-star me-2"></i> Excursión / Otro</a></li>
+          </ul>
         </div>
       </div>
 
-      <!-- ROW METRICS -->
-      <div class="row g-4 mb-4">
+      <!-- Fechas de viaje (movidas acá desde paso 1) -->
+      <div class="row g-3 mb-4 p-3 bg-body-secondary bg-opacity-50 rounded-4 border">
         <div class="col-md-4">
-          <div class="form-card text-center h-100 d-flex flex-column justify-content-center p-4 border border-2 border-secondary border-opacity-25">
+          <label class="small fw-bold text-muted mb-1">FECHA SALIDA</label>
+          <input type="date" class="form-control" [(ngModel)]="reserva.fecha_viaje_salida">
+        </div>
+        <div class="col-md-4">
+          <label class="small fw-bold text-muted mb-1">FECHA REGRESO</label>
+          <input type="date" class="form-control" [(ngModel)]="reserva.fecha_viaje_regreso">
+        </div>
+        <div class="col-md-4">
+          <label class="small fw-bold text-muted mb-1">COTIZACIÓN DÓLAR</label>
+          <input type="number" class="form-control" [(ngModel)]="reserva.cotizacion_dolar" placeholder="Ej: 1200">
+        </div>
+      </div>
+
+      <!-- Lista de servicios -->
+      <div *ngIf="servicios.length === 0" class="text-center py-5 text-muted">
+        <i class="bi bi-calendar-x fs-1 opacity-25"></i>
+        <p class="mt-2">Sin servicios. Agregá hoteles, vuelos, asistencia, etc.</p>
+      </div>
+
+      <div *ngFor="let s of servicios; let i = index" class="border rounded-4 p-4 mb-3 bg-body shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0">
+            <span class="badge bg-dark me-2">{{ s.tipo_item }}</span> Servicio {{ i + 1 }}
+          </h6>
+          <button class="btn btn-sm btn-outline-danger rounded-pill" (click)="quitarServicio(i)">
+            <i class="bi bi-trash me-1"></i> Quitar
+          </button>
+        </div>
+
+        <!-- Campos comunes de costos -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="small fw-bold text-muted mb-1">COSTO NETO OPERADOR (USD)</label>
+            <input type="number" class="form-control border-danger" [(ngModel)]="s.costo_neto_operador" (input)="recalcularTodo()">
+          </div>
+          <div class="col-md-6">
+            <label class="small fw-bold text-muted mb-1">VENTA AL CLIENTE (USD)</label>
+            <input type="number" class="form-control border-success" [(ngModel)]="s.venta_bruta_cliente" (input)="recalcularTodo()">
+          </div>
+        </div>
+
+        <!-- Detalles según tipo -->
+        <div class="row g-3" *ngIf="s.tipo_item === 'HOTEL'">
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">HOTEL</label><input type="text" class="form-control" [(ngModel)]="s.detalles.hotel_nombre"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CIUDAD</label><input type="text" class="form-control" [(ngModel)]="s.detalles.ciudad"></div>
+          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">CHECK-IN</label><input type="date" class="form-control" [(ngModel)]="s.detalles.check_in"></div>
+          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">CHECK-OUT</label><input type="date" class="form-control" [(ngModel)]="s.detalles.check_out"></div>
+        </div>
+
+        <div class="row g-3" *ngIf="s.tipo_item === 'VUELO'">
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">AEROLÍNEA</label><input type="text" class="form-control" [(ngModel)]="s.detalles.aerolinea"></div>
+          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">N° VUELO</label><input type="text" class="form-control" [(ngModel)]="s.detalles.nro_vuelo"></div>
+          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">ORIGEN</label><input type="text" class="form-control" [(ngModel)]="s.detalles.origen"></div>
+          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">DESTINO</label><input type="text" class="form-control" [(ngModel)]="s.detalles.destino"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">PNR</label><input type="text" class="form-control" [(ngModel)]="s.detalles.pnr"></div>
+        </div>
+
+        <div class="row g-3" *ngIf="s.tipo_item === 'ASISTENCIA'">
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">PLAN</label><input type="text" class="form-control" [(ngModel)]="s.detalles.plan"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">N° PÓLIZA</label><input type="text" class="form-control" [(ngModel)]="s.detalles.nro_poliza"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">COBERTURA</label><input type="text" class="form-control" [(ngModel)]="s.detalles.cobertura"></div>
+        </div>
+
+        <div class="row g-3" *ngIf="s.tipo_item === 'VISA'">
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">PAÍS</label><input type="text" class="form-control" [(ngModel)]="s.detalles.pais"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">N° TRÁMITE</label><input type="text" class="form-control" [(ngModel)]="s.detalles.nro_tramite"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">VENCIMIENTO</label><input type="date" class="form-control" [(ngModel)]="s.detalles.fecha_vencimiento"></div>
+        </div>
+
+        <div class="row g-3" *ngIf="s.tipo_item === 'CRUCERO'">
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CRUCERO</label><input type="text" class="form-control" [(ngModel)]="s.detalles.crucero_nombre"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CABINA</label><input type="text" class="form-control" [(ngModel)]="s.detalles.crucero_cabina"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">ITINERARIO</label><input type="text" class="form-control" [(ngModel)]="s.detalles.crucero_itinerario"></div>
+        </div>
+
+        <div class="row g-3" *ngIf="s.tipo_item === 'SERVICIO'">
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">NOMBRE</label><input type="text" class="form-control" [(ngModel)]="s.detalles.nombre_servicio"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">DESCRIPCIÓN</label><input type="text" class="form-control" [(ngModel)]="s.detalles.servicio_descripcion"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">FECHA</label><input type="date" class="form-control" [(ngModel)]="s.detalles.fecha"></div>
+        </div>
+      </div>
+
+      <!-- Finanzas: Gastos y Totales -->
+      <div class="section-divider mt-4">Resumen Financiero</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="small fw-bold text-muted mb-1">GASTOS ADMINISTRATIVOS (USD)</label>
+          <input type="number" class="form-control" [(ngModel)]="reserva.gastos_administrativos_usd" (input)="recalcularTodo()">
+        </div>
+        <div class="col-md-6">
+          <label class="small fw-bold text-muted mb-1">BONIFICACIÓN / DESCUENTO (USD)</label>
+          <input type="number" class="form-control" [(ngModel)]="reserva.bonificacion_descuento_usd" (input)="recalcularTodo()">
+        </div>
+      </div>
+
+      <!-- Totales -->
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="form-card text-center p-4 border border-2 border-secondary border-opacity-25">
             <span class="small fw-bold text-muted mb-2"><i class="bi bi-box-arrow-in-right me-1"></i> INVERSIÓN COSTO (NETO)</span>
             <div class="h2 fw-bold mb-0 text-dark">USD {{ totalCostoNeto | number:'1.2-2' }}</div>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="form-card text-center h-100 d-flex flex-column justify-content-center p-4 border-top border-4 border-primary shadow-sm" style="border-top-color: var(--accent) !important;">
+          <div class="form-card text-center p-4 border-top border-4 border-primary shadow-sm" style="border-top-color: var(--accent) !important;">
             <span class="small fw-bold text-primary mb-2"><i class="bi bi-cart-check me-1"></i> TOTAL VENTA CLIENTE</span>
             <div class="h2 fw-bold mb-0 text-primary">USD {{ reserva.total_venta_final_usd | number:'1.2-2' }}</div>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="form-card text-center h-100 d-flex flex-column justify-content-center p-4 border border-2 border-success bg-success bg-opacity-10">
+          <div class="form-card text-center p-4 border border-2 border-success bg-success bg-opacity-10">
             <span class="small fw-bold text-success mb-2"><i class="bi bi-graph-up-arrow me-1"></i> RENTABILIDAD / UTILIDAD</span>
-            <div class="h2 fw-bold mb-0 text-success">USD {{ (reserva.total_venta_final_usd - totalCostoNeto) | number:'1.2-2' }}</div>
+            <div class="h2 fw-bold mb-0 text-success">USD {{ rentabilidadEstimada | number:'1.2-2' }}</div>
           </div>
         </div>
       </div>
@@ -349,35 +299,38 @@
   </main>
 </div>
 
-<!-- Modal Registro Rapido -->
+<!-- ═══ Modal Alta Rápida de Cliente ═══ -->
 <div class="modal fade" tabindex="-1" [ngClass]="{'show d-block': mostrarModalCliente}" *ngIf="mostrarModalCliente" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px);">
   <div class="modal-dialog modal-dialog-centered">
     <div class="form-card w-100 p-0 overflow-hidden" style="max-width: 500px">
       <div class="p-4 border-bottom">
-        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-person-plus me-2"></i>Alta Rápida</h5>
+        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-person-plus me-2"></i>Alta Rápida de Cliente</h5>
+        <p class="small text-muted mb-0 mt-1">Creá un cliente nuevo sin salir del formulario de reserva</p>
       </div>
       <div class="p-4">
-        <label class="small fw-bold text-muted mb-2">NOMBRE COMPLETO</label>
+        <label class="small fw-bold text-muted mb-2">NOMBRE COMPLETO *</label>
         <div class="input-premium-group mb-4">
           <span class="input-premium-icon"><i class="bi bi-person"></i></span>
-          <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.nombre_completo">
+          <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.nombre_completo" placeholder="Nombre y Apellido">
         </div>
         
-        <label class="small fw-bold text-muted mb-2">DNI / PASAPORTE</label>
+        <label class="small fw-bold text-muted mb-2">DNI / PASAPORTE *</label>
         <div class="input-premium-group mb-4">
           <span class="input-premium-icon"><i class="bi bi-card-text"></i></span>
-          <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.dni_pasaporte">
+          <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.dni_pasaporte" placeholder="Número de documento">
         </div>
         
         <label class="small fw-bold text-muted mb-2">EMAIL (OPCIONAL)</label>
         <div class="input-premium-group mb-2">
           <span class="input-premium-icon"><i class="bi bi-envelope"></i></span>
-          <input type="email" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.email">
+          <input type="email" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.email" placeholder="correo@ejemplo.com">
         </div>
       </div>
       <div class="bg-body p-4 border-top d-flex justify-content-end gap-2">
         <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" (click)="mostrarModalCliente = false">Cancelar</button>
-        <button type="button" class="btn btn-elite px-4 rounded-pill shadow-sm" (click)="guardarClienteRapido()">Guardar</button>
+        <button type="button" class="btn btn-elite px-4 rounded-pill shadow-sm" (click)="guardarClienteRapido()">
+          <i class="bi bi-check-lg me-1"></i> Guardar Cliente
+        </button>
       </div>
     </div>
   </div>

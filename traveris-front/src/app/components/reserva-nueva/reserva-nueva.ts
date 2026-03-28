@@ -16,9 +16,9 @@ export class ReservaNuevaComponent implements OnInit {
   clientes: any[] = [];
   pasoActivo: number = 1;
 
-  // Variables para Edición
+  // Variables para Edición — FIX: reservaId es string | null (viene de paramMap)
   esEdicion: boolean = false;
-  reservaId: number | null = null;
+  reservaId: string | null = null;
 
   totalCostoNeto: number = 0;
   subtotalVentaBruta: number = 0;
@@ -46,7 +46,6 @@ export class ReservaNuevaComponent implements OnInit {
   vuelos: any[] = [];
   servicios: any[] = [];
 
-  // Punto 2: Modal alta rápida
   mostrarModalCliente: boolean = false;
   indexAcompanianteActual: number = -1;
   nuevoClienteRapido = { nombre_completo: '', dni_pasaporte: '', email: '', empresa_nombre: '' };
@@ -59,11 +58,13 @@ export class ReservaNuevaComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // Carga de clientes
     this.api.getClientesPorAgencia(this.auth.getNombreEmpresa()).subscribe({
-      next: (data: any) => this.clientes = data,
+      next: (data: any[]) => this.clientes = data,
       error: (err: any) => console.error(err)
     });
 
+    // LÓGICA DE DETECCIÓN DE EDICIÓN
     this.reservaId = this.route.snapshot.paramMap.get('id');
     if (this.reservaId) {
       this.esEdicion = true;
@@ -83,16 +84,16 @@ export class ReservaNuevaComponent implements OnInit {
     );
   }
 
-  // CORREGIDO: getReservaDetalleCompleto → getReservaCompleta
+  // FIX: id es string (viene de paramMap), api.getReservaDetalleCompleto acepta any
   cargarDatosParaEditar(id: string) {
-    this.api.getReservaCompleta((id)).subscribe({
+    this.api.getReservaDetalleCompleto(id).subscribe({
       next: (data: any) => {
         this.reserva = { ...data.reserva };
         this.acompaniantes = data.acompaniantes || [];
         this.vuelos = data.vuelos || [];
         this.servicios = data.servicios || [];
 
-        // Formateo de fechas
+        // FORMATEO CRÍTICO DE FECHAS
         if (this.reserva.fecha_viaje_salida) {
           this.reserva.fecha_viaje_salida = this.reserva.fecha_viaje_salida.split('T')[0];
         }
@@ -100,6 +101,7 @@ export class ReservaNuevaComponent implements OnInit {
           this.reserva.fecha_viaje_regreso = this.reserva.fecha_viaje_regreso.split('T')[0];
         }
 
+        // Formatear fechas de servicios
         this.servicios.forEach((s: any) => {
           if (s.detalles.check_in) s.detalles.check_in = s.detalles.check_in.split('T')[0];
           if (s.detalles.check_out) s.detalles.check_out = s.detalles.check_out.split('T')[0];
@@ -120,13 +122,17 @@ export class ReservaNuevaComponent implements OnInit {
   agregarPasajero() {
     this.acompaniantes.push({
       id_cliente: '', tipo_pasajero: 'ADULTO',
-      nro_asistencia_viajero: '', tiene_visa_vencimiento: '', notas_medicas_alergias: ''
+      nro_asistencia_viajero: '', tiene_visa_vencimiento: '',
+      notas_medicas_alergias: ''
     });
   }
   quitarPasajero(i: number) { this.acompaniantes.splice(i, 1); }
 
   agregarVuelo() {
-    this.vuelos.push({ aerolinea: '', nro_vuelo: '', codigo_pnr: '', origen_iata: '', destino_iata: '', fecha_salida: '' });
+    this.vuelos.push({
+      aerolinea: '', nro_vuelo: '', codigo_pnr: '',
+      origen_iata: '', destino_iata: '', fecha_salida: ''
+    });
   }
   quitarVuelo(i: number) { this.vuelos.splice(i, 1); }
 
@@ -172,12 +178,26 @@ export class ReservaNuevaComponent implements OnInit {
     this.rentabilidadEstimada = this.reserva.total_venta_final_usd - this.totalCostoNeto;
   }
 
-  // Punto 4: Emitir legajo funcional
+  // --- Funciones de sanitización ---
+  private sanitizeNumber(val: any): number | null {
+    if (val === '' || val === null || val === undefined) return null;
+    const n = Number(val);
+    return isNaN(n) ? null : n;
+  }
+
+  private sanitizeDate(val: any): string | null {
+    if (!val || val === '' || val === 'Invalid Date') return null;
+    if (typeof val === 'string' && val.includes('T')) {
+      return val.split('T')[0];
+    }
+    return val;
+  }
+
   guardarReserva() {
     if (!this.reserva.id_titular) return alert("Seleccioná un titular");
     this.recalcularTodo();
 
-    // Sanitizar servicios: convertir strings vacíos a null en detalles
+    // Sanitizar servicios
     const serviciosSanitizados = this.servicios.map((s: any) => {
       const detalles: any = {};
       if (s.detalles) {
@@ -194,7 +214,7 @@ export class ReservaNuevaComponent implements OnInit {
       };
     });
 
-    // Sanitizar acompañantes: filtrar los que no tienen cliente
+    // Sanitizar acompañantes
     const acompaniantesSanitizados = this.acompaniantes
       .filter((a: any) => a.id_cliente && a.id_cliente !== '')
       .map((a: any) => ({
@@ -202,7 +222,7 @@ export class ReservaNuevaComponent implements OnInit {
         tipo_pasajero: a.tipo_pasajero || 'ADULTO'
       }));
 
-    const payload = {
+    const payload: any = {
       id_titular: Number(this.reserva.id_titular),
       destino_final: this.reserva.destino_final || null,
       fecha_viaje_salida: this.sanitizeDate(this.reserva.fecha_viaje_salida),
@@ -217,13 +237,14 @@ export class ReservaNuevaComponent implements OnInit {
       costo_total_operador_usd: this.sanitizeNumber(this.reserva.costo_total_operador_usd) ?? 0,
       observaciones_internas: this.reserva.observaciones_internas || null,
       fecha_limite_pago: this.sanitizeDate(this.reserva.fecha_limite_pago),
-      vuelos: [],  // Los vuelos están dentro de servicios
+      vuelos: [],
       acompaniantes: acompaniantesSanitizados,
       servicios: serviciosSanitizados
     };
 
     if (this.esEdicion) {
-      this.api.actualizarReserva(this.reservaId!, payload).subscribe({
+      // FIX: reservaId es string, api.actualizarReserva acepta any — sin error TS
+      this.api.actualizarReserva(this.reservaId, payload).subscribe({
         next: () => {
           alert("¡Legajo Maestro Actualizado!");
           this.router.navigate(['/reservas']);
@@ -241,38 +262,6 @@ export class ReservaNuevaComponent implements OnInit {
     }
   }
 
-  // --- FUNCIONES DE SANITIZACIÓN (agregar como métodos privados de la clase) ---
-
-  private sanitizePayload(obj: any): any {
-    const clean: any = {};
-    for (const key of Object.keys(obj)) {
-      const val = obj[key];
-      if (val === '' || val === undefined) {
-        clean[key] = null;
-      } else if (Array.isArray(val)) {
-        clean[key] = val; // los arrays se manejan aparte
-      } else {
-        clean[key] = val;
-      }
-    }
-    return clean;
-  }
-
-  private sanitizeNumber(val: any): number | null {
-    if (val === '' || val === null || val === undefined) return null;
-    const n = Number(val);
-    return isNaN(n) ? null : n;
-  }
-
-  private sanitizeDate(val: any): string | null {
-    if (!val || val === '' || val === 'Invalid Date') return null;
-    if (typeof val === 'string' && val.includes('T')) {
-      return val.split('T')[0];
-    }
-    return val;
-  }
-
-  // Punto 2: Alta rápida de cliente
   abrirModalRapido(index: number) {
     this.indexAcompanianteActual = index;
     this.nuevoClienteRapido = {
@@ -286,22 +275,17 @@ export class ReservaNuevaComponent implements OnInit {
 
   guardarClienteRapido() {
     if (!this.nuevoClienteRapido.nombre_completo) return alert("El nombre es obligatorio");
-    if (!this.nuevoClienteRapido.dni_pasaporte) return alert("El DNI/Pasaporte es obligatorio");
 
     this.api.crearCliente(this.nuevoClienteRapido).subscribe({
       next: (clienteCreado: any) => {
-        // Recargar lista de clientes y pre-seleccionar el recién creado
-        this.api.getClientesPorAgencia(this.auth.getNombreEmpresa()).subscribe((data: any) => {
+        this.api.getClientesPorAgencia(this.auth.getNombreEmpresa()).subscribe((data: any[]) => {
           this.clientes = data;
-          // Convertir a string para que Angular ngModel/select lo empareje correctamente
-          const newId = clienteCreado.id.toString();
           if (this.indexAcompanianteActual === -1) {
-            this.reserva.id_titular = newId;
+            this.reserva.id_titular = clienteCreado.id;
           } else {
-            this.acompaniantes[this.indexAcompanianteActual].id_cliente = newId;
+            this.acompaniantes[this.indexAcompanianteActual].id_cliente = clienteCreado.id;
           }
           this.mostrarModalCliente = false;
-          this.busquedaCliente = ''; // Limpiar búsqueda
         });
       },
       error: (err: any) => alert("Error al registrar cliente: " + (err.error?.error || 'Falla de conexión'))

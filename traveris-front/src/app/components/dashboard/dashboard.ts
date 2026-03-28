@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api';
 import { AuthService } from '../../services/auth';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,18 +13,18 @@ import { AuthService } from '../../services/auth';
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-  stats: any = { totalLegajos: 0, legajosActivos: 0, saldoPendienteGlobal: 0, deudaProveedoresGlobal: 0 };
+  stats: any = { totalLegajos: 0, legajosActivos: 0, saldoPendienteGlobal: 0 };
   movimientos: any[] = [];
   nombreEmpresa: string = 'Cargando...';
   cotizacionBlue: any = { compra: 0, venta: 0 };
 
   alertasRadar: any[] = [];
   mostrarAlertas: boolean = false;
-  radarError: string = ''; // Debug: muestra errores del radar de notificaciones
 
   constructor(
     private api: ApiService,
-    public auth: AuthService
+    public auth: AuthService,
+    private http: HttpClient
   ) { }
 
   ngOnInit() {
@@ -32,35 +33,40 @@ export class Dashboard implements OnInit {
     this.cargarRadar();
   }
 
+  cargarDashboard() {
+    const empresa = this.auth.getNombreEmpresa();
+    this.nombreEmpresa = empresa;
+
+    this.api.getDashboardStats(empresa).subscribe({
+      next: (data: any) => this.stats = data,
+      error: (err: any) => console.error("Error stats:", err)
+    });
+
+    this.api.getUltimosMovimientos(empresa).subscribe({
+      next: (data: any[]) => this.movimientos = data,
+      error: (err: any) => console.error("Error movs:", err)
+    });
+  }
+
+  obtenerDolar() {
+    this.http.get('https://dolarapi.com/v1/dolares/blue').subscribe({
+      next: (data: any) => this.cotizacionBlue = data,
+      error: () => this.cotizacionBlue = { compra: 0, venta: 0 }
+    });
+  }
+
   cargarRadar() {
     const empresa = this.auth.getNombreEmpresa();
-    this.radarError = '';
-    
-    // Debug: confirmar qué empresa se está usando
-    console.log('[Radar] Buscando vencimientos para empresa:', empresa);
 
-    this.api.getRadarVencimientos(empresa).subscribe({
-      next: (vencimientos: any[]) => {
-        console.log('[Radar] Vencimientos recibidos:', vencimientos);
-        const v = vencimientos.map((i: any) => ({ ...i, tipoAlerta: 'PAGO' }));
-        
-        this.api.getRadarCumpleanios(empresa).subscribe({
-          next: (cumples: any[]) => {
-            const c = cumples.map((i: any) => ({ ...i, tipoAlerta: 'CUMPLE' }));
-            this.alertasRadar = [...v, ...c];
-            this.mostrarAlertas = this.alertasRadar.length > 0;
-          },
-          error: () => {
-            // Si falla cumpleaños, igual mostramos vencimientos
-            this.alertasRadar = [...v];
-            this.mostrarAlertas = v.length > 0;
-          }
-        });
-      },
-      error: (err: any) => {
-        console.error('[Radar] Error al obtener vencimientos:', err);
-        this.radarError = `Error radar: ${err.status} - ${err.error?.error || err.message}`;
-      }
+    this.api.getRadarVencimientos(empresa).subscribe((vencimientos: any[]) => {
+      const v = vencimientos.map((i: any) => ({ ...i, tipoAlerta: 'PAGO' }));
+
+      this.api.getRadarCumpleanios(empresa).subscribe((cumples: any[]) => {
+        const c = cumples.map((i: any) => ({ ...i, tipoAlerta: 'CUMPLE' }));
+
+        this.alertasRadar = [...v, ...c];
+        this.mostrarAlertas = this.alertasRadar.length > 0;
+      });
     });
   }
 
@@ -72,8 +78,7 @@ export class Dashboard implements OnInit {
 
     this.api.enviarSaludoCumple({
       email: persona.email,
-      nombre: persona.nombre_completo,
-      empresa_nombre: this.auth.getNombreEmpresa()
+      nombre: persona.nombre_completo
     }).subscribe({
       next: () => {
         alert("¡Email de felicitación enviado con éxito a " + persona.nombre_completo + "!");
@@ -85,63 +90,15 @@ export class Dashboard implements OnInit {
     });
   }
 
-  cargarDashboard() {
-    const miAgencia = this.auth.getNombreEmpresa();
-    this.nombreEmpresa = miAgencia;
-
-    this.api.getDashboardStats(miAgencia).subscribe({
-      next: (data: any) => {
-        this.stats = data;
-      },
-      error: (err: any) => console.error('Error al cargar estadísticas:', err)
-    });
-
-    this.api.getUltimosMovimientos(miAgencia).subscribe({
-      next: (data: any) => this.movimientos = data,
-      error: (err: any) => console.error('Error en movimientos:', err)
-    });
-  }
-
   eliminarMovimiento(id: number) {
-    if (confirm('¿Deseas anular este movimiento de caja?')) {
+    if (confirm("¿Eliminar este movimiento? Se alterarán los saldos.")) {
       this.api.eliminarMovimientoContable(id).subscribe({
         next: () => {
-          alert('Movimiento anulado correctamente');
+          alert("Movimiento eliminado");
           this.cargarDashboard();
         },
-        error: (err: any) => {
-          console.error('Detalle del error:', err);
-          alert('Error al eliminar el movimiento');
-        }
+        error: (err: any) => console.error("Error:", err)
       });
     }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // COTIZACIÓN DEL DÓLAR — CORREGIDO
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CAUSA RAÍZ: El frontend llamaba directamente a https://dolarapi.com
-  // desde localhost:4200, lo cual es BLOQUEADO por CORS porque dolarapi.com
-  // no permite requests desde origins arbitrarios.
-  //
-  // SOLUCIÓN: Usar el endpoint del BACKEND /api/caja-contable/cotizaciones-completas
-  // que SÍ puede llamar a dolarapi.com (Node.js no tiene restricción CORS)
-  // y actúa como proxy. El backend ya tiene este endpoint implementado.
-  // ═══════════════════════════════════════════════════════════════════════════
-  obtenerDolar() {
-    this.api.getCotizacionesCompletas().subscribe({
-      next: (data: any) => {
-        // El backend devuelve { dolar: X, euro: Y, real: Z }
-        // Lo mapeamos al formato que espera el template
-        this.cotizacionBlue = {
-          compra: data.dolar ? (data.dolar * 0.97).toFixed(0) : 0, // Estimación compra ~3% menos
-          venta: data.dolar || 0
-        };
-      },
-      error: () => {
-        console.warn('No se pudo obtener cotización del dólar');
-        this.cotizacionBlue = { compra: 0, venta: 0 };
-      }
-    });
   }
 }

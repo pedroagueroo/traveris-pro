@@ -7,6 +7,10 @@ const router = express.Router();
 const pool = require('./db');
 const transporter = require('./mailer');
 
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+
 // ─── ENVIAR SALUDO DE CUMPLEAÑOS ─────────────────────────────────────────────
 router.post('/enviar-saludo-cumple', async (req, res) => {
     const { email, nombre, empresa_nombre } = req.body;
@@ -183,6 +187,66 @@ router.delete('/:id', async (req, res) => {
     } catch (err) {
         console.error("Error al eliminar cliente:", err);
         res.status(500).json({ error: "Error al eliminar" });
+    }
+});
+
+// --- CONFIGURACIÓN MULTER PARA CLIENTES ---
+const storageClientes = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = './uploads/clientes';
+        if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+const uploadClientes = multer({ storage: storageClientes });
+ 
+// SUBIR ARCHIVO A UN CLIENTE
+router.post('/:id/subir-archivo', uploadClientes.single('archivo'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { filename, mimetype, path: filePath } = req.file;
+        const result = await pool.query(
+            `INSERT INTO cliente_archivos (id_cliente, nombre_archivo, ruta_archivo, tipo_archivo) 
+             VALUES ($1, $2, $3, $4) RETURNING *`,
+            [id, filename, filePath, mimetype]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error("Error al subir archivo de cliente:", err);
+        res.status(500).json({ error: "Error al subir archivo" });
+    }
+});
+ 
+// OBTENER ARCHIVOS DE UN CLIENTE
+router.get('/:id/archivos', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            'SELECT * FROM cliente_archivos WHERE id_cliente = $1 ORDER BY fecha_subida DESC', [id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: "Error al obtener archivos del cliente" });
+    }
+});
+ 
+// ELIMINAR ARCHIVO DE UN CLIENTE
+router.delete('/archivo/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const fileData = await pool.query('SELECT ruta_archivo FROM cliente_archivos WHERE id = $1', [id]);
+        if (fileData.rows.length > 0) {
+            const p = fileData.rows[0].ruta_archivo;
+            if (fs.existsSync(p)) fs.unlinkSync(p);
+        }
+        await pool.query('DELETE FROM cliente_archivos WHERE id = $1', [id]);
+        res.json({ mensaje: "Archivo eliminado" });
+    } catch (err) {
+        res.status(500).json({ error: "Error al eliminar archivo" });
     }
 });
 

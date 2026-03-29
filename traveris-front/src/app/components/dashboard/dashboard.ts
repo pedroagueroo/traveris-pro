@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api';
 import { AuthService } from '../../services/auth';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/env';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,14 +14,14 @@ import { HttpClient } from '@angular/common/http';
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-  stats: any = { totalLegajos: 0, legajosActivos: 0, saldoPendienteGlobal: 0 };
+  stats: any = { totalLegajos: 0, legajosActivos: 0, saldoPendienteGlobal: 0, deudaProveedoresGlobal: 0 };
   movimientos: any[] = [];
   nombreEmpresa: string = 'Cargando...';
   cotizacionBlue: any = { compra: 0, venta: 0 };
 
   alertasRadar: any[] = [];
   mostrarAlertas: boolean = false;
-  radarError: string = '';  // <-- FIX: faltaba esta propiedad que usa dashboard.html
+  radarError: string = '';
 
   constructor(
     private api: ApiService,
@@ -50,7 +51,8 @@ export class Dashboard implements OnInit {
   }
 
   obtenerDolar() {
-    this.http.get('https://dolarapi.com/v1/dolares/blue').subscribe({
+    // Usa el backend como proxy para evitar CORS
+    this.http.get(`${environment.apiUrl}/caja-contable/dolar-blue`).subscribe({
       next: (data: any) => this.cotizacionBlue = data,
       error: () => this.cotizacionBlue = { compra: 0, venta: 0 }
     });

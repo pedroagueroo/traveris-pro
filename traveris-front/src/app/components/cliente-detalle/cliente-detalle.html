@@ -1,8 +1,10 @@
 <div class="px-3 px-md-4 py-4 form-container-elite animate-fade-in" *ngIf="cliente" style="max-width: 1100px;">
-    
-    <div class="form-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+
+    <div
+        class="form-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <div>
-            <span class="badge bg-light text-primary border border-primary px-3 py-2 shadow-sm mb-2">LEGAJO TÉCNICO INDIVIDUAL</span>
+            <span class="badge bg-light text-primary border border-primary px-3 py-2 shadow-sm mb-2">LEGAJO TÉCNICO
+                INDIVIDUAL</span>
             <h2 class="fw-bold mb-0">{{ cliente.nombre_completo | uppercase }}</h2>
             <p class="text-muted small mb-0 mt-1">Ficha maestra de pasajero</p>
         </div>
@@ -21,31 +23,37 @@
         <!-- COLUMNA IZQUIERDA: PERFIL -->
         <div class="col-lg-4">
             <div class="form-card h-100 p-4 border-top border-4 border-primary">
-                
+
                 <div class="text-center mb-4 pb-4 border-bottom">
-                    <div class="d-inline-flex justify-content-center align-items-center bg-primary bg-opacity-10 rounded-circle mb-3 border border-primary border-opacity-25" style="width: 80px; height: 80px;">
+                    <div class="d-inline-flex justify-content-center align-items-center bg-primary bg-opacity-10 rounded-circle mb-3 border border-primary border-opacity-25"
+                        style="width: 80px; height: 80px;">
                         <i class="bi bi-person-fill fs-1 text-primary"></i>
                     </div>
                     <h4 class="fw-bold mb-1">{{ cliente.nombre_completo }}</h4>
-                    <span class="badge bg-light text-muted border px-3 py-1">{{ cliente.nacionalidad || 'Argentina' }}</span>
+                    <span class="badge bg-light text-muted border px-3 py-1">{{ cliente.nacionalidad || 'Argentina'
+                        }}</span>
                 </div>
 
                 <div class="vstack gap-3">
                     <div>
                         <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">DNI / DOCUMENTO</div>
-                        <div class="fw-bold"><i class="bi bi-credit-card text-primary opacity-50 me-2"></i>{{ cliente.dni_pasaporte }}</div>
+                        <div class="fw-bold"><i class="bi bi-credit-card text-primary opacity-50 me-2"></i>{{
+                            cliente.dni_pasaporte }}</div>
                     </div>
                     <div *ngIf="cliente.email">
                         <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">EMAIL</div>
-                        <div class="fw-bold"><i class="bi bi-envelope text-primary opacity-50 me-2"></i>{{ cliente.email }}</div>
+                        <div class="fw-bold"><i class="bi bi-envelope text-primary opacity-50 me-2"></i>{{ cliente.email
+                            }}</div>
                     </div>
                     <div *ngIf="cliente.telefono">
                         <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">TELÉFONO</div>
-                        <div class="fw-bold"><i class="bi bi-telephone text-primary opacity-50 me-2"></i>{{ cliente.telefono }}</div>
+                        <div class="fw-bold"><i class="bi bi-telephone text-primary opacity-50 me-2"></i>{{
+                            cliente.telefono }}</div>
                     </div>
                     <div *ngIf="cliente.fecha_nacimiento">
                         <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">FECHA DE NACIMIENTO</div>
-                        <div class="fw-bold"><i class="bi bi-calendar-heart text-primary opacity-50 me-2"></i>{{ cliente.fecha_nacimiento | date:'dd/MM/yyyy' }}</div>
+                        <div class="fw-bold"><i class="bi bi-calendar-heart text-primary opacity-50 me-2"></i>{{
+                            cliente.fecha_nacimiento | date:'dd/MM/yyyy' }}</div>
                     </div>
                     <div *ngIf="cliente.cuit_cuil">
                         <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">CUIT / CUIL</div>
@@ -62,8 +70,9 @@
         <!-- COLUMNA CENTRAL: DOCUMENTACIÓN -->
         <div class="col-lg-4">
             <div class="form-card h-100 p-4 border-top border-4 border-info">
-                <h6 class="fw-bold mb-4 text-info text-uppercase small"><i class="bi bi-file-earmark-text-fill me-2"></i> Documentación</h6>
-                
+                <h6 class="fw-bold mb-4 text-info text-uppercase small"><i
+                        class="bi bi-file-earmark-text-fill me-2"></i> Documentación</h6>
+
                 <div class="vstack gap-3">
                     <div *ngIf="cliente.pasaporte_nro">
                         <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">N° PASAPORTE</div>
@@ -74,10 +83,12 @@
                         <div class="fw-bold">{{ cliente.pasaporte_emision | date:'dd/MM/yyyy' }}</div>
                     </div>
                     <div *ngIf="cliente.pasaporte_vencimiento">
-                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">VENCIMIENTO PASAPORTE</div>
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">VENCIMIENTO PASAPORTE
+                        </div>
                         <div class="fw-bold" [ngClass]="{'text-danger': estaVencido(cliente.pasaporte_vencimiento)}">
                             {{ cliente.pasaporte_vencimiento | date:'dd/MM/yyyy' }}
-                            <span class="badge bg-danger ms-2" *ngIf="estaVencido(cliente.pasaporte_vencimiento)">VENCIDO</span>
+                            <span class="badge bg-danger ms-2"
+                                *ngIf="estaVencido(cliente.pasaporte_vencimiento)">VENCIDO</span>
                         </div>
                     </div>
                     <div *ngIf="cliente.dni_emision">
@@ -88,7 +99,8 @@
                         <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">VENCIMIENTO DNI</div>
                         <div class="fw-bold" [ngClass]="{'text-danger': estaVencido(cliente.dni_vencimiento)}">
                             {{ cliente.dni_vencimiento | date:'dd/MM/yyyy' }}
-                            <span class="badge bg-danger ms-2" *ngIf="estaVencido(cliente.dni_vencimiento)">VENCIDO</span>
+                            <span class="badge bg-danger ms-2"
+                                *ngIf="estaVencido(cliente.dni_vencimiento)">VENCIDO</span>
                         </div>
                     </div>
                     <div *ngIf="!cliente.pasaporte_nro && !cliente.dni_emision" class="text-center py-4 text-muted">
@@ -102,8 +114,9 @@
         <!-- COLUMNA DERECHA: PREFERENCIAS -->
         <div class="col-lg-4">
             <div class="form-card h-100 p-4 border-top border-4 border-success">
-                <h6 class="fw-bold mb-4 text-success text-uppercase small"><i class="bi bi-star-fill me-2"></i> Preferencias de Viaje</h6>
-                
+                <h6 class="fw-bold mb-4 text-success text-uppercase small"><i class="bi bi-star-fill me-2"></i>
+                    Preferencias de Viaje</h6>
+
                 <div class="vstack gap-3">
                     <div>
                         <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">ASIENTO</div>
@@ -114,7 +127,8 @@
                         <div class="fw-bold">{{ cliente.pref_comida }}</div>
                     </div>
                     <div *ngIf="cliente.observaciones_salud">
-                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">OBSERVACIONES MÉDICAS</div>
+                        <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">OBSERVACIONES MÉDICAS
+                        </div>
                         <div class="fw-bold text-danger bg-danger bg-opacity-10 p-2 rounded">
                             <i class="bi bi-heart-pulse-fill me-1"></i> {{ cliente.observaciones_salud }}
                         </div>
@@ -123,13 +137,72 @@
 
                 <hr class="my-4">
 
-                <h6 class="fw-bold mb-3 text-muted text-uppercase small"><i class="bi bi-clock-history me-2"></i> Historial</h6>
-                <button class="btn btn-outline-primary w-100 rounded-pill fw-bold" [routerLink]="['/reservas-cliente', cliente.id]">
+                <h6 class="fw-bold mb-3 text-muted text-uppercase small"><i class="bi bi-clock-history me-2"></i>
+                    Historial</h6>
+                <button class="btn btn-outline-primary w-100 rounded-pill fw-bold"
+                    [routerLink]="['/reservas-cliente', cliente.id]">
                     <i class="bi bi-folder2-open me-2"></i> Ver Reservas del Cliente
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- Sección Archivos del Cliente -->
+    <div class="card shadow-sm border-0 mt-4" *ngIf="cliente">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0"><i class="bi bi-folder2-open me-2 text-primary"></i> Documentación del Cliente</h6>
+            <span class="badge bg-primary rounded-pill">{{ archivosCliente.length }}</span>
+        </div>
+        <div class="card-body">
+
+            <!-- Lista de archivos -->
+            <div class="vstack gap-2 mb-3">
+                <div *ngFor="let a of archivosCliente"
+                    class="d-flex align-items-center justify-content-between p-3 bg-body rounded-3 border shadow-sm">
+                    <div class="d-flex align-items-center gap-3 overflow-hidden">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                            style="width: 36px; height: 36px;">
+                            <i class="bi fs-5" [ngClass]="{
+              'bi-file-earmark-pdf': a.tipo_archivo?.includes('pdf'),
+              'bi-file-earmark-image': a.tipo_archivo?.includes('image'),
+              'bi-file-earmark-word': a.tipo_archivo?.includes('word') || a.tipo_archivo?.includes('doc'),
+              'bi-file-earmark': !a.tipo_archivo?.includes('pdf') && !a.tipo_archivo?.includes('image') && !a.tipo_archivo?.includes('word') && !a.tipo_archivo?.includes('doc')
+            }"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="fw-bold small text-truncate">{{ a.nombre_archivo }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">{{ a.fecha_subida | date:'dd/MM/yyyy
+                                HH:mm' }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-1 flex-shrink-0">
+                        <button class="btn btn-sm btn-outline-primary rounded-pill px-2"
+                            (click)="descargarArchivo(a.ruta_archivo)" title="Descargar">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-2"
+                            (click)="eliminarArchivoCliente(a.id)" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="archivosCliente.length === 0"
+                    class="text-center py-4 text-muted border border-dashed rounded-3">
+                    <i class="bi bi-folder-x fs-3 opacity-25 d-block mb-2"></i>
+                    <span class="small">Sin documentación adjunta</span>
+                </div>
+            </div>
+
+            <!-- Botón subir -->
+            <label class="btn btn-outline-primary btn-sm rounded-pill w-100">
+                <i class="bi bi-upload me-1"></i> Subir Documento (PDF, Imagen, etc.)
+                <input type="file" class="d-none" (change)="onFileSelectedCliente($event)"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.txt">
+            </label>
+        </div>
+    </div>
+
 </div>
 
 <div class="text-center py-5" *ngIf="!cliente">

@@ -251,6 +251,71 @@
           <option value="MERCADOPAGO">MercadoPago</option>
         </select>
 
+        <!-- === DATOS DE TARJETA (solo si método = TARJETA) === -->
+        <div *ngIf="nuevoPago.metodo_pago === 'TARJETA'"
+          class="border border-primary border-opacity-25 rounded-3 p-3 mb-3 bg-primary bg-opacity-5">
+          <div class="small fw-bold text-primary mb-2" style="font-size: 0.7rem;">
+            <i class="bi bi-credit-card-2-front me-1"></i> DATOS DE TARJETA
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-8">
+              <input type="text" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.numero"
+                placeholder="Número de tarjeta" maxlength="19" (input)="detectarBanco()">
+            </div>
+            <div class="col-4">
+              <div class="small text-primary fw-bold text-center py-2" *ngIf="bancoDetectado">
+                <i class="bi bi-bank me-1"></i>{{ bancoDetectado }}
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <input type="text" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.vencimiento"
+                placeholder="MM/AAAA" maxlength="7">
+            </div>
+            <div class="col-6">
+              <input type="password" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.cvv"
+                placeholder="CVV" maxlength="4">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="small text-muted fw-bold" style="font-size: 0.65rem;">CUOTAS</label>
+              <select class="form-select bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.cuotas">
+                <option [ngValue]="1">1 cuota (sin interés)</option>
+                <option [ngValue]="3">3 cuotas</option>
+                <option [ngValue]="6">6 cuotas</option>
+                <option [ngValue]="9">9 cuotas</option>
+                <option [ngValue]="12">12 cuotas</option>
+                <option [ngValue]="18">18 cuotas</option>
+                <option [ngValue]="24">24 cuotas</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="small text-muted fw-bold" style="font-size: 0.65rem;">INTERÉS %</label>
+              <input type="number" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.interes"
+                placeholder="0" min="0" max="100" step="0.5">
+            </div>
+          </div>
+
+          <!-- Resumen de cuotas -->
+          <div class="bg-body rounded-3 p-2 mt-2 border" *ngIf="datosTarjeta.cuotas > 1 && nuevoPago.monto > 0">
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">{{ datosTarjeta.cuotas }} cuotas de:</span>
+              <span class="fw-bold text-primary">{{ nuevoPago.moneda }} {{ montoPorCuota | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between small" *ngIf="datosTarjeta.interes > 0">
+              <span class="text-muted">Total con interés:</span>
+              <span class="fw-bold text-danger">{{ nuevoPago.moneda }} {{ montoTotalConInteres | number:'1.2-2'
+                }}</span>
+            </div>
+          </div>
+        </div>
+
+
         <input type="text" class="form-control mb-3 bg-body border-2 rounded-3" [(ngModel)]="nuevoPago.observaciones"
           placeholder="Observaciones (opcional)">
 
@@ -327,10 +392,20 @@
             <span><i class="bi bi-calculator me-2"></i> Gen. Cotización</span>
             <i class="bi bi-arrow-right"></i>
           </button>
-          <button class="btn btn-body border rounded-pill shadow-sm mt-2 text-muted fw-bold hover-bg-light"
-            (click)="enviarPorMail()">
-            <i class="bi bi-envelope-paper me-2"></i> Enviar por Email
-          </button>
+          <div class="d-grid gap-1">
+            <button class="btn btn-outline-primary btn-sm rounded-pill fw-bold shadow-sm"
+              (click)="enviarDocumento('VOUCHER', false)">
+              <i class="bi bi-envelope-paper me-1"></i> Enviar Voucher
+            </button>
+            <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shadow-sm"
+              (click)="enviarDocumento('COTIZACION', false)">
+              <i class="bi bi-envelope-paper me-1"></i> Enviar Cotización
+            </button>
+            <button class="btn btn-outline-dark btn-sm rounded-pill fw-bold shadow-sm"
+              (click)="enviarDocumento(tipoDoc, true)" *ngIf="archivos.length > 0">
+              <i class="bi bi-paperclip me-1"></i> Enviar {{ tipoDoc }} + Archivos ({{ archivos.length }})
+            </button>
+          </div>
         </div>
 
         <hr class="my-2 border-light">
@@ -340,14 +415,30 @@
         <div class="vstack gap-2">
           <div *ngFor="let a of archivos"
             class="d-flex justify-content-between align-items-center p-2 bg-body rounded-3 border shadow-sm">
-            <div class="d-flex align-items-center gap-2 overflow-hidden">
-              <i class="bi bi-file-earmark text-muted"></i>
-              <span class="small fw-bold text-truncate">{{ a.nombre_archivo }}</span>
+            <div class="d-flex align-items-center gap-2 overflow-hidden" style="cursor: pointer;"
+              (click)="descargarArchivo(a.ruta_archivo)">
+              <i class="bi fs-5" [ngClass]="{
+                'bi-file-earmark-pdf text-danger': a.tipo_archivo?.includes('pdf'),
+                'bi-file-earmark-image text-success': a.tipo_archivo?.includes('image'),
+                'bi-file-earmark-word text-primary': a.tipo_archivo?.includes('word') || a.tipo_archivo?.includes('doc'),
+                'bi-file-earmark text-muted': !a.tipo_archivo?.includes('pdf') && !a.tipo_archivo?.includes('image') && !a.tipo_archivo?.includes('word') && !a.tipo_archivo?.includes('doc')
+              }"></i>
+              <div class="overflow-hidden">
+                <span class="small fw-bold text-truncate d-block">{{ a.nombre_archivo }}</span>
+                <span class="text-muted d-block" style="font-size: 0.65rem;">{{ a.fecha_subida | date:'dd/MM/yy'
+                  }}</span>
+              </div>
             </div>
-            <button class="btn btn-sm btn-outline-danger rounded-circle flex-shrink-0" (click)="eliminarArchivo(a.id)"
-              style="width:28px;height:28px;padding:0;">
-              <i class="bi bi-x"></i>
-            </button>
+            <div class="d-flex gap-1 flex-shrink-0">
+              <button class="btn btn-sm btn-outline-primary rounded-circle" (click)="descargarArchivo(a.ruta_archivo)"
+                style="width:28px;height:28px;padding:0;" title="Descargar">
+                <i class="bi bi-download"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger rounded-circle" (click)="eliminarArchivo(a.id)"
+                style="width:28px;height:28px;padding:0;" title="Eliminar">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
           </div>
           <div *ngIf="archivos.length === 0" class="text-center small text-muted py-2">Sin archivos adjuntos.</div>
         </div>
@@ -566,8 +657,7 @@
     *ngIf="mostrarRecibo && reciboPreview" (click)="mostrarRecibo = false">
 
     <div class="bg-white rounded-4 shadow-lg p-0 position-relative"
-      style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;"
-      (click)="$event.stopPropagation()">
+      style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
 
       <!-- Barra de acciones (no se imprime) -->
       <div class="d-flex justify-content-between align-items-center p-3 border-bottom no-print">

@@ -153,6 +153,26 @@ export class ApiService {
     return this.http.delete(`${this.URL}/reservas/archivo/${idArchivo}`);
   }
 
+  // --- ARCHIVOS DE CLIENTE ---
+
+  subirArchivoCliente(idCliente: any, formData: FormData): Observable<any> {
+    return this.http.post(`${this.URL}/clientes/${idCliente}/subir-archivo`, formData);
+  }
+
+  getArchivosCliente(idCliente: any): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/clientes/${idCliente}/archivos`);
+  }
+
+  eliminarArchivoCliente(idArchivo: number): Observable<any> {
+    return this.http.delete(`${this.URL}/clientes/archivo/${idArchivo}`);
+  }
+
+  // --- HELPER: URL de descarga para cualquier archivo ---
+  getUrlDescarga(rutaArchivo: string): string {
+    // ruta_archivo viene como "uploads/xxx" o "uploads/clientes/xxx"
+    return `${this.URL}/${rutaArchivo}`;
+  }
+
   // ============================================================
   // SECCIÓN NOTIFICACIONES Y CORREO
   // ============================================================

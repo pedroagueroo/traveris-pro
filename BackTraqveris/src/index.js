@@ -48,6 +48,8 @@ app.use('/api/import-clientes', verificarToken, importClientesRoutes);
 
 app.use('/api/recibos', recibosRoutes);
 
+app.use('/api/uploads', express.static('uploads'));
+
 
 // ─── RUTA DE PRUEBA ─────────────────────────────────────────────────────────
 app.get('/probar-conexion', async (req, res) => {

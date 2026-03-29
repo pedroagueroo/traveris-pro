@@ -43,32 +43,82 @@ function sanitizeDecimal(value, fallback = 0) {
 }
 
 // ============================================================
-// RUTA: Enviar Documentación por Mail
+// RUTA: Enviar Documentación por Mail (Voucher / Cotización + Archivos)
 // ============================================================
 router.post('/:id/enviar-documento', async (req, res) => {
     try {
         const { id } = req.params;
-        const { destinatario, nombreCliente, tipoDoc, destino } = req.body;
+        const { destinatario, nombreCliente, tipoDoc, destino, adjuntarArchivos } = req.body;
 
+        if (!destinatario) {
+            return res.status(400).json({ error: "El destinatario es obligatorio" });
+        }
+
+        // 1. Obtener datos completos de la reserva
+        const resReserva = await pool.query(
+            `SELECT r.*, c.nombre_completo as nombre_titular, c.dni_pasaporte as dni_titular, c.email as email_titular
+             FROM reservas r JOIN clientes c ON r.id_titular = c.id WHERE r.id = $1`, [id]
+        );
+        if (resReserva.rows.length === 0) {
+            return res.status(404).json({ error: "Reserva no encontrada" });
+        }
+        const reserva = resReserva.rows[0];
+
+        // 2. Obtener servicios detallados
+        const resServicios = await pool.query(
+            'SELECT * FROM reserva_servicios_detallados WHERE id_reserva = $1', [id]
+        );
+        const servicios = resServicios.rows;
+
+        // 3. Obtener pasajeros
+        const resPasajeros = await pool.query(
+            `SELECT rp.*, c.nombre_completo, c.dni_pasaporte 
+             FROM reserva_pasajeros rp JOIN clientes c ON rp.id_cliente = c.id 
+             WHERE rp.id_reserva = $1`, [id]
+        );
+        const pasajeros = resPasajeros.rows;
+
+        // 4. Generar HTML según tipo de documento
+        let htmlContent = '';
+        const empresaNombre = reserva.empresa_nombre || 'Agencia de Viajes';
+
+        if (tipoDoc === 'VOUCHER') {
+            htmlContent = generarHTMLVoucher(reserva, servicios, pasajeros, empresaNombre);
+        } else {
+            htmlContent = generarHTMLCotizacion(reserva, servicios, empresaNombre);
+        }
+
+        // 5. Preparar archivos adjuntos (si se solicitaron)
+        let attachments = [];
+        if (adjuntarArchivos) {
+            const resArchivos = await pool.query(
+                'SELECT * FROM reserva_archivos WHERE id_reserva = $1', [id]
+            );
+            for (const arch of resArchivos.rows) {
+                if (fs.existsSync(arch.ruta_archivo)) {
+                    attachments.push({
+                        filename: arch.nombre_archivo,
+                        path: arch.ruta_archivo
+                    });
+                }
+            }
+        }
+
+        // 6. Enviar el mail
         const mailOptions = {
-            from: 'Vicka Turismo <tu-email@gmail.com>',
+            from: `"${empresaNombre}" <aguerop47@gmail.com>`,
             to: destinatario,
-            subject: `📄 Tu ${tipoDoc} de viaje a ${destino} - Vicka Turismo`,
-            html: `
-                <div style="font-family: Arial, sans-serif; color: #333;">
-                    <h2>¡Hola, ${nombreCliente}!</h2>
-                    <p>Esperamos que estés muy bien. Te adjuntamos tu <b>${tipoDoc}</b> correspondiente a tu próximo viaje a <b>${destino}</b>.</p>
-                    <p>Cualquier duda, estamos a tu disposición.</p>
-                    <br><hr>
-                    <p style="font-size: 0.8rem; color: #777;">Vicka Turismo - Agencia de Viajes y Turismo</p>
-                </div>`
+            subject: `${tipoDoc === 'VOUCHER' ? '🎫 Voucher' : '💰 Cotización'} de viaje a ${destino || reserva.destino_final} — ${empresaNombre}`,
+            html: htmlContent,
+            attachments: attachments
         };
 
         await transporter.sendMail(mailOptions);
-        res.json({ success: true, message: "Email enviado con éxito" });
+        res.json({ success: true, message: "Email enviado con éxito", archivosAdjuntos: attachments.length });
+
     } catch (err) {
         console.error("Error al enviar mail:", err);
-        res.status(500).json({ error: "Error al enviar el correo" });
+        res.status(500).json({ error: "Error al enviar el correo: " + err.message });
     }
 });
 
@@ -127,24 +177,41 @@ router.delete('/archivo/:id', async (req, res) => {
 });
 
 // ============================================================
-// DASHBOARD STATS
+// DASHBOARD STATS (corregido: devuelve los campos que usa el HTML)
 // ============================================================
 router.get('/dashboard/stats/:empresa', async (req, res) => {
     try {
         const { empresa } = req.params;
-        const abiertas = await pool.query("SELECT COUNT(*) FROM reservas WHERE empresa_nombre = $1 AND estado = 'ABIERTO'", [empresa]);
-        const cerradas = await pool.query("SELECT COUNT(*) FROM reservas WHERE empresa_nombre = $1 AND estado = 'CERRADO'", [empresa]);
-        const canceladas = await pool.query("SELECT COUNT(*) FROM reservas WHERE empresa_nombre = $1 AND estado = 'CANCELADO'", [empresa]);
-        res.json({
-            abiertas: parseInt(abiertas.rows[0].count),
-            cerradas: parseInt(cerradas.rows[0].count),
-            canceladas: parseInt(canceladas.rows[0].count)
-        });
+
+        const query = `
+            SELECT 
+                COALESCE(SUM(total_venta_final_usd) - 
+                    COALESCE((SELECT SUM(monto) FROM movimientos_caja mc 
+                        WHERE mc.tipo_movimiento = 'PAGO_CLIENTE' 
+                        AND mc.id_reserva IN (SELECT id FROM reservas WHERE empresa_nombre = $1)
+                    ), 0)
+                , 0) as "saldoPendienteGlobal",
+                
+                COALESCE(SUM(costo_total_operador_usd) - 
+                    COALESCE((SELECT SUM(monto) FROM movimientos_caja mc 
+                        WHERE mc.tipo_movimiento = 'PAGO_PROVEEDOR' 
+                        AND mc.id_reserva IN (SELECT id FROM reservas WHERE empresa_nombre = $1)
+                    ), 0)
+                , 0) as "deudaProveedoresGlobal",
+                
+                COUNT(*) FILTER (WHERE estado = 'ABIERTO') as "legajosActivos",
+                COUNT(*) as "totalLegajos"
+            FROM reservas 
+            WHERE empresa_nombre = $1
+        `;
+
+        const result = await pool.query(query, [empresa]);
+        res.json(result.rows[0]);
     } catch (err) {
+        console.error("Error en dashboard stats:", err);
         res.status(500).json({ error: "Error al calcular stats" });
     }
 });
-
 // ============================================================
 // ACTUALIZAR ESTADO
 // ============================================================
@@ -177,20 +244,20 @@ router.post('/', async (req, res) => {
 
         // --- SANITIZAR datos de la reserva principal ---
         const safeReserva = {
-            id_titular:                 sanitizeInteger(id_titular),
-            destino_final:              sanitizeString(destino_final),
-            fecha_viaje_salida:         sanitizeDate(fecha_viaje_salida),
-            fecha_viaje_regreso:        sanitizeDate(fecha_viaje_regreso),
-            cotizacion_dolar:           sanitizeDecimal(cotizacion_dolar, null),
-            operador_mayorista:         sanitizeString(operador_mayorista),
-            nro_expediente_operador:    sanitizeString(nro_expediente_operador),
-            empresa_nombre:             sanitizeString(empresa_nombre),
+            id_titular: sanitizeInteger(id_titular),
+            destino_final: sanitizeString(destino_final),
+            fecha_viaje_salida: sanitizeDate(fecha_viaje_salida),
+            fecha_viaje_regreso: sanitizeDate(fecha_viaje_regreso),
+            cotizacion_dolar: sanitizeDecimal(cotizacion_dolar, null),
+            operador_mayorista: sanitizeString(operador_mayorista),
+            nro_expediente_operador: sanitizeString(nro_expediente_operador),
+            empresa_nombre: sanitizeString(empresa_nombre),
             gastos_administrativos_usd: sanitizeDecimal(gastos_administrativos_usd, 0),
             bonificacion_descuento_usd: sanitizeDecimal(bonificacion_descuento_usd, 0),
-            total_venta_final_usd:      sanitizeDecimal(total_venta_final_usd, 0),
-            costo_total_operador_usd:   sanitizeDecimal(costo_total_operador_usd, 0),
-            observaciones_internas:     sanitizeString(observaciones_internas),
-            fecha_limite_pago:          sanitizeDate(fecha_limite_pago)
+            total_venta_final_usd: sanitizeDecimal(total_venta_final_usd, 0),
+            costo_total_operador_usd: sanitizeDecimal(costo_total_operador_usd, 0),
+            observaciones_internas: sanitizeString(observaciones_internas),
+            fecha_limite_pago: sanitizeDate(fecha_limite_pago)
         };
 
         // Validación mínima: titular obligatorio
@@ -567,5 +634,195 @@ router.get('/radar/vencimientos/:empresa', async (req, res) => {
         res.status(500).json({ error: "Error en el radar" });
     }
 });
+
+function generarHTMLVoucher(reserva, servicios, pasajeros, empresaNombre) {
+    const fechaSalida = reserva.fecha_viaje_salida ? new Date(reserva.fecha_viaje_salida).toLocaleDateString('es-AR') : 'A confirmar';
+    const fechaRegreso = reserva.fecha_viaje_regreso ? new Date(reserva.fecha_viaje_regreso).toLocaleDateString('es-AR') : 'A confirmar';
+
+    let serviciosHTML = '';
+    for (const s of servicios) {
+        const nombre = s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item || 'Servicio';
+        const detalles = [];
+        if (s.ciudad) detalles.push(`Ciudad: ${s.ciudad}`);
+        if (s.check_in) detalles.push(`Check-in: ${new Date(s.check_in).toLocaleDateString('es-AR')}`);
+        if (s.check_out) detalles.push(`Check-out: ${new Date(s.check_out).toLocaleDateString('es-AR')}`);
+        if (s.origen && s.destino) detalles.push(`Ruta: ${s.origen} → ${s.destino}`);
+        if (s.nro_vuelo) detalles.push(`Vuelo: ${s.nro_vuelo}`);
+        if (s.pnr) detalles.push(`PNR: ${s.pnr}`);
+        if (s.regimen) detalles.push(`Régimen: ${s.regimen}`);
+        if (s.plan_asistencia) detalles.push(`Plan: ${s.plan_asistencia}`);
+        if (s.nro_poliza) detalles.push(`Póliza: ${s.nro_poliza}`);
+        if (s.servicio_descripcion) detalles.push(s.servicio_descripcion);
+
+        serviciosHTML += `
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #eee;">
+                    <strong style="color: #2563eb;">${s.tipo_item}</strong>
+                </td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee;">
+                    <strong>${nombre}</strong><br>
+                    <span style="color: #666; font-size: 13px;">${detalles.join(' · ')}</span>
+                </td>
+            </tr>`;
+    }
+
+    let pasajerosHTML = '';
+    if (pasajeros.length > 0) {
+        pasajerosHTML = `
+            <h3 style="color: #1e293b; margin-top: 30px;">Manifiesto de Pasajeros</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <tr style="background: #f1f5f9;">
+                    <th style="padding: 10px; text-align: left; font-size: 12px; text-transform: uppercase;">Nombre</th>
+                    <th style="padding: 10px; text-align: left; font-size: 12px; text-transform: uppercase;">DNI/Pasaporte</th>
+                    <th style="padding: 10px; text-align: left; font-size: 12px; text-transform: uppercase;">Tipo</th>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>${reserva.nombre_titular}</strong></td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${reserva.dni_titular || '-'}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">TITULAR</td>
+                </tr>
+                ${pasajeros.map(p => `
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${p.nombre_completo}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${p.dni_pasaporte || '-'}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${p.tipo_pasajero || 'ADULTO'}</td>
+                </tr>`).join('')}
+            </table>`;
+    }
+
+    return `
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #fff;">
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">${empresaNombre}</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 5px 0 0; font-size: 14px;">Voucher de Servicios Confirmados</p>
+        </div>
+        <div style="padding: 30px;">
+            <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td><strong>Pasajero:</strong> ${reserva.nombre_titular}</td>
+                        <td style="text-align: right;"><strong>Legajo:</strong> #${reserva.id}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Destino:</strong> ${reserva.destino_final || '-'}</td>
+                        <td style="text-align: right;"><strong>Operador:</strong> ${reserva.operador_mayorista || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><strong>Fechas:</strong> ${fechaSalida} al ${fechaRegreso}</td>
+                    </tr>
+                </table>
+            </div>
+            <h3 style="color: #1e293b; border-bottom: 2px solid #2563eb; padding-bottom: 8px;">Servicios Contratados</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                ${serviciosHTML || '<tr><td style="padding: 15px; text-align: center; color: #999;">Sin servicios cargados</td></tr>'}
+            </table>
+            ${pasajerosHTML}
+            <div style="margin-top: 30px; padding: 15px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0; text-align: center;">
+                <p style="margin: 0; font-size: 13px; color: #166534;"><strong>Este voucher confirma los servicios listados.</strong><br>Presentar junto con documentación de viaje oficial.</p>
+            </div>
+        </div>
+        <div style="background: #f1f5f9; padding: 15px; text-align: center; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0; font-size: 12px; color: #64748b;">${empresaNombre} — Agencia de Viajes y Turismo</p>
+        </div>
+    </div>`;
+}
+
+function generarHTMLCotizacion(reserva, servicios, empresaNombre) {
+    const fechaSalida = reserva.fecha_viaje_salida ? new Date(reserva.fecha_viaje_salida).toLocaleDateString('es-AR') : 'A confirmar';
+    const fechaRegreso = reserva.fecha_viaje_regreso ? new Date(reserva.fecha_viaje_regreso).toLocaleDateString('es-AR') : 'A confirmar';
+
+    let serviciosHTML = '';
+    for (const s of servicios) {
+        const nombre = s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item || 'Servicio';
+        const precio = parseFloat(s.venta_bruta_cliente || 0).toFixed(2);
+
+        serviciosHTML += `
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                    <span style="background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">${s.tipo_item}</span>
+                </td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${nombre}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">US$ ${precio}</td>
+            </tr>`;
+    }
+
+    const gastos = parseFloat(reserva.gastos_administrativos_usd || 0);
+    const descuento = parseFloat(reserva.bonificacion_descuento_usd || 0);
+    const totalFinal = parseFloat(reserva.total_venta_final_usd || 0);
+    const cotizacion = parseFloat(reserva.cotizacion_dolar || 0);
+
+    if (gastos > 0) {
+        serviciosHTML += `
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;"><span style="background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">ADMIN</span></td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">Gastos administrativos</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">US$ ${gastos.toFixed(2)}</td>
+            </tr>`;
+    }
+    if (descuento > 0) {
+        serviciosHTML += `
+            <tr style="color: #16a34a;">
+                <td style="padding: 10px; border-bottom: 1px solid #eee;"><span style="background: #f0fdf4; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">DESC</span></td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">Bonificación / Descuento</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">- US$ ${descuento.toFixed(2)}</td>
+            </tr>`;
+    }
+
+    let equivalenteARS = '';
+    if (cotizacion > 0) {
+        equivalenteARS = `
+            <div style="background: #f8fafc; border-radius: 8px; padding: 15px; margin-top: 15px; border: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 13px; color: #475569;">
+                    <strong>Cotización de referencia:</strong> 1 USD = $ ${cotizacion.toFixed(2)} ARS<br>
+                    <strong>Equivalente en pesos:</strong> <span style="color: #2563eb; font-weight: bold;">$ ${(totalFinal * cotizacion).toFixed(2)} ARS</span>
+                </p>
+            </div>`;
+    }
+
+    return `
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #fff;">
+        <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">${empresaNombre}</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 5px 0 0; font-size: 14px;">Cotización de Viaje</p>
+        </div>
+        <div style="padding: 30px;">
+            <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td><strong>Pasajero:</strong> ${reserva.nombre_titular}</td>
+                        <td style="text-align: right;"><strong>Legajo:</strong> #${reserva.id}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DNI:</strong> ${reserva.dni_titular || '-'}</td>
+                        <td style="text-align: right;"><strong>Destino:</strong> ${reserva.destino_final || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><strong>Fechas:</strong> ${fechaSalida} al ${fechaRegreso}</td>
+                    </tr>
+                </table>
+            </div>
+            <h3 style="color: #1e293b; border-bottom: 2px solid #059669; padding-bottom: 8px;">Desglose de Inversión</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <tr style="background: #f1f5f9;">
+                    <th style="padding: 10px; text-align: left; font-size: 12px;">CONCEPTO</th>
+                    <th style="padding: 10px; text-align: left; font-size: 12px;">DETALLE</th>
+                    <th style="padding: 10px; text-align: right; font-size: 12px;">VALOR (USD)</th>
+                </tr>
+                ${serviciosHTML}
+                <tr style="border-top: 3px solid #1e293b;">
+                    <td colspan="2" style="padding: 15px; font-size: 18px; font-weight: bold;">INVERSIÓN TOTAL</td>
+                    <td style="padding: 15px; text-align: right; font-size: 18px; font-weight: bold; color: #2563eb;">US$ ${totalFinal.toFixed(2)}</td>
+                </tr>
+            </table>
+            ${equivalenteARS}
+            <div style="margin-top: 25px; padding: 15px; background: #fffbeb; border-radius: 8px; border: 1px solid #fde68a; text-align: center;">
+                <p style="margin: 0; font-size: 13px; color: #92400e;"><strong>Cotización sujeta a disponibilidad y tipo de cambio vigente.</strong><br>Validez: 5 días hábiles desde la fecha de emisión.</p>
+            </div>
+        </div>
+        <div style="background: #f1f5f9; padding: 15px; text-align: center; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0; font-size: 12px; color: #64748b;">${empresaNombre} — Agencia de Viajes y Turismo</p>
+        </div>
+    </div>`;
+}
 
 module.exports = router;

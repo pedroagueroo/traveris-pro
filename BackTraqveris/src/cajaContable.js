@@ -12,7 +12,7 @@ const { sqlCaseMonto, sqlCaseMontoReal } = require('./constantes');
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/registrar', async (req, res) => {
     const { id_reserva, monto, moneda, tipo_movimiento, metodo_pago, observaciones, empresa_nombre } = req.body;
-    
+
     if (!monto || monto <= 0) return res.status(400).json({ error: "El monto debe ser mayor a 0" });
     if (!moneda) return res.status(400).json({ error: "La moneda es requerida" });
     if (!tipo_movimiento) return res.status(400).json({ error: "El tipo de movimiento es requerido" });
@@ -24,9 +24,9 @@ router.post('/registrar', async (req, res) => {
             (id_reserva, monto, moneda, tipo_movimiento, metodo_pago, observaciones, empresa_nombre, fecha_pago) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) 
             RETURNING *`;
-        
+
         const result = await pool.query(query, [
-            id_reserva || null, monto, moneda, tipo_movimiento, 
+            id_reserva || null, monto, moneda, tipo_movimiento,
             metodo_pago || 'EFECTIVO', observaciones || '', empresa_nombre
         ]);
         res.json(result.rows[0]);
@@ -66,9 +66,9 @@ router.post('/pagar-tarjeta', async (req, res) => {
         );
 
         await client.query('COMMIT');
-        res.json({ 
-            success: true, 
-            mensaje: `Deuda de tarjeta de ${moneda} ${monto} cancelada con ${metodo_pago_real}` 
+        res.json({
+            success: true,
+            mensaje: `Deuda de tarjeta de ${moneda} ${monto} cancelada con ${metodo_pago_real}`
         });
     } catch (err) {
         await client.query('ROLLBACK');
@@ -157,7 +157,7 @@ router.get('/cierre-mensual/:empresa', async (req, res) => {
     try {
         const { empresa } = req.params;
         const { mes, anio } = req.query;
-        
+
         const mesActual = mes || (new Date().getMonth() + 1);
         const anioActual = anio || new Date().getFullYear();
         const caseMonto = sqlCaseMonto('monto');
@@ -216,13 +216,29 @@ router.get('/cierre-mensual/:empresa', async (req, res) => {
     }
 });
 
+// PROXY: Dólar Blue para el Dashboard (evita CORS del frontend)
+router.get('/dolar-blue', async (req, res) => {
+    try {
+        const response = await fetch('https://dolarapi.com/v1/dolares/blue');
+        if (response.ok) {
+            const data = await response.json();
+            res.json({ compra: data.compra || 0, venta: data.venta || 0 });
+        } else {
+            res.json({ compra: 0, venta: 0 });
+        }
+    } catch (err) {
+        console.warn("No se pudo obtener dólar blue:", err.message);
+        res.json({ compra: 0, venta: 0 });
+    }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // COTIZACIONES COMPLETAS — CON FALLBACK ROBUSTO
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/cotizaciones-completas', async (req, res) => {
     try {
         const resultados = { dolar: 0, euro: 0, real: 0 };
-        
+
         // Intentar obtener cada cotización independientemente
         try {
             const dolarRes = await fetch('https://dolarapi.com/v1/dolares/oficial');
@@ -265,7 +281,7 @@ router.delete('/:id', async (req, res) => {
         const { id } = req.params;
 
         const existente = await client.query('SELECT * FROM movimientos_caja WHERE id = $1', [id]);
-        
+
         if (existente.rows.length === 0) {
             return res.status(404).json({ error: "Movimiento no encontrado" });
         }

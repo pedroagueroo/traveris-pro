@@ -304,35 +304,38 @@ router.post('/', async (req, res) => {
                         plan_asistencia, nro_poliza, cobertura_detalles,
                         pais_destino, nro_tramite, fecha_vencimiento_visa,
                         crucero_nombre, crucero_cabina, crucero_itinerario,
-                        nombre_item, servicio_descripcion, excursion_fecha
-                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)`,
+                        nombre_item, servicio_descripcion, excursion_fecha,
+                        hora_salida, hora_llegada
+                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)`,
                     [
-                        idReserva,
-                        sanitizeString(s.tipo_item),
-                        sanitizeDecimal(s.costo_neto_operador, 0),
-                        sanitizeDecimal(s.venta_bruta_cliente, 0),
-                        sanitizeString(d.hotel_nombre),
-                        sanitizeString(d.ciudad),
-                        sanitizeDate(d.check_in),
-                        sanitizeDate(d.check_out),
-                        sanitizeString(d.regimen),
-                        sanitizeString(d.aerolinea),
-                        sanitizeString(d.nro_vuelo),
-                        sanitizeString(d.origen),
-                        sanitizeString(d.destino),
-                        sanitizeString(d.pnr),
-                        sanitizeString(d.plan),
-                        sanitizeString(d.nro_poliza),
-                        sanitizeString(d.cobertura),
-                        sanitizeString(d.pais),
-                        sanitizeString(d.nro_tramite),
-                        sanitizeDate(d.fecha_vencimiento),
-                        sanitizeString(d.crucero_nombre),
-                        sanitizeString(d.crucero_cabina),
-                        sanitizeString(d.crucero_itinerario),
-                        sanitizeString(d.nombre_servicio),
-                        sanitizeString(d.servicio_descripcion),
-                        sanitizeDate(d.fecha)
+                        idReserva_o_id,                    // $1  - id de reserva
+                        sanitizeString(s.tipo_item),       // $2
+                        sanitizeDecimal(s.costo_neto_operador, 0), // $3
+                        sanitizeDecimal(s.venta_bruta_cliente, 0),  // $4
+                        sanitizeString(d.hotel_nombre),    // $5
+                        sanitizeString(d.ciudad),          // $6
+                        sanitizeDate(d.check_in),          // $7
+                        sanitizeDate(d.check_out),         // $8
+                        sanitizeString(d.regimen),         // $9
+                        sanitizeString(d.aerolinea),       // $10
+                        sanitizeString(d.nro_vuelo),       // $11
+                        sanitizeString(d.origen),          // $12
+                        sanitizeString(d.destino),         // $13
+                        sanitizeString(d.pnr),             // $14
+                        sanitizeString(d.plan),            // $15
+                        sanitizeString(d.nro_poliza),      // $16
+                        sanitizeString(d.cobertura),       // $17
+                        sanitizeString(d.pais),            // $18
+                        sanitizeString(d.nro_tramite),     // $19
+                        sanitizeDate(d.fecha_vencimiento), // $20
+                        sanitizeString(d.crucero_nombre),  // $21
+                        sanitizeString(d.crucero_cabina),  // $22
+                        sanitizeString(d.crucero_itinerario), // $23
+                        sanitizeString(d.nombre_servicio), // $24
+                        sanitizeString(d.servicio_descripcion), // $25
+                        sanitizeDate(d.fecha),             // $26
+                        sanitizeString(d.hora_salida),     // $27 ← NUEVO
+                        sanitizeString(d.hora_llegada)     // $28 ← NUEVO
                     ]
                 );
             }
@@ -407,7 +410,8 @@ router.get('/completa/:id', async (req, res) => {
                 plan: s.plan_asistencia, nro_poliza: s.nro_poliza, cobertura: s.cobertura_detalles,
                 pais: s.pais_destino, nro_tramite: s.nro_tramite, fecha_vencimiento: s.fecha_vencimiento_visa,
                 crucero_nombre: s.crucero_nombre, crucero_cabina: s.crucero_cabina, crucero_itinerario: s.crucero_itinerario,
-                nombre_servicio: s.nombre_item, servicio_descripcion: s.servicio_descripcion
+                nombre_servicio: s.nombre_item, servicio_descripcion: s.servicio_descripcion, hora_salida: s.hora_salida,
+                hora_llegada: s.hora_llegada
             }
         }));
 
@@ -483,40 +487,43 @@ router.put('/:id', async (req, res) => {
                 await client.query(
                     `INSERT INTO reserva_servicios_detallados (
                         id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente,
-                        hotel_nombre, ciudad, check_in, check_out, regimen,
+                        hotel_nombre, ciudad, check_in, check_out, regimen,         
                         aerolinea, nro_vuelo, origen, destino, pnr,
                         plan_asistencia, nro_poliza, cobertura_detalles,
                         pais_destino, nro_tramite, fecha_vencimiento_visa,
                         crucero_nombre, crucero_cabina, crucero_itinerario,
-                        nombre_item, servicio_descripcion, excursion_fecha
-                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)`,
+                        nombre_item, servicio_descripcion, excursion_fecha,
+                        hora_salida, hora_llegada
+                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)`,
                     [
-                        id,
-                        sanitizeString(s.tipo_item),
-                        sanitizeDecimal(s.costo_neto_operador, 0),
-                        sanitizeDecimal(s.venta_bruta_cliente, 0),
-                        sanitizeString(d.hotel_nombre),
-                        sanitizeString(d.ciudad),
-                        sanitizeDate(d.check_in),
-                        sanitizeDate(d.check_out),
-                        sanitizeString(d.regimen),
-                        sanitizeString(d.aerolinea),
-                        sanitizeString(d.nro_vuelo),
-                        sanitizeString(d.origen),
-                        sanitizeString(d.destino),
-                        sanitizeString(d.pnr),
-                        sanitizeString(d.plan),
-                        sanitizeString(d.nro_poliza),
-                        sanitizeString(d.cobertura),
-                        sanitizeString(d.pais),
-                        sanitizeString(d.nro_tramite),
-                        sanitizeDate(d.fecha_vencimiento),
-                        sanitizeString(d.crucero_nombre),
-                        sanitizeString(d.crucero_cabina),
-                        sanitizeString(d.crucero_itinerario),
-                        sanitizeString(d.nombre_servicio),
-                        sanitizeString(d.servicio_descripcion),
-                        sanitizeDate(d.fecha)
+                        idReserva_o_id,                    // $1  - id de reserva
+                        sanitizeString(s.tipo_item),       // $2
+                        sanitizeDecimal(s.costo_neto_operador, 0), // $3
+                        sanitizeDecimal(s.venta_bruta_cliente, 0),  // $4
+                        sanitizeString(d.hotel_nombre),    // $5
+                        sanitizeString(d.ciudad),          // $6
+                        sanitizeDate(d.check_in),          // $7
+                        sanitizeDate(d.check_out),         // $8
+                        sanitizeString(d.regimen),         // $9
+                        sanitizeString(d.aerolinea),       // $10
+                        sanitizeString(d.nro_vuelo),       // $11
+                        sanitizeString(d.origen),          // $12
+                        sanitizeString(d.destino),         // $13
+                        sanitizeString(d.pnr),             // $14
+                        sanitizeString(d.plan),            // $15
+                        sanitizeString(d.nro_poliza),      // $16
+                        sanitizeString(d.cobertura),       // $17
+                        sanitizeString(d.pais),            // $18
+                        sanitizeString(d.nro_tramite),     // $19
+                        sanitizeDate(d.fecha_vencimiento), // $20
+                        sanitizeString(d.crucero_nombre),  // $21
+                        sanitizeString(d.crucero_cabina),  // $22
+                        sanitizeString(d.crucero_itinerario), // $23
+                        sanitizeString(d.nombre_servicio), // $24
+                        sanitizeString(d.servicio_descripcion), // $25
+                        sanitizeDate(d.fecha),             // $26
+                        sanitizeString(d.hora_salida),     // $27 ← NUEVO
+                        sanitizeString(d.hora_llegada)     // $28 ← NUEVO
                     ]
                 );
             }

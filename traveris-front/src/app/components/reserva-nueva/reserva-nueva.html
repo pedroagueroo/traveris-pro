@@ -1,8 +1,10 @@
 <div class="px-3 px-md-4 py-4 form-container-elite animate-fade-in">
-  
-  <div class="form-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+
+  <div
+    class="form-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
     <div>
-      <span class="badge bg-light text-primary border border-primary px-3 py-2 shadow-sm mb-2">GESTIÓN DE ITINERARIO INTEGRAL</span>
+      <span class="badge bg-light text-primary border border-primary px-3 py-2 shadow-sm mb-2">GESTIÓN DE ITINERARIO
+        INTEGRAL</span>
       <h2 class="fw-bold mb-0">
         {{ esEdicion ? 'Editar Legajo #' + reservaId : 'Nuevo Legajo Maestro' }}
       </h2>
@@ -34,33 +36,35 @@
   </div>
 
   <main class="step-content">
-    
+
     <!-- ═══ PASO 1: DATOS GENERALES ═══ -->
     <div *ngIf="pasoActivo === 1" class="form-card animate-slide-up">
       <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-folder2-open me-2"></i>Información Principal</h5>
-      
+
       <div class="row g-4">
         <!-- Punto 3: Búsqueda de clientes con filtrado dinámico -->
         <div class="col-md-6">
           <label class="small fw-bold text-muted mb-2">TITULAR RESPONSABLE DEL LEGAJO</label>
-          
+
           <!-- Input de búsqueda -->
           <div class="input-premium-group mb-2">
             <span class="input-premium-icon"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="busquedaCliente" 
-                   placeholder="Buscar cliente por nombre o DNI...">
+            <input type="text" class="form-control input-premium" [(ngModel)]="busquedaCliente"
+              placeholder="Buscar cliente por nombre o DNI...">
           </div>
-          
+
           <!-- Select con clientes filtrados -->
           <div class="d-flex gap-2">
             <div class="input-premium-group flex-grow-1">
               <span class="input-premium-icon"><i class="bi bi-person-bounding-box"></i></span>
               <select class="form-select input-premium" [(ngModel)]="reserva.id_titular">
                 <option value="">-- Seleccionar Cliente Principal --</option>
-                <option *ngFor="let c of clientesFiltrados" [value]="c.id">{{ c.nombre_completo }} ({{ c.dni_pasaporte }})</option>
+                <option *ngFor="let c of clientesFiltrados" [value]="c.id">{{ c.nombre_completo }} ({{ c.dni_pasaporte
+                  }})</option>
               </select>
             </div>
-            <button type="button" class="btn btn-outline-primary rounded-3" (click)="abrirModalRapido(-1)" title="Nuevo Cliente Rápido">
+            <button type="button" class="btn btn-outline-primary rounded-3" (click)="abrirModalRapido(-1)"
+              title="Nuevo Cliente Rápido">
               <i class="bi bi-person-plus-fill"></i>
             </button>
           </div>
@@ -73,31 +77,35 @@
           <label class="small fw-bold text-muted mb-2">DESTINO PRINCIPAL</label>
           <div class="input-premium-group">
             <span class="input-premium-icon"><i class="bi bi-geo-alt"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.destino_final" placeholder="Ej: Madrid, París y Roma">
+            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.destino_final"
+              placeholder="Ej: Madrid, París y Roma">
           </div>
         </div>
-        
+
         <div class="section-divider">Datos Operativos</div>
 
         <div class="col-md-4">
           <label class="small fw-bold text-muted mb-2">OPERADOR / MAYORISTA</label>
           <div class="input-premium-group">
             <span class="input-premium-icon"><i class="bi bi-building"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.operador_mayorista" placeholder="Nombre Operador">
+            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.operador_mayorista"
+              placeholder="Nombre Operador">
           </div>
         </div>
         <div class="col-md-4">
           <label class="small fw-bold text-muted mb-2">N° EXPEDIENTE / FILE</label>
           <div class="input-premium-group">
             <span class="input-premium-icon"><i class="bi bi-hash"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.nro_expediente_operador" placeholder="Referencia Operador">
+            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.nro_expediente_operador"
+              placeholder="Referencia Operador">
           </div>
         </div>
         <div class="col-md-4">
           <label class="small fw-bold text-muted mb-2">OBSERVACIONES INTERNAS</label>
           <div class="input-premium-group">
             <span class="input-premium-icon"><i class="bi bi-sticky"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.observaciones_internas" placeholder="Notas privadas...">
+            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.observaciones_internas"
+              placeholder="Notas privadas...">
           </div>
         </div>
 
@@ -122,7 +130,8 @@
 
       <div *ngFor="let a of acompaniantes; let i = index" class="border rounded-4 p-4 mb-3 bg-body shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-person-fill text-primary me-2"></i> Pasajero {{ i + 1 }}</h6>
+          <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-person-fill text-primary me-2"></i> Pasajero {{ i + 1 }}
+          </h6>
           <button class="btn btn-sm btn-outline-danger rounded-pill" (click)="quitarPasajero(i)">
             <i class="bi bi-trash me-1"></i> Quitar
           </button>
@@ -165,12 +174,18 @@
             <i class="bi bi-plus-lg me-1"></i> Agregar Servicio
           </button>
           <ul class="dropdown-menu shadow-lg">
-            <li><a class="dropdown-item" (click)="agregarServicio('HOTEL')"><i class="bi bi-building me-2"></i> Hotel</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('VUELO')"><i class="bi bi-airplane me-2"></i> Vuelo</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('ASISTENCIA')"><i class="bi bi-shield-check me-2"></i> Asistencia</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('VISA')"><i class="bi bi-passport me-2"></i> Visa</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('CRUCERO')"><i class="bi bi-water me-2"></i> Crucero</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('SERVICIO')"><i class="bi bi-star me-2"></i> Excursión / Otro</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('HOTEL')"><i class="bi bi-building me-2"></i>
+                Hotel</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('VUELO')"><i class="bi bi-airplane me-2"></i>
+                Vuelo</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('ASISTENCIA')"><i class="bi bi-shield-check me-2"></i>
+                Asistencia</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('VISA')"><i class="bi bi-passport me-2"></i> Visa</a>
+            </li>
+            <li><a class="dropdown-item" (click)="agregarServicio('CRUCERO')"><i class="bi bi-water me-2"></i>
+                Crucero</a></li>
+            <li><a class="dropdown-item" (click)="agregarServicio('SERVICIO')"><i class="bi bi-star me-2"></i> Excursión
+                / Otro</a></li>
           </ul>
         </div>
       </div>
@@ -211,52 +226,91 @@
         <div class="row g-3 mb-3">
           <div class="col-md-6">
             <label class="small fw-bold text-muted mb-1">COSTO NETO OPERADOR (USD)</label>
-            <input type="number" class="form-control border-danger" [(ngModel)]="s.costo_neto_operador" (input)="recalcularTodo()">
+            <input type="number" class="form-control border-danger" [(ngModel)]="s.costo_neto_operador"
+              (input)="recalcularTodo()">
           </div>
           <div class="col-md-6">
             <label class="small fw-bold text-muted mb-1">VENTA AL CLIENTE (USD)</label>
-            <input type="number" class="form-control border-success" [(ngModel)]="s.venta_bruta_cliente" (input)="recalcularTodo()">
+            <input type="number" class="form-control border-success" [(ngModel)]="s.venta_bruta_cliente"
+              (input)="recalcularTodo()">
           </div>
         </div>
 
         <!-- Detalles según tipo -->
         <div class="row g-3" *ngIf="s.tipo_item === 'HOTEL'">
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">HOTEL</label><input type="text" class="form-control" [(ngModel)]="s.detalles.hotel_nombre"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CIUDAD</label><input type="text" class="form-control" [(ngModel)]="s.detalles.ciudad"></div>
-          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">CHECK-IN</label><input type="date" class="form-control" [(ngModel)]="s.detalles.check_in"></div>
-          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">CHECK-OUT</label><input type="date" class="form-control" [(ngModel)]="s.detalles.check_out"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">HOTEL</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.hotel_nombre"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CIUDAD</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.ciudad"></div>
+          <div class="col-md-4">
+            <label class="small fw-bold text-muted mb-1">RÉGIMEN</label>
+            <select class="form-select" [(ngModel)]="s.detalles.regimen">
+              <option value="DESAYUNO">Desayuno</option>
+              <option value="MEDIA_PENSION">Media Pensión</option>
+              <option value="PENSION_COMPLETA">Pensión Completa</option>
+              <option value="ALL_INCLUSIVE">All Inclusive</option>
+              <option value="SOLO_ALOJAMIENTO">Solo Alojamiento</option>
+            </select>
+          </div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">CHECK-IN</label><input type="date"
+              class="form-control" [(ngModel)]="s.detalles.check_in"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">CHECK-OUT</label><input type="date"
+              class="form-control" [(ngModel)]="s.detalles.check_out"></div>
         </div>
 
         <div class="row g-3" *ngIf="s.tipo_item === 'VUELO'">
-          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">AEROLÍNEA</label><input type="text" class="form-control" [(ngModel)]="s.detalles.aerolinea"></div>
-          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">N° VUELO</label><input type="text" class="form-control" [(ngModel)]="s.detalles.nro_vuelo"></div>
-          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">ORIGEN</label><input type="text" class="form-control" [(ngModel)]="s.detalles.origen"></div>
-          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">DESTINO</label><input type="text" class="form-control" [(ngModel)]="s.detalles.destino"></div>
-          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">PNR</label><input type="text" class="form-control" [(ngModel)]="s.detalles.pnr"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">AEROLÍNEA</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.aerolinea"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">NRO VUELO</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.nro_vuelo"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">ORIGEN</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.origen"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">DESTINO</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.destino"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">PNR</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.pnr"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">FECHA</label><input type="date"
+              class="form-control" [(ngModel)]="s.detalles.fecha"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">HORA SALIDA</label><input type="time"
+              class="form-control" [(ngModel)]="s.detalles.hora_salida"></div>
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">HORA LLEGADA</label><input type="time"
+              class="form-control" [(ngModel)]="s.detalles.hora_llegada"></div>
         </div>
 
         <div class="row g-3" *ngIf="s.tipo_item === 'ASISTENCIA'">
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">PLAN</label><input type="text" class="form-control" [(ngModel)]="s.detalles.plan"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">N° PÓLIZA</label><input type="text" class="form-control" [(ngModel)]="s.detalles.nro_poliza"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">COBERTURA</label><input type="text" class="form-control" [(ngModel)]="s.detalles.cobertura"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">PLAN</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.plan"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">N° PÓLIZA</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.nro_poliza"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">COBERTURA</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.cobertura"></div>
         </div>
 
         <div class="row g-3" *ngIf="s.tipo_item === 'VISA'">
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">PAÍS</label><input type="text" class="form-control" [(ngModel)]="s.detalles.pais"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">N° TRÁMITE</label><input type="text" class="form-control" [(ngModel)]="s.detalles.nro_tramite"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">VENCIMIENTO</label><input type="date" class="form-control" [(ngModel)]="s.detalles.fecha_vencimiento"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">PAÍS</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.pais"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">N° TRÁMITE</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.nro_tramite"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">VENCIMIENTO</label><input type="date"
+              class="form-control" [(ngModel)]="s.detalles.fecha_vencimiento"></div>
         </div>
 
         <div class="row g-3" *ngIf="s.tipo_item === 'CRUCERO'">
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CRUCERO</label><input type="text" class="form-control" [(ngModel)]="s.detalles.crucero_nombre"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CABINA</label><input type="text" class="form-control" [(ngModel)]="s.detalles.crucero_cabina"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">ITINERARIO</label><input type="text" class="form-control" [(ngModel)]="s.detalles.crucero_itinerario"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CRUCERO</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.crucero_nombre"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">CABINA</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.crucero_cabina"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">ITINERARIO</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.crucero_itinerario"></div>
         </div>
 
         <div class="row g-3" *ngIf="s.tipo_item === 'SERVICIO'">
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">NOMBRE</label><input type="text" class="form-control" [(ngModel)]="s.detalles.nombre_servicio"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">DESCRIPCIÓN</label><input type="text" class="form-control" [(ngModel)]="s.detalles.servicio_descripcion"></div>
-          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">FECHA</label><input type="date" class="form-control" [(ngModel)]="s.detalles.fecha"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">NOMBRE</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.nombre_servicio"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">DESCRIPCIÓN</label><input type="text"
+              class="form-control" [(ngModel)]="s.detalles.servicio_descripcion"></div>
+          <div class="col-md-4"><label class="small fw-bold text-muted mb-1">FECHA</label><input type="date"
+              class="form-control" [(ngModel)]="s.detalles.fecha"></div>
         </div>
       </div>
 
@@ -265,11 +319,13 @@
       <div class="row g-3 mb-4">
         <div class="col-md-6">
           <label class="small fw-bold text-muted mb-1">GASTOS ADMINISTRATIVOS (USD)</label>
-          <input type="number" class="form-control" [(ngModel)]="reserva.gastos_administrativos_usd" (input)="recalcularTodo()">
+          <input type="number" class="form-control" [(ngModel)]="reserva.gastos_administrativos_usd"
+            (input)="recalcularTodo()">
         </div>
         <div class="col-md-6">
           <label class="small fw-bold text-muted mb-1">BONIFICACIÓN / DESCUENTO (USD)</label>
-          <input type="number" class="form-control" [(ngModel)]="reserva.bonificacion_descuento_usd" (input)="recalcularTodo()">
+          <input type="number" class="form-control" [(ngModel)]="reserva.bonificacion_descuento_usd"
+            (input)="recalcularTodo()">
         </div>
       </div>
 
@@ -277,19 +333,23 @@
       <div class="row g-3">
         <div class="col-md-4">
           <div class="form-card text-center p-4 border border-2 border-secondary border-opacity-25">
-            <span class="small fw-bold text-muted mb-2"><i class="bi bi-box-arrow-in-right me-1"></i> INVERSIÓN COSTO (NETO)</span>
+            <span class="small fw-bold text-muted mb-2"><i class="bi bi-box-arrow-in-right me-1"></i> INVERSIÓN COSTO
+              (NETO)</span>
             <div class="h2 fw-bold mb-0 text-dark">USD {{ totalCostoNeto | number:'1.2-2' }}</div>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="form-card text-center p-4 border-top border-4 border-primary shadow-sm" style="border-top-color: var(--accent) !important;">
-            <span class="small fw-bold text-primary mb-2"><i class="bi bi-cart-check me-1"></i> TOTAL VENTA CLIENTE</span>
+          <div class="form-card text-center p-4 border-top border-4 border-primary shadow-sm"
+            style="border-top-color: var(--accent) !important;">
+            <span class="small fw-bold text-primary mb-2"><i class="bi bi-cart-check me-1"></i> TOTAL VENTA
+              CLIENTE</span>
             <div class="h2 fw-bold mb-0 text-primary">USD {{ reserva.total_venta_final_usd | number:'1.2-2' }}</div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="form-card text-center p-4 border border-2 border-success bg-success bg-opacity-10">
-            <span class="small fw-bold text-success mb-2"><i class="bi bi-graph-up-arrow me-1"></i> RENTABILIDAD / UTILIDAD</span>
+            <span class="small fw-bold text-success mb-2"><i class="bi bi-graph-up-arrow me-1"></i> RENTABILIDAD /
+              UTILIDAD</span>
             <div class="h2 fw-bold mb-0 text-success">USD {{ rentabilidadEstimada | number:'1.2-2' }}</div>
           </div>
         </div>
@@ -305,16 +365,16 @@
   que impide interactuar con los inputs. Usamos overlay custom con separación 
   de backdrop (no interactivo) y dialog (interactivo).
 -->
-<div *ngIf="mostrarModalCliente"
-     style="position: fixed; inset: 0; z-index: 1050; pointer-events: none;">
-  
+<div *ngIf="mostrarModalCliente" style="position: fixed; inset: 0; z-index: 1050; pointer-events: none;">
+
   <!-- Backdrop (solo visual, no captura eventos) -->
   <div style="position: absolute; inset: 0; background: rgba(15, 23, 42, 0.75);"></div>
 
   <!-- Dialog (sí interactivo) -->
-  <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
+  <div
+    style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
     <div class="form-card p-0 overflow-hidden shadow-lg" style="width: 100%; max-width: 480px; z-index: 1;">
-      
+
       <div class="p-4 border-bottom">
         <h5 class="fw-bold mb-0 text-primary">
           <i class="bi bi-person-plus me-2"></i>Alta Rápida de Cliente
@@ -326,38 +386,31 @@
         <label class="small fw-bold text-muted mb-2">NOMBRE COMPLETO *</label>
         <div class="input-premium-group mb-4">
           <span class="input-premium-icon"><i class="bi bi-person"></i></span>
-          <input type="text" class="form-control input-premium"
-                 [(ngModel)]="nuevoClienteRapido.nombre_completo"
-                 placeholder="Nombre y Apellido"
-                 autocomplete="off">
+          <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.nombre_completo"
+            placeholder="Nombre y Apellido" autocomplete="off">
         </div>
 
         <label class="small fw-bold text-muted mb-2">DNI / PASAPORTE *</label>
         <div class="input-premium-group mb-4">
           <span class="input-premium-icon"><i class="bi bi-card-text"></i></span>
-          <input type="text" class="form-control input-premium"
-                 [(ngModel)]="nuevoClienteRapido.dni_pasaporte"
-                 placeholder="Número de documento"
-                 autocomplete="off">
+          <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.dni_pasaporte"
+            placeholder="Número de documento" autocomplete="off">
         </div>
 
         <label class="small fw-bold text-muted mb-2">EMAIL (OPCIONAL)</label>
         <div class="input-premium-group">
           <span class="input-premium-icon"><i class="bi bi-envelope"></i></span>
-          <input type="email" class="form-control input-premium"
-                 [(ngModel)]="nuevoClienteRapido.email"
-                 placeholder="correo@ejemplo.com"
-                 autocomplete="off">
+          <input type="email" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.email"
+            placeholder="correo@ejemplo.com" autocomplete="off">
         </div>
       </div>
 
       <div class="bg-body p-4 border-top d-flex justify-content-end gap-2">
         <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill"
-                (click)="mostrarModalCliente = false">
+          (click)="mostrarModalCliente = false">
           Cancelar
         </button>
-        <button type="button" class="btn btn-elite px-4 rounded-pill shadow-sm"
-                (click)="guardarClienteRapido()">
+        <button type="button" class="btn btn-elite px-4 rounded-pill shadow-sm" (click)="guardarClienteRapido()">
           <i class="bi bi-check-lg me-1"></i> Guardar Cliente
         </button>
       </div>

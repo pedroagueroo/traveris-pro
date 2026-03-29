@@ -47,7 +47,9 @@ export class Caja implements OnInit {
     monto: 0,
     moneda: 'ARS',
     metodo_pago_real: 'EFECTIVO',
-    observaciones: ''
+    observaciones: '',
+    cuotas: 1,
+    numero_tarjeta: ''
   };
 
   constructor(
@@ -185,21 +187,54 @@ export class Caja implements OnInit {
       return alert("El monto debe ser mayor a 0");
     }
 
-    this.api.pagarDeudaTarjeta({
-      monto: this.pagoTarjeta.monto,
-      moneda: this.pagoTarjeta.moneda,
-      metodo_pago_real: this.pagoTarjeta.metodo_pago_real,
-      observaciones: this.pagoTarjeta.observaciones,
-      empresa_nombre: this.auth.getNombreEmpresa()
-    }).subscribe({
-      next: (res: any) => {
-        alert("Pago de tarjeta registrado correctamente");
-        this.cerrarModalTarjeta();
-        this.cargarCaja();
-      },
-      error: (err: any) => alert("Error al registrar pago de tarjeta: " + (err.error?.error || "Error de servidor"))
-    });
+    const cuotas = this.pagoTarjeta.cuotas || 1;
+
+    if (cuotas > 1) {
+      // Generar múltiples movimientos, uno por mes
+      const montoPorCuota = Math.round((this.pagoTarjeta.monto / cuotas) * 100) / 100;
+      const hoy = new Date();
+      let registrados = 0;
+
+      for (let i = 0; i < cuotas; i++) {
+        const payload: any = {
+          monto: montoPorCuota,
+          moneda: this.pagoTarjeta.moneda,
+          metodo_pago_real: this.pagoTarjeta.metodo_pago_real,
+          observaciones: `Cuota ${i + 1}/${cuotas} - ${this.pagoTarjeta.observaciones || 'Pago tarjeta'}`,
+          empresa_nombre: this.auth.getNombreEmpresa()
+        };
+
+        this.api.pagarDeudaTarjeta(payload).subscribe({
+          next: () => {
+            registrados++;
+            if (registrados === cuotas) {
+              alert(`${cuotas} cuotas de ${this.pagoTarjeta.moneda} ${montoPorCuota.toFixed(2)} registradas.`);
+              this.cerrarModalTarjeta();
+              this.cargarCaja();
+            }
+          },
+          error: (err: any) => alert("Error en cuota " + (i + 1))
+        });
+      }
+    } else {
+      // Pago único (lógica original)
+      this.api.pagarDeudaTarjeta({
+        monto: this.pagoTarjeta.monto,
+        moneda: this.pagoTarjeta.moneda,
+        metodo_pago_real: this.pagoTarjeta.metodo_pago_real,
+        observaciones: this.pagoTarjeta.observaciones,
+        empresa_nombre: this.auth.getNombreEmpresa()
+      }).subscribe({
+        next: (res: any) => {
+          alert("Pago de tarjeta registrado correctamente");
+          this.cerrarModalTarjeta();
+          this.cargarCaja();
+        },
+        error: (err: any) => alert("Error: " + (err.error?.error || "Error de servidor"))
+      });
+    }
   }
+
 
   // ============================================================
   // CIERRE MENSUAL (requerido por caja.html)

@@ -52,3 +52,67 @@ input[type="date"].border-danger:focus {
     }
     .modal-header, .btn, .no-print { display: none !important; }
 }
+
+documento-imprimible,
+#documento-imprimible *,
+#recibo-print,
+#recibo-print * {
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+ 
+#documento-imprimible {
+    background-color: #ffffff !important;
+}
+ 
+#documento-imprimible .bg-light,
+#recibo-print .bg-light {
+    background-color: #f8fafc !important;
+}
+ 
+#documento-imprimible .text-muted {
+    color: #6b7280 !important;
+}
+ 
+#documento-imprimible .text-primary {
+    color: #2563eb !important;
+}
+ 
+#documento-imprimible .text-dark {
+    color: #111827 !important;
+}
+ 
+#documento-imprimible .border-dark {
+    border-color: #333 !important;
+}
+ 
+#documento-imprimible .badge.bg-dark {
+    background-color: #1e293b !important;
+    color: #fff !important;
+}
+ 
+#documento-imprimible table th {
+    color: #555 !important;
+}
+ 
+#documento-imprimible table td {
+    color: #000 !important;
+}
+ 
+/* Print: ocultar elementos no-print */
+@media print {
+    .no-print { display: none !important; }
+    
+    #documento-imprimible,
+    #recibo-print {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 20mm !important;
+    }
+ 
+    body {
+        background: white !important;
+    }
+}

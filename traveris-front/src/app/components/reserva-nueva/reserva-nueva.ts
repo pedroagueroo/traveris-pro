@@ -147,7 +147,7 @@ export class ReservaNuevaComponent implements OnInit {
     if (tipo === 'HOTEL') {
       nuevoItem.detalles = { hotel_nombre: '', ciudad: '', check_in: '', check_out: '', regimen: 'DESAYUNO' };
     } else if (tipo === 'VUELO') {
-      nuevoItem.detalles = { aerolinea: '', nro_vuelo: '', origen: '', destino: '', pnr: '', fecha: '' };
+      nuevoItem.detalles = { aerolinea: '', nro_vuelo: '', origen: '', destino: '', pnr: '', fecha: '', hora_salida: '', hora_llegada: '' };
     } else if (tipo === 'ASISTENCIA') {
       nuevoItem.detalles = { plan: '', nro_poliza: '', cobertura: '' };
     } else if (tipo === 'VISA') {

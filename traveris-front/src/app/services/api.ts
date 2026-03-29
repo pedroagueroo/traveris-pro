@@ -209,8 +209,12 @@ export class ApiService {
   // SECCIÓN CIERRE MENSUAL
   // ============================================================
 
+  // ============================================================
+  // SECCIÓN CIERRE MENSUAL
+  // ============================================================
+
   getCierreMensual(empresa: string, queryParams: string): Observable<any> {
-    return this.http.get(`${this.URL}/caja-contable/cierre-mensual/${empresa}${queryParams}`);
+    return this.http.get(`${this.URL}/caja-contable/cierre-mensual/${encodeURIComponent(empresa)}${queryParams}`);
   }
 
   // ============================================================

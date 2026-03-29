@@ -498,58 +498,178 @@
         <!-- CONTENIDO DINÁMICO DEL DOCUMENTO -->
         <div [ngSwitch]="tipoDoc">
 
-          <!-- ═══ ESTILO VOUCHER ═══ -->
           <div *ngSwitchCase="'VOUCHER'">
-            <div class="bg-light p-4 rounded-3 mb-5 border">
-              <h6 class="fw-bold text-uppercase text-muted small mb-3 border-bottom pb-2">Datos del Titular</h6>
+
+            <!-- Datos del expediente -->
+            <div style="background: #f8fafc !important; color: #000 !important;" class="p-4 rounded-3 mb-4 border">
+              <h6 class="fw-bold text-uppercase small mb-3 border-bottom pb-2" style="color: #555 !important;">Datos del
+                Expediente</h6>
               <div class="row">
-                <div class="col-6">
-                  <div class="small fw-bold text-muted">Pasajero Principal</div>
-                  <div class="fs-5 fw-bold">{{ reserva.nombre_titular }}</div>
+                <div class="col-4">
+                  <div class="small fw-bold" style="color: #888 !important;">Pasajero Principal</div>
+                  <div class="fs-5 fw-bold" style="color: #000 !important;">{{ reserva.nombre_titular }}</div>
                 </div>
-                <div class="col-6">
-                  <div class="small fw-bold text-muted">Destino Mayor</div>
-                  <div class="fs-5 fw-bold">{{ reserva.destino_final }}</div>
+                <div class="col-4">
+                  <div class="small fw-bold" style="color: #888 !important;">DNI / Pasaporte</div>
+                  <div class="fw-bold" style="color: #000 !important;">{{ reserva.dni_titular || '-' }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="small fw-bold" style="color: #888 !important;">Destino</div>
+                  <div class="fs-5 fw-bold" style="color: #000 !important;">{{ reserva.destino_final }}</div>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-4" *ngIf="reserva.fecha_viaje_salida">
+                  <div class="small fw-bold" style="color: #888 !important;">Salida</div>
+                  <div class="fw-bold" style="color: #000 !important;">{{ reserva.fecha_viaje_salida | date:'dd/MM/yyyy'
+                    }}</div>
+                </div>
+                <div class="col-4" *ngIf="reserva.fecha_viaje_regreso">
+                  <div class="small fw-bold" style="color: #888 !important;">Regreso</div>
+                  <div class="fw-bold" style="color: #000 !important;">{{ reserva.fecha_viaje_regreso |
+                    date:'dd/MM/yyyy' }}</div>
+                </div>
+                <div class="col-4" *ngIf="reserva.operador_mayorista">
+                  <div class="small fw-bold" style="color: #888 !important;">Operador</div>
+                  <div class="fw-bold" style="color: #000 !important;">{{ reserva.operador_mayorista }}</div>
                 </div>
               </div>
             </div>
 
-            <h5 class="fw-bold border-bottom border-dark pb-2 mb-4 d-flex align-items-center gap-2 text-uppercase">
-              <i class="bi bi-card-checklist"></i> Detalle de Servicios Contratados
+            <!-- Manifiesto de pasajeros -->
+            <div *ngIf="reserva.pasajeros && reserva.pasajeros.length > 0" class="mb-4">
+              <h6 class="fw-bold border-bottom border-2 pb-2 mb-3"
+                style="color: #000 !important; border-color: #333 !important;">
+                <i class="bi bi-people-fill me-2"></i> Manifiesto de Pasajeros
+              </h6>
+              <table style="width: 100%; border-collapse: collapse; color: #000 !important;">
+                <thead>
+                  <tr style="background: #f1f5f9 !important;">
+                    <th style="padding: 8px; text-align: left; font-size: 0.75rem; color: #555 !important;">NOMBRE</th>
+                    <th style="padding: 8px; text-align: left; font-size: 0.75rem; color: #555 !important;">
+                      DNI/PASAPORTE</th>
+                    <th style="padding: 8px; text-align: left; font-size: 0.75rem; color: #555 !important;">TIPO</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 8px; font-weight: bold; color: #000 !important;">{{ reserva.nombre_titular }}
+                      <span class="badge bg-dark" style="font-size: 0.6rem;">TITULAR</span></td>
+                    <td style="padding: 8px; color: #000 !important;">{{ reserva.dni_titular || '-' }}</td>
+                    <td style="padding: 8px; color: #000 !important;">ADULTO</td>
+                  </tr>
+                  <tr *ngFor="let p of reserva.pasajeros" style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 8px; color: #000 !important;">{{ p.nombre_completo }}</td>
+                    <td style="padding: 8px; color: #000 !important;">{{ p.dni_pasaporte || '-' }}</td>
+                    <td style="padding: 8px; color: #000 !important;">{{ p.tipo_pasajero || 'ADULTO' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Servicios contratados -->
+            <h5 class="fw-bold border-bottom border-2 pb-2 mb-4"
+              style="color: #000 !important; border-color: #333 !important;">
+              <i class="bi bi-card-checklist me-2"></i> Detalle de Servicios Contratados
             </h5>
 
+            <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0"
+              style="text-align: center; padding: 20px; color: #999 !important;">
+              Sin servicios cargados
+            </div>
+
             <div class="vstack gap-3">
-              <div *ngFor="let s of reserva.servicios_items"
-                class="p-4 border border-1 border-secondary border-opacity-25 rounded-3"
-                style="background-color: white !important; page-break-inside: avoid;">
-                <div class="d-flex justify-content-between align-items-start mb-3">
+              <div *ngFor="let s of reserva.servicios_items" class="p-4 border rounded-3"
+                style="background-color: #fff !important; page-break-inside: avoid; border-color: #ddd !important;">
+
+                <div class="d-flex justify-content-between align-items-start mb-2">
                   <div>
-                    <span class="badge border border-dark text-dark mb-2 px-3 py-2 text-uppercase fw-bold rounded-pill"
-                      style="font-size: 0.7rem;">
+                    <span class="badge px-3 py-2 text-uppercase fw-bold rounded-pill mb-2"
+                      style="font-size: 0.7rem; border: 1px solid #333; color: #333 !important; background: transparent !important;">
                       {{ s.tipo_item }}
                     </span>
-                    <div class="fs-5 fw-bold text-dark">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre ||
-                      s.nombre_item }}</div>
+                    <div class="fs-5 fw-bold" style="color: #000 !important;">
+                      {{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item || 'Servicio' }}
+                    </div>
                   </div>
                   <div class="text-end" *ngIf="s.pnr">
-                    <div class="small text-muted fw-bold">Récord PNR</div>
-                    <div class="fs-5 fw-bold bg-dark text-white px-3 py-1 rounded">{{ s.pnr }}</div>
+                    <div class="small fw-bold" style="color: #888 !important;">PNR</div>
+                    <div class="fw-bold px-3 py-1 rounded"
+                      style="background: #1e293b !important; color: #fff !important;">{{ s.pnr }}</div>
                   </div>
                 </div>
 
-                <div class="bg-light p-3 rounded text-dark fs-6" style="white-space: pre-wrap; font-family: monospace;">
-                  {{ s.servicio_descripcion || s.crucero_itinerario || 'Detalles en anexo. Vuelo: ' + (s.nro_vuelo ||
-                  '') }}</div>
+                <!-- Detalles por tipo -->
+                <div style="color: #333 !important;" class="small">
+                  <!-- Hotel -->
+                  <div *ngIf="s.tipo_item === 'HOTEL'" class="row g-2">
+                    <div class="col-4" *ngIf="s.ciudad"><strong>Ciudad:</strong> {{ s.ciudad }}</div>
+                    <div class="col-4" *ngIf="s.check_in"><strong>Check-in:</strong> {{ s.check_in | date:'dd/MM/yyyy'
+                      }}</div>
+                    <div class="col-4" *ngIf="s.check_out"><strong>Check-out:</strong> {{ s.check_out |
+                      date:'dd/MM/yyyy' }}</div>
+                    <div class="col-4" *ngIf="s.regimen"><strong>Régimen:</strong> {{ s.regimen | titlecase }}</div>
+                  </div>
+
+                  <!-- Vuelo -->
+                  <div *ngIf="s.tipo_item === 'VUELO'" class="row g-2">
+                    <div class="col-6" *ngIf="s.origen && s.destino"><strong>Ruta:</strong> {{ s.origen }} → {{
+                      s.destino }}</div>
+                    <div class="col-6" *ngIf="s.nro_vuelo"><strong>Vuelo:</strong> {{ s.nro_vuelo }}</div>
+                    <div class="col-4" *ngIf="s.excursion_fecha"><strong>Fecha:</strong> {{ s.excursion_fecha |
+                      date:'dd/MM/yyyy' }}</div>
+                    <div class="col-4" *ngIf="s.hora_salida"><strong>Sale:</strong> {{ s.hora_salida }}</div>
+                    <div class="col-4" *ngIf="s.hora_llegada"><strong>Llega:</strong> {{ s.hora_llegada }}</div>
+                  </div>
+
+                  <!-- Asistencia -->
+                  <div *ngIf="s.tipo_item === 'ASISTENCIA'" class="row g-2">
+                    <div class="col-6" *ngIf="s.plan_asistencia"><strong>Plan:</strong> {{ s.plan_asistencia }}</div>
+                    <div class="col-6" *ngIf="s.nro_poliza"><strong>Póliza:</strong> {{ s.nro_poliza }}</div>
+                    <div class="col-12" *ngIf="s.cobertura_detalles"><strong>Cobertura:</strong> {{ s.cobertura_detalles
+                      }}</div>
+                  </div>
+
+                  <!-- Crucero -->
+                  <div *ngIf="s.tipo_item === 'CRUCERO'" class="row g-2">
+                    <div class="col-6" *ngIf="s.crucero_cabina"><strong>Cabina:</strong> {{ s.crucero_cabina }}</div>
+                    <div class="col-6" *ngIf="s.check_in"><strong>Embarque:</strong> {{ s.check_in | date:'dd/MM/yyyy'
+                      }}</div>
+                    <div class="col-12" *ngIf="s.crucero_itinerario"><strong>Itinerario:</strong> {{
+                      s.crucero_itinerario }}</div>
+                  </div>
+
+                  <!-- Visa -->
+                  <div *ngIf="s.tipo_item === 'VISA'" class="row g-2">
+                    <div class="col-6" *ngIf="s.pais_destino"><strong>País:</strong> {{ s.pais_destino }}</div>
+                    <div class="col-6" *ngIf="s.nro_tramite"><strong>Trámite:</strong> {{ s.nro_tramite }}</div>
+                    <div class="col-6" *ngIf="s.fecha_vencimiento_visa"><strong>Vence:</strong> {{
+                      s.fecha_vencimiento_visa | date:'dd/MM/yyyy' }}</div>
+                  </div>
+
+                  <!-- Servicio genérico -->
+                  <div *ngIf="s.tipo_item === 'SERVICIO'" class="row g-2">
+                    <div class="col-6" *ngIf="s.excursion_fecha"><strong>Fecha:</strong> {{ s.excursion_fecha |
+                      date:'dd/MM/yyyy' }}</div>
+                  </div>
+
+                  <!-- Descripción (para todos) -->
+                  <div class="mt-2 p-2 rounded" style="background: #f8fafc !important; white-space: pre-wrap;"
+                    *ngIf="s.servicio_descripcion">
+                    <i class="bi bi-info-circle me-1"></i> {{ s.servicio_descripcion }}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="mt-5 pt-4 border-top text-center text-muted small">
+            <!-- Pie del voucher -->
+            <div class="mt-5 pt-4 border-top text-center small"
+              style="color: #888 !important; border-color: #ccc !important;">
               <p class="mb-0 fw-bold">Este documento es válido como confirmación de los servicios listados.</p>
               <p>Por favor, presentarlo junto a su documentación de viaje oficial al momento de requerir los servicios.
               </p>
             </div>
           </div>
-
           <!-- ═══ ESTILO COTIZACIÓN ═══ -->
           <div *ngSwitchCase="'COTIZACION'">
 

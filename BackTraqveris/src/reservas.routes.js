@@ -95,10 +95,17 @@ router.post('/:id/enviar-documento', async (req, res) => {
                 'SELECT * FROM reserva_archivos WHERE id_reserva = $1', [id]
             );
             for (const arch of resArchivos.rows) {
-                if (fs.existsSync(arch.ruta_archivo)) {
+                const filePath = arch.ruta_archivo;
+                if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+                    // Nodemailer soporta URLs de S3
+                    attachments.push({
+                        filename: arch.nombre_archivo || 'archivo',
+                        path: filePath
+                    });
+                } else if (fs.existsSync(filePath)) {
                     attachments.push({
                         filename: arch.nombre_archivo,
-                        path: arch.ruta_archivo
+                        path: filePath
                     });
                 }
             }
@@ -123,27 +130,18 @@ router.post('/:id/enviar-documento', async (req, res) => {
 });
 
 // ============================================================
-// CONFIGURACIÓN DE ARCHIVOS (MULTER)
+// CONFIGURACIÓN DE ARCHIVOS (MULTER CON S3)
 // ============================================================
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = './uploads';
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-
-const upload = multer({ storage });
+const { createS3Uploader } = require('./s3.config');
+const upload = createS3Uploader('reservas');
 
 router.post('/:id/subir-archivo', upload.single('archivo'), async (req, res) => {
     try {
         const { id } = req.params;
-        const { filename, mimetype, path: filePath } = req.file;
+        const filename = req.file.key || req.file.filename || req.file.originalname;
+        const filePath = req.file.location || req.file.path; // location para S3, path para local
         const query = `INSERT INTO reserva_archivos (id_reserva, nombre_archivo, ruta_archivo, tipo_archivo) VALUES ($1, $2, $3, $4) RETURNING *`;
-        const result = await pool.query(query, [id, filename, filePath, mimetype]);
+        const result = await pool.query(query, [id, filename, filePath, req.file.mimetype]);
         res.json(result.rows[0]);
     } catch (err) {
         console.error(err);
@@ -167,7 +165,9 @@ router.delete('/archivo/:id', async (req, res) => {
         const fileData = await pool.query('SELECT ruta_archivo FROM reserva_archivos WHERE id = $1', [id]);
         if (fileData.rows.length > 0) {
             const p = fileData.rows[0].ruta_archivo;
-            if (fs.existsSync(p)) fs.unlinkSync(p);
+            if (p && !p.startsWith('http') && fs.existsSync(p)) fs.unlinkSync(p);
+            // Si es S3 (p.startsWith('http')), solo borramos el registro de la DB por simplicidad,
+            // ya que en S3 se puede configurar ciclo de vida u organizar borrado diferido.
         }
         await pool.query('DELETE FROM reserva_archivos WHERE id = $1', [id]);
         res.json({ mensaje: "Archivo eliminado" });

@@ -191,28 +191,19 @@ router.delete('/:id', async (req, res) => {
 });
 
 // --- CONFIGURACIÓN MULTER PARA CLIENTES ---
-const storageClientes = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = './uploads/clientes';
-        if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-const uploadClientes = multer({ storage: storageClientes });
+const { createS3Uploader } = require('./s3.config');
+const uploadClientes = createS3Uploader('clientes');
  
 // SUBIR ARCHIVO A UN CLIENTE
 router.post('/:id/subir-archivo', uploadClientes.single('archivo'), async (req, res) => {
     try {
         const { id } = req.params;
-        const { filename, mimetype, path: filePath } = req.file;
+        const filename = req.file.key || req.file.filename || req.file.originalname;
+        const filePath = req.file.location || req.file.path;
         const result = await pool.query(
             `INSERT INTO cliente_archivos (id_cliente, nombre_archivo, ruta_archivo, tipo_archivo) 
              VALUES ($1, $2, $3, $4) RETURNING *`,
-            [id, filename, filePath, mimetype]
+            [id, filename, filePath, req.file.mimetype]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -241,7 +232,7 @@ router.delete('/archivo/:id', async (req, res) => {
         const fileData = await pool.query('SELECT ruta_archivo FROM cliente_archivos WHERE id = $1', [id]);
         if (fileData.rows.length > 0) {
             const p = fileData.rows[0].ruta_archivo;
-            if (fs.existsSync(p)) fs.unlinkSync(p);
+            if (p && !p.startsWith('http') && fs.existsSync(p)) fs.unlinkSync(p);
         }
         await pool.query('DELETE FROM cliente_archivos WHERE id = $1', [id]);
         res.json({ mensaje: "Archivo eliminado" });

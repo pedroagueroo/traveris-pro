@@ -1,14 +1,17 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// db.js - Versión de diagnóstico
+// db.js - Conexión multi-entorno
+const isProduction = process.env.NODE_ENV === 'production';
+
 const pool = new Pool({
   user: process.env.DB_USER,
-  host: '127.0.0.1', 
+  host: process.env.DB_HOST || '127.0.0.1', 
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: 5432, // <--- SI EN EL PASO 1 VISTE 5433, CAMBIALO ACÁ
-  ssl: false 
+  port: process.env.DB_PORT || 5432,
+  // AWS RDS y Neon exigen SSL activado en conexiones entrantes.
+  ssl: isProduction ? { rejectUnauthorized: false } : false 
 });
 
 // Prueba de conexión inmediata al arrancar

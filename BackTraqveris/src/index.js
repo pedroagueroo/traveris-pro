@@ -8,6 +8,8 @@
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const pool = require('./db');
 const { verificarToken, validarEmpresa } = require('./Authmiddleware');
 const PORT = process.env.PORT || 3000;
@@ -22,7 +24,49 @@ const recibosRoutes = require('./recibos.routes');
 
 const app = express();
 
-app.use(cors());
+// 1. Añadimos cabeceras de seguridad
+app.use(helmet()); 
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+
+// 2. CORS bien configurado
+const dominiosPermitidos = [
+    process.env.FRONTEND_URL || 'https://traveris-pro.vercel.app', // Asegurarse de poner la URL de Vercel en la variable de entorno
+    'http://localhost:4200'
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin || dominiosPermitidos.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('No permitido por CORS'));
+        }
+    },
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// 3. Rate Limit Básico para no saturar el servidor
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 1000, // Máximo de 1000 peticiones desde 1 IP cada 15 min.
+    message: 'Límite de peticiones alcanzado.',
+    standardHeaders: true, 
+    legacyHeaders: false, 
+});
+app.use('/api', limiter);
+
+// Limitador SUPER estricto para el Endpoint de Login (Fuerza Bruta)
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 10,  // Cierra si hay 10 intentos fallidos/exitosos por IP
+    message: 'Demasiados intentos de inicio de sesión. Cuenta bloqueada temporalmente.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/auth/login', loginLimiter);
+
 app.use(express.json({ limit: '10mb' }));
 
 // Servir archivos estáticos (uploads)
@@ -62,10 +106,29 @@ app.get('/probar-conexion', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor Traveris escuchando en puerto ${PORT}`);
-});
-
 app.get('/', (req, res) => {
     res.send('Backend Traveris Pro funcionando 🚀');
+});
+
+// ─── MANEJADORES GLOBALES DE ERRORES (Anti-Caídas Silenciosas) ──────────────
+app.use((err, req, res, next) => {
+    console.error('❌ Error general interceptado:', err.stack);
+    res.status(500).json({ 
+        error: "Error interno del servidor",
+        mensaje: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('🔥 CRÍTICO - Excepción no capturada:', err);
+    // En arquitecturas muy estrictas, aquí se hace un process.exit(1),
+    // pero para evitar downtime inmediato, solo logueamos.
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('🔥 CRÍTICO - Promesa rechazada no manejada:', reason);
+});
+
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor Traveris escuchando en puerto ${PORT}`);
 });

@@ -39,6 +39,7 @@ export class ReservaNuevaComponent implements OnInit {
     bonificacion_descuento_usd: 0,
     total_venta_final_usd: 0,
     costo_total_operador_usd: 0,
+    moneda_pago: 'USD',
     observaciones_internas: ''
   };
 
@@ -235,6 +236,7 @@ export class ReservaNuevaComponent implements OnInit {
       bonificacion_descuento_usd: this.sanitizeNumber(this.reserva.bonificacion_descuento_usd) ?? 0,
       total_venta_final_usd: this.sanitizeNumber(this.reserva.total_venta_final_usd) ?? 0,
       costo_total_operador_usd: this.sanitizeNumber(this.reserva.costo_total_operador_usd) ?? 0,
+      moneda_pago: this.reserva.moneda_pago || 'USD',
       observaciones_internas: this.reserva.observaciones_internas || null,
       fecha_limite_pago: this.sanitizeDate(this.reserva.fecha_limite_pago),
       vuelos: [],

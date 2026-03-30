@@ -55,11 +55,11 @@
                             </div>
                         </td>
                         <td class="text-center">
-                            <span class="status-pill" [ngClass]="r.saldo > 0.01 ? 'status-pending' : 'status-paid'">
-                                {{ r.saldo > 0.01 ? 'SALDO PENDIENTE' : 'PAGADO TOTAL' }}
+                            <span class="status-pill" [ngClass]="{'status-pending': r.saldo_real > 0.01, 'status-paid': (r.saldo_real >= -0.01 && r.saldo_real <= 0.01), 'bg-info text-white border-0 px-2 py-1 rounded-pill': r.saldo_real < -0.01}">
+                                {{ r.saldo_real > 0.01 ? 'SALDO PENDIENTE' : (r.saldo_real < -0.01 ? 'SALDO A FAVOR' : 'PAGADO TOTAL') }}
                             </span>
-                            <div class="fw-bold mt-1" [class.text-danger]="r.saldo > 0.01">
-                                USD {{ (r.saldo || 0) | number:'1.2-2' }}
+                            <div class="fw-bold mt-1" [ngClass]="{'text-danger': r.saldo_real > 0.01, 'text-success': r.saldo_real < -0.01}">
+                                USD {{ (r.saldo_real || 0) | number:'1.2-2' }}
                             </div>
                         </td>
                         <td class="text-end pe-4">
@@ -72,6 +72,10 @@
                                 <button class="btn btn-light btn-sm border d-flex align-items-center"
                                     [routerLink]="['/reservas/editar', r.id]" title="Editar Legajo">
                                     <i class="bi bi-pencil-fill text-warning"></i>
+                                </button>
+                                <button class="btn btn-light btn-sm border d-flex align-items-center text-danger"
+                                    (click)="eliminarReservaIndividual(r.id)" title="Eliminar Legajo">
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </div>
                         </td>

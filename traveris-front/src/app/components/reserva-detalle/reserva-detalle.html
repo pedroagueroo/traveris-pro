@@ -11,6 +11,9 @@
         date:'dd/MM/yyyy' }} al {{ reserva.fecha_viaje_regreso | date:'dd/MM/yyyy' }}</p>
     </div>
     <div class="d-flex gap-2 mt-2 mt-md-0 align-items-center">
+      <button class="btn btn-outline-secondary btn-sm px-3 rounded-pill d-flex align-items-center gap-1 no-print" [routerLink]="['/reservas']">
+        <i class="bi bi-arrow-left"></i> Volver
+      </button>
       <select class="form-select form-select-sm fw-bold rounded-pill border-2 no-print" [(ngModel)]="reserva.estado"
         (change)="cambiarEstado()" style="width: auto;">
         <option value="ABIERTO" class="text-success fw-bold">🟢 ABIERTO</option>
@@ -251,22 +254,22 @@
           <option value="MERCADOPAGO">MercadoPago</option>
         </select>
 
-        <!-- === DATOS DE TARJETA (solo si método = TARJETA) === -->
+        <!-- === DATOS DE TARJETA (refactorizado) === -->
         <div *ngIf="nuevoPago.metodo_pago === 'TARJETA'"
-          class="border border-primary border-opacity-25 rounded-3 p-3 mb-3 bg-primary bg-opacity-5">
-          <div class="small fw-bold text-primary mb-2" style="font-size: 0.7rem;">
-            <i class="bi bi-credit-card-2-front me-1"></i> DATOS DE TARJETA
+          class="card-form-premium mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.7rem;">
+              <i class="bi bi-credit-card-2-front me-1"></i> Información del Plástico
+            </div>
+            <div class="card-brand-pill" *ngIf="bancoDetectado">
+              {{ bancoDetectado }}
+            </div>
           </div>
 
           <div class="row g-2 mb-2">
-            <div class="col-8">
+            <div class="col-12">
               <input type="text" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.numero"
-                placeholder="Número de tarjeta" maxlength="19" (input)="detectarBanco()">
-            </div>
-            <div class="col-4">
-              <div class="small text-primary fw-bold text-center py-2" *ngIf="bancoDetectado">
-                <i class="bi bi-bank me-1"></i>{{ bancoDetectado }}
-              </div>
+                placeholder="0000 0000 0000 0000" maxlength="19" (input)="detectarBanco()">
             </div>
           </div>
 
@@ -320,7 +323,7 @@
           placeholder="Observaciones (opcional)">
 
         <button class="btn btn-dark w-100 fw-bold rounded-pill shadow" (click)="guardarPago()"
-          [disabled]="!nuevoPago.monto || nuevoPago.monto <= 0">
+          [disabled]="!nuevoPago.monto">
           <i class="bi bi-wallet2 me-2"></i> Asentar Movimiento
         </button>
       </div>

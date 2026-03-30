@@ -116,7 +116,7 @@ export class ReservaDetalleComponent implements OnInit {
     this.saldoARS = 0;
 
     this.movimientos.forEach((m: any) => {
-      const montoNum = Math.abs(parseFloat(m.monto));
+      const montoNum = parseFloat(m.monto);
       if (m.moneda === 'USD') {
         if (m.tipo_movimiento === 'PAGO_CLIENTE') {
           this.totalCobradoUSD += montoNum;
@@ -184,8 +184,8 @@ export class ReservaDetalleComponent implements OnInit {
   // ============================================================
 
   guardarPago() {
-    if (!this.nuevoPago.monto || this.nuevoPago.monto <= 0) {
-      return alert("El monto debe ser mayor a 0");
+    if (!this.nuevoPago.monto) {
+      return alert("El monto es obligatorio");
     }
 
     // Validaciones extra si es tarjeta

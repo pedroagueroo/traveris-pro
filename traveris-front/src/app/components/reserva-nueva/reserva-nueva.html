@@ -191,18 +191,42 @@
       </div>
 
       <!-- Fechas de viaje (movidas acá desde paso 1) -->
-      <div class="row g-3 mb-4 p-3 bg-body-secondary bg-opacity-50 rounded-4 border">
-        <div class="col-md-4">
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
           <label class="small fw-bold text-muted mb-1">FECHA SALIDA</label>
           <input type="date" class="form-control" [(ngModel)]="reserva.fecha_viaje_salida">
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="small fw-bold text-muted mb-1">FECHA REGRESO</label>
           <input type="date" class="form-control" [(ngModel)]="reserva.fecha_viaje_regreso">
         </div>
-        <div class="col-md-4">
-          <label class="small fw-bold text-muted mb-1">COTIZACIÓN DÓLAR</label>
+        <div class="col-md-3">
+          <label class="small fw-bold text-muted mb-1">MONEDA BASE</label>
+          <select class="form-select fw-bold" [(ngModel)]="reserva.moneda_pago">
+            <option value="USD">USD - Dólar Estadounidense</option>
+            <option value="ARS">ARS - Peso Argentino</option>
+            <option value="EUR">EUR - Euro</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="small fw-bold text-muted mb-1">COTIZACIÓN (SI APLICA)</label>
           <input type="number" class="form-control" [(ngModel)]="reserva.cotizacion_dolar" placeholder="Ej: 1200">
+        </div>
+      </div>
+
+
+      <!-- Mini Formulario de Costos Rápidos -->
+      <div class="section-divider mt-2">Carga Rápida de Importes (Opcional si no detalla servicios)</div>
+      <div class="row g-3 mb-4 p-3 bg-light border rounded-4 shadow-sm">
+        <div class="col-md-6">
+          <label class="small fw-bold text-muted mb-1">COSTO TOTAL PROVEEDOR ({{ reserva.moneda_pago }})</label>
+          <input type="number" class="form-control border-danger fw-bold" [(ngModel)]="reserva.costo_total_operador_usd" (input)="recalcularTodo()">
+          <div class="extra-small text-muted mt-1">Suma manual total a pagar al operador</div>
+        </div>
+        <div class="col-md-6">
+          <label class="small fw-bold text-muted mb-1">PRECIO TOTAL CLIENTE ({{ reserva.moneda_pago }})</label>
+          <input type="number" class="form-control border-success fw-bold text-success" [(ngModel)]="reserva.total_venta_final_usd" (input)="recalcularTodo()">
+          <div class="extra-small text-muted mt-1">Precio final que paga el titular</div>
         </div>
       </div>
 

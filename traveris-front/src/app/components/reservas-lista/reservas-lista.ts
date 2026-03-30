@@ -40,8 +40,24 @@ export class ReservasListaComponent implements OnInit {
     } else if (tipo === 'ABIERTO') {
       this.reservas = this.reservasCompletas.filter((r: any) => r.estado === 'ABIERTO');
     } else if (tipo === 'DEUDA') {
-      this.reservas = this.reservasCompletas.filter((r: any) => parseFloat(r.saldo_real) > 0.01);
+      this.reservas = this.reservasCompletas.filter((r: any) => Math.abs(parseFloat(r.saldo_real)) > 0.01);
     }
+  }
+
+  // Eliminación individual de reserva
+  eliminarReservaIndividual(id: number) {
+    const paso1 = confirm(`⚠️ ATENCIÓN: Vas a eliminar (Soft Delete) la reserva #${id} y sus datos asociados.\n\n¿Estás seguro/a de continuar?`);
+    if (!paso1) return;
+
+    this.api.eliminarReserva(id).subscribe({
+      next: () => {
+        alert(`Reserva #${id} eliminada correctamente.`);
+        this.obtenerReservas();
+      },
+      error: () => {
+        alert(`Error al eliminar la reserva #${id}.`);
+      }
+    });
   }
 
   // Punto 8: Eliminación masiva de reservas

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ApiService } from '../../services/api';
-import { AuthService } from '../../services/auth'; // <--- IMPORTANTE
+import { AuthService } from '../../services/auth';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -9,15 +9,15 @@ import { CommonModule } from '@angular/common';
   selector: 'app-cliente-nuevo',
   standalone: true,
   imports: [FormsModule, CommonModule],
-  templateUrl: './cliente-nuevo.html'
+  templateUrl: './cliente-nuevo.html',
 })
 export class ClienteNuevo {
 
   estadoInicial: any = {
     nombre_completo: '',
     dni_pasaporte: '',
-    dni_emision: '', // NUEVO
-    dni_vencimiento: '', // NUEVO
+    dni_emision: '',
+    dni_vencimiento: '',
     email: '',
     telefono: '',
     fecha_nacimiento: '',
@@ -35,10 +35,10 @@ export class ClienteNuevo {
   clienteEditando: any = { ...this.estadoInicial };
 
   constructor(
-    private api: ApiService, 
-    private auth: AuthService, // <--- Inyectamos Auth
+    private api: ApiService,
+    private auth: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   cerrarModal(): void {
     this.router.navigate(['/clientes']);
@@ -48,7 +48,7 @@ export class ClienteNuevo {
     if (this.clienteEditando.id) {
       this.cerrarModal();
     } else {
-      if(confirm('¿Estás seguro que deseas descartar este registro y volver a clientes?')) {
+      if (confirm('¿Estás seguro que deseas descartar este registro y volver a clientes?')) {
         this.cerrarModal();
       }
     }
@@ -56,19 +56,18 @@ export class ClienteNuevo {
 
   guardarNuevoCliente() {
     if (!this.clienteEditando.nombre_completo || !this.clienteEditando.dni_pasaporte) {
-        alert('Nombre y DNI son obligatorios para crear el legajo.');
-        return;
+      alert('Nombre y DNI son obligatorios para crear el legajo.');
+      return;
     }
 
     if (this.clienteEditando.dni_pasaporte.length < 7) {
-        alert('Error: El DNI debe tener al menos 7 dígitos.');
-        return;
+      alert('Error: El DNI debe tener al menos 7 dígitos.');
+      return;
     }
 
-    // ACOPLAMIENTO: Asignamos la empresa actual al cliente antes de enviar
     const clienteConAgencia = {
-        ...this.clienteEditando,
-        empresa_nombre: this.auth.getNombreEmpresa()
+      ...this.clienteEditando,
+      empresa_nombre: this.auth.getNombreEmpresa()
     };
 
     this.api.crearCliente(clienteConAgencia).subscribe({

@@ -1,17 +1,81 @@
+/* ==================== CAJA COMPONENT ==================== */
+
 /* Forzar visibilidad del icono de basura */
 .bi-trash3-fill {
-  color: #dc3545 !important; 
+  color: var(--danger) !important;
   display: inline-block !important;
   visibility: visible !important;
 }
 
-/* Efecto al pasar el mouse sobre el botón */
 .btn-outline-danger:hover .bi-trash3-fill {
   color: white !important;
 }
 
-/* Estilo extra para que el botón resalte un poco más en la tabla */
 .btn-sm.btn-outline-danger {
     padding: 0.25rem 0.5rem;
     line-height: 1;
+}
+
+/* --- ESTILOS DE IMPRESIÓN PROFESIONAL --- */
+@media print {
+    body {
+        background-color: white !important;
+        color: black !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .print-section {
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+    }
+
+    .table th, .table td {
+        border: 1px solid #dee2e6 !important;
+        padding: 8px !important;
+        font-size: 10pt !important;
+    }
+
+    .badge {
+        border: 1px solid #ccc !important;
+        color: black !important;
+        background: none !important;
+    }
+
+    /* Ocultar elementos decorativos */
+    .bi, .rounded-circle {
+        display: none !important;
+    }
+
+    /* Títulos de reporte */
+    .print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid black;
+        padding-bottom: 1rem;
+    }
+}
+
+.print-header {
+    display: none;
+}
+
+/* Responsive table for caja */
+@media (max-width: 768px) {
+    .rounded-pill {
+        border-radius: 10px !important;
+    }
 }

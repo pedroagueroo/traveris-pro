@@ -1,235 +1,939 @@
-<div class="container-fluid p-4" *ngIf="reserva">
-  <div class="glass-card mb-4 d-flex justify-content-between align-items-center py-3">
+<div class="px-3 px-md-4 py-4 animate-fade-in" style="max-width: 1400px; margin: 0 auto;" *ngIf="reserva">
+
+  <!-- HEADER -->
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom no-print">
     <div>
-      <span class="badge bg-light text-dark border mb-1">EXPEDIENTE #{{ reserva.id }}</span>
-      <h2 class="h4 fw-bold m-0 text-uppercase">{{ reserva.destino_final }}</h2>
+      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 shadow-sm mb-2">LEGAJO
+        #{{ reserva.id }}</span>
+      <h2 class="fw-bold mb-0">{{ reserva.destino_final }}</h2>
+      <p class="text-muted small mb-0 mt-1">{{ reserva.nombre_titular }} &bull; {{ reserva.fecha_viaje_salida |
+        date:'dd/MM/yyyy' }} al {{ reserva.fecha_viaje_regreso | date:'dd/MM/yyyy' }}</p>
     </div>
-    <div class="d-flex gap-2">
-      <button class="btn btn-warning btn-sm fw-bold px-3 shadow-sm" [routerLink]="['/reservas/editar', reserva.id]">
-        <i class="bi bi-pencil-square me-1"></i> Editar Legajo
+    <div class="d-flex gap-2 mt-2 mt-md-0 align-items-center">
+      <button class="btn btn-outline-secondary btn-sm px-3 rounded-pill d-flex align-items-center gap-1 no-print" [routerLink]="['/reservas']">
+        <i class="bi bi-arrow-left"></i> Volver
       </button>
-      <select class="form-select form-select-sm w-auto fw-bold" [(ngModel)]="reserva.estado" (change)="cambiarEstado()">
-        <option value="ABIERTO">🟢 ABIERTO</option>
-        <option value="CERRADO">🔴 CERRADO</option>
+      <select class="form-select form-select-sm fw-bold rounded-pill border-2 no-print" [(ngModel)]="reserva.estado"
+        (change)="cambiarEstado()" style="width: auto;">
+        <option value="ABIERTO" class="text-success fw-bold">🟢 ABIERTO</option>
+        <option value="CERRADO" class="text-danger fw-bold">🔴 CERRADO</option>
       </select>
+      <button class="btn btn-elite shadow-sm px-4 rounded-pill fw-bold" [routerLink]="['/reservas/editar', reserva.id]">
+        <i class="bi bi-pencil-square me-2"></i> Editar Legajo
+      </button>
     </div>
   </div>
 
-  <div class="row g-3">
-    <div class="col-lg-3">
-      <div class="glass-card mb-3 shadow-sm">
-        <h3 class="section-title">Información Base</h3>
-        <div class="mb-2"><small class="label-tech">TITULAR</small>
-          <div class="fw-bold">{{ reserva.nombre_titular }}</div>
-        </div>
-        <div class="mb-2"><small class="label-tech">OPERADOR</small>
-          <div>{{ reserva.operador_mayorista }}</div>
-        </div>
-        <div class="mb-2"><small class="label-tech">SALIDA / REGRESO</small>
-          <div class="small fw-bold">{{ reserva.fecha_viaje_salida | date:'dd/MM/yy' }} - {{ reserva.fecha_viaje_regreso
-            | date:'dd/MM/yy' }}</div>
+  <div class="row g-4 h-100">
+    <!-- COLUMNA 1: INFO Y PASAJEROS -->
+    <div class="col-lg-3 d-flex flex-column gap-4">
+
+      <!-- Card Información Base -->
+      <div class="form-card p-4 h-100 border-top border-4 border-primary">
+        <h6 class="fw-bold mb-4 text-primary text-uppercase small"><i class="bi bi-info-circle-fill me-2"></i> Datos
+          Generales</h6>
+
+        <div class="vstack gap-3">
+          <div>
+            <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">TITULAR RESPONSABLE</div>
+            <div class="fw-bold d-flex align-items-center">
+              <i class="bi bi-person-badge text-primary opacity-50 me-2"></i> {{ reserva.nombre_titular }}
+            </div>
+          </div>
+          <div>
+            <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">OPERADOR RESPONSABLE</div>
+            <div class="fw-bold d-flex align-items-center">
+              <i class="bi bi-building text-info opacity-50 me-2"></i> {{ reserva.operador_mayorista || 'No asignado' }}
+            </div>
+          </div>
+          <div *ngIf="reserva.nro_expediente_operador">
+            <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">N° EXPEDIENTE</div>
+            <div class="fw-bold">{{ reserva.nro_expediente_operador }}</div>
+          </div>
+          <div *ngIf="reserva.observaciones_internas">
+            <div class="small fw-bold text-muted mb-1" style="font-size: 0.7rem;">NOTAS INTERNAS</div>
+            <div class="small text-muted fst-italic bg-body-secondary p-2 rounded">{{ reserva.observaciones_internas }}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="glass-card mb-3 shadow-sm border-start border-4 border-danger bg-white" *ngIf="reserva">
-        <h3 class="section-title text-danger">Control de Vencimiento</h3>
-        <div class="mb-1">
-          <small class="label-tech">FECHA LÍMITE DE PAGO</small>
-          <input type="date" class="form-control form-control-sm mb-2 shadow-none border-danger border-opacity-25"
-            [(ngModel)]="fechaLimiteEditable">
+      <!-- Card Deadline de Pago -->
+      <div class="form-card p-4 no-print">
+        <h6 class="fw-bold mb-3 text-dark text-uppercase small"><i class="bi bi-alarm me-2 text-danger"></i> Deadline
+          Pago</h6>
+        <input type="date" class="form-control bg-body border-2 fw-bold rounded-3 mb-2"
+          [(ngModel)]="fechaLimiteEditable">
+
+        <div class="text-danger small fw-bold mt-2 p-2 bg-danger bg-opacity-10 rounded-2"
+          *ngIf="reserva.fecha_limite_pago && deudaCliente > 0 && fechaLimiteEditable <= (today | date:'yyyy-MM-dd')!">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i> ¡PLAZO VENCIDO!
+        </div>
+
+        <div class="small text-muted mb-3 fst-italic" style="font-size: 0.75rem;" *ngIf="!reserva.fecha_limite_pago">
+          <i class="bi bi-info-circle-fill me-1"></i> Sugerencia automática: 30 días previo salida.
+        </div>
+
+        <button class="btn btn-danger btn-sm w-100 fw-bold rounded-pill shadow-sm" (click)="actualizarFechaPago()">
+          <i class="bi bi-save me-1"></i> Fijar Deadline
+        </button>
+      </div>
+
+      <!-- Card Pasajeros -->
+      <div class="form-card p-4 flex-grow-1">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h6 class="fw-bold m-0 text-dark text-uppercase small"><i class="bi bi-people-fill text-muted me-2"></i>
+            Acompañantes</h6>
+          <span class="badge bg-secondary rounded-pill">{{ reserva.pasajeros?.length || 0 }}</span>
+        </div>
+
+        <div *ngIf="!reserva.pasajeros || reserva.pasajeros.length === 0"
+          class="text-center py-3 text-muted border border-dashed rounded-3">
+          <i class="bi bi-person-x fs-4 opacity-50"></i>
+          <p class="small mb-0 mt-2">No hay acompañantes.</p>
+        </div>
+
+        <div *ngFor="let p of reserva.pasajeros"
+          class="d-flex align-items-start p-3 border rounded-4 mb-2 bg-body shadow-sm">
+          <div
+            class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0"
+            style="width: 38px; height: 38px;">
+            <i class="bi bi-person-fill fs-5"></i>
+          </div>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-bold small text-truncate">{{ p.nombre_completo }}</div>
+            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
+              DNI: {{ p.dni_pasaporte }} &bull; {{ p.tipo_pasajero }}
+            </div>
+            <div class="text-danger small mt-1 py-1 px-2 bg-danger bg-opacity-10 rounded-2 d-inline-block"
+              style="font-size: 0.7rem;" *ngIf="p.notas_medicas_alergias">
+              <i class="bi bi-heart-pulse-fill me-1"></i> {{ p.notas_medicas_alergias }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA 2: ITINERARIO -->
+    <div class="col-lg-6">
+      <div class="form-card h-100 p-0 overflow-hidden d-flex flex-column">
+        <div class="p-4 border-bottom bg-body">
+          <h5 class="fw-bold m-0 text-primary"><i class="bi bi-map-fill me-2"></i> Itinerario Detallado</h5>
+          <p class="small text-muted mb-0 mt-1">Todos los servicios confirmados para esta operación.</p>
+        </div>
+        <div class="p-4 flex-grow-1 overflow-auto" style="max-height: 75vh;">
+          <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0"
+            class="text-center py-5 text-muted">
+            <i class="bi bi-calendar-x fs-1 opacity-25"></i>
+            <p class="mt-2 fw-bold">Sin servicios cargados</p>
+          </div>
+
+          <div *ngFor="let s of reserva.servicios_items; let i = index"
+            class="border rounded-4 mb-3 overflow-hidden shadow-sm">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-body">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-dark text-white px-3 py-2 rounded-pill text-uppercase fw-bold"
+                  style="font-size: 0.65rem;">{{ s.tipo_item }}</span>
+                <span class="fw-bold text-dark">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item ||
+                  'Servicio' }}</span>
+              </div>
+              <span class="badge bg-success-subtle text-success border border-success px-2" *ngIf="s.pnr">PNR: {{ s.pnr
+                }}</span>
+            </div>
+            <div class="p-3">
+              <div class="row g-2 small">
+                <div class="col-6" *ngIf="s.ciudad"><span class="text-muted">Ciudad:</span> <strong>{{ s.ciudad
+                    }}</strong></div>
+                <div class="col-6" *ngIf="s.check_in"><span class="text-muted">Check-in:</span> <strong>{{ s.check_in |
+                    date:'dd/MM/yy' }}</strong></div>
+                <div class="col-6" *ngIf="s.check_out"><span class="text-muted">Check-out:</span> <strong>{{ s.check_out
+                    | date:'dd/MM/yy' }}</strong></div>
+                <div class="col-6" *ngIf="s.origen"><span class="text-muted">Ruta:</span> <strong>{{ s.origen }} → {{
+                    s.destino }}</strong></div>
+                <div class="col-6" *ngIf="s.nro_vuelo"><span class="text-muted">Vuelo:</span> <strong>{{ s.nro_vuelo
+                    }}</strong></div>
+                <div class="col-6" *ngIf="s.regimen"><span class="text-muted">Régimen:</span> <strong>{{ s.regimen
+                    }}</strong></div>
+                <div class="col-6" *ngIf="s.plan_asistencia"><span class="text-muted">Plan:</span> <strong>{{
+                    s.plan_asistencia }}</strong></div>
+                <div class="col-6" *ngIf="s.nro_poliza"><span class="text-muted">Póliza:</span> <strong>{{ s.nro_poliza
+                    }}</strong></div>
+              </div>
+              <div class="bg-body p-3 mt-2 rounded-3 small text-muted border border-dashed fst-italic"
+                style="white-space: pre-wrap;" *ngIf="s.servicio_descripcion">
+                <i class="bi bi-info-circle me-1"></i> {{ s.servicio_descripcion }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA 3: FINANZAS Y GESTIÓN -->
+    <div class="col-lg-3 d-flex flex-column gap-4">
+
+      <!-- Card Estado Contable -->
+      <div class="form-card p-4 border-top border-4 border-success h-100">
+        <h6 class="fw-bold mb-4 text-success text-uppercase small"><i class="bi bi-graph-up-arrow me-2"></i> Estado
+          Contable</h6>
+
+        <div class="row g-2 mb-4">
+          <div class="col-6">
+            <div class="p-3 bg-body border rounded-4 text-center h-100 shadow-sm">
+              <div class="small fw-bold text-muted mb-1" style="font-size: 0.65rem;">COSTE (NETO)</div>
+              <div class="fw-bold text-danger text-truncate">US$ {{ reserva.costo_total_operador_usd | number:'1.0-0' }}
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 bg-body border rounded-4 text-center h-100 shadow-sm border-success border-opacity-50">
+              <div class="small fw-bold text-success mb-1" style="font-size: 0.65rem;">VENTA (FINAL)</div>
+              <div class="fw-bold text-success text-truncate">US$ {{ reserva.total_venta_final_usd | number:'1.0-0' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vstack gap-3">
+          <div
+            class="p-3 bg-danger bg-opacity-10 rounded-4 border border-danger border-opacity-25 shadow-sm text-center">
+            <div class="small fw-bold text-danger mb-1" style="font-size: 0.7rem;">SALDO PENDIENTE (COBRAR)</div>
+            <div class="h4 fw-bold text-danger m-0">US$ {{ deudaCliente | number:'1.2-2' }}</div>
+          </div>
 
           <div
-            class="p-1 mb-2 bg-danger bg-opacity-10 text-danger extra-small rounded border border-danger border-opacity-25 text-center fw-bold"
-            *ngIf="fechaLimiteEditable && today && (fechaLimiteEditable <= (today | date:'yyyy-MM-dd')!)">
-            <i class="bi bi-exclamation-triangle-fill"></i> ¡PLAZO VENCIDO!
+            class="p-3 bg-warning bg-opacity-10 rounded-4 border border-warning border-opacity-25 shadow-sm text-center">
+            <div class="small fw-bold text-warning text-dark mb-1" style="font-size: 0.7rem;">DEUDA OPERADOR (PAGAR)
+            </div>
+            <div class="h5 fw-bold text-dark m-0">US$ {{ (deudaProveedor > 0 ? deudaProveedor : 0) | number:'1.2-2' }}
+            </div>
           </div>
 
-          <div class="extra-small text-muted mb-2 px-1" *ngIf="!reserva.fecha_limite_pago">
-            <i class="bi bi-info-circle-fill me-1"></i> Calculado por defecto (30 días antes).
+          <div class="p-3 bg-success text-white rounded-4 shadow-sm text-center bg-gradient mt-2">
+            <div class="small fw-bold text-white text-opacity-75 mb-1" style="font-size: 0.7rem;"><i
+                class="bi bi-piggy-bank me-1"></i> RENTABILIDAD</div>
+            <div class="h4 fw-bold text-white m-0">US$ {{ (reserva.total_venta_final_usd -
+              reserva.costo_total_operador_usd) | number:'1.2-2' }}</div>
           </div>
-
-          <button class="btn btn-danger btn-sm w-100 fw-bold shadow-sm" (click)="actualizarFechaPago()">
-            <i class="bi bi-save me-1"></i> FIJAR FECHA
-          </button>
         </div>
       </div>
 
-      <div class="glass-card shadow-sm">
-        <h3 class="section-title">Pasajeros</h3>
-        <div *ngFor="let p of reserva.pasajeros" class="p-2 border rounded mb-2 bg-light">
-          <div class="fw-bold small">{{ p.nombre_completo }}</div>
-          <div class="text-muted extra-small">ID: {{ p.dni_pasaporte }} | {{ p.tipo_pasajero }}</div>
-          <div class="text-danger extra-small mt-1" *ngIf="p.notas_medicas_alergias">⚠️ {{ p.notas_medicas_alergias }}
-          </div>
-        </div>
-      </div>
-    </div>
+      <!-- Card Registrar Movimiento -->
+      <div class="form-card p-4 no-print border-top border-4 border-info">
+        <h6 class="fw-bold mb-3 text-info text-dark text-uppercase small"><i class="bi bi-cash-coin me-2"></i> Pago /
+          Cobro</h6>
 
-    <div class="col-lg-6">
-      <div class="glass-card h-100 shadow-sm">
-        <h3 class="section-title">Itinerario Detallado</h3>
-        <div *ngFor="let s of reserva.servicios_items" class="p-3 border rounded mb-3 shadow-xs bg-white">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="badge" [ngClass]="{
-              'bg-primary': s.tipo_item === 'VUELO',
-              'bg-info': s.tipo_item === 'HOTEL',
-              'bg-dark': s.tipo_item === 'CRUCERO',
-              'bg-secondary': s.tipo_item === 'SERVICIO'
-            }">{{ s.tipo_item }}</span>
-            <small class="fw-bold text-muted" *ngIf="s.excursion_fecha">{{ s.excursion_fecha | date:'dd/MM/yy'
-              }}</small>
-          </div>
-
-          <div [ngSwitch]="s.tipo_item">
-            <div *ngSwitchCase="'VUELO'">
-              <div class="fw-bold">{{ s.aerolinea }} (Vuelo {{ s.nro_vuelo }})</div>
-              <div class="small">{{ s.origen }} ➔ {{ s.destino }} | PNR: <strong>{{ s.pnr }}</strong></div>
-            </div>
-            <div *ngSwitchCase="'HOTEL'">
-              <div class="fw-bold">{{ s.hotel_nombre }} - {{ s.ciudad }}</div>
-              <div class="extra-small text-muted">In: {{ s.check_in | date:'dd/MM/yy' }} | Out: {{ s.check_out |
-                date:'dd/MM/yy' }}</div>
-              <div class="extra-small mt-1">Régimen: {{ s.regimen }}</div>
-            </div>
-            <div *ngSwitchCase="'CRUCERO'">
-              <div class="fw-bold">🚢 {{ s.crucero_nombre }}</div>
-              <div class="small">Cabina: {{ s.crucero_cabina }}</div>
-              <div class="bg-light p-2 mt-2 rounded extra-small"><strong>Itinerario:</strong> {{ s.crucero_itinerario }}
-              </div>
-            </div>
-            <div *ngSwitchCase="'SERVICIO'">
-              <div class="fw-bold text-uppercase">{{ s.nombre_item }}</div>
-              <div class="bg-light p-2 mt-2 rounded small" style="white-space: pre-wrap; font-style: italic;">
-                {{ s.servicio_descripcion }}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0"
-          class="text-center py-5 text-muted">
-          <i class="bi bi-calendar-x fs-2"></i>
-          <p>No hay tramos ni servicios cargados.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-3">
-      <div class="glass-card mb-3 shadow-sm" style="border-top: 4px solid var(--success);">
-        <h3 class="section-title">Estado Contable</h3>
-        <div class="row g-2 mb-3">
-          <div class="col-6 p-2 bg-light border rounded text-center">
-            <small class="label-tech">VENTA USD</small>
-            <div class="fw-bold">{{ reserva.total_venta_final_usd | number:'1.2-2' }}</div>
-          </div>
-          <div class="col-6 p-2 bg-light border rounded text-center">
-            <small class="label-tech">COSTO USD</small>
-            <div class="fw-bold text-danger">{{ reserva.costo_total_operador_usd | number:'1.2-2' }}</div>
-          </div>
-        </div>
-        <div class="p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded text-center mb-2">
-          <small class="label-tech text-danger">A COBRAR CLIENTE</small>
-          <div class="h5 fw-bold text-danger m-0">USD {{ deudaCliente | number:'1.2-2' }}</div>
-        </div>
-        <div class="p-2 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded text-center mb-3">
-          <small class="label-tech text-warning">A PAGAR OPERADOR</small>
-          <div class="h5 fw-bold text-dark m-0">USD {{ (deudaProveedor > 0 ? deudaProveedor : 0) | number:'1.2-2' }}
-          </div>
-        </div>
-        <div class="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded text-center">
-          <small class="label-tech text-success">GANANCIA ESTIMADA</small>
-          <div class="h4 fw-bold text-success m-0">USD {{ (reserva.total_venta_final_usd -
-            reserva.costo_total_operador_usd) | number:'1.2-2' }}</div>
-        </div>
-      </div>
-
-      <div class="glass-card mb-3 no-print shadow-sm">
-        <h3 class="section-title">Registrar Movimiento</h3>
-        <select class="form-select form-select-sm mb-2" [(ngModel)]="nuevoPago.tipo_movimiento">
-          <option value="PAGO_CLIENTE">Cobro al Cliente</option>
-          <option value="PAGO_PROVEEDOR">Pago Operador</option>
+        <select class="form-select mb-3 bg-body text-dark fw-bold border-secondary shadow-sm rounded-pill"
+          [(ngModel)]="nuevoPago.tipo_movimiento">
+          <option value="PAGO_CLIENTE">Cobro Recibido (Cliente)</option>
+          <option value="PAGO_PROVEEDOR">Pago Emitido (Operador)</option>
         </select>
-        <div class="row g-2 mb-2">
-          <div class="col-7"><input type="number" class="form-control form-control-sm" [(ngModel)]="nuevoPago.monto"
-              placeholder="Monto"></div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-7">
+            <div class="input-premium-group h-100">
+              <span class="input-premium-icon bg-body"><i class="bi bi-currency-dollar"></i></span>
+              <input type="number" class="form-control input-premium bg-body fw-bold" [(ngModel)]="nuevoPago.monto"
+                placeholder="0.00">
+            </div>
+          </div>
           <div class="col-5">
-            <select class="form-select form-select-sm" [(ngModel)]="nuevoPago.moneda">
+            <select class="form-select bg-body h-100 border-2 rounded-3" [(ngModel)]="nuevoPago.moneda">
               <option value="USD">USD</option>
               <option value="ARS">ARS</option>
               <option value="EUR">EUR</option>
             </select>
           </div>
         </div>
-        <button class="btn btn-dark w-100 btn-sm fw-bold" (click)="guardarPago()">Asentar Movimiento</button>
-      </div>
 
-      <div class="glass-card mb-3 shadow-sm">
-        <h3 class="section-title">Documentación / Archivos</h3>
-        <div *ngFor="let arc of archivos"
-          class="d-flex justify-content-between align-items-center p-2 border-bottom small bg-light bg-opacity-50 mb-1 rounded">
-          <span class="text-truncate" style="max-width: 120px;">{{ arc.nombre_archivo }}</span>
-          <div class="d-flex gap-2">
-            <a [href]="'http://localhost:3000/' + arc.ruta_archivo" target="_blank" class="text-dark"><i
-                class="bi bi-eye"></i></a>
-            <button class="btn btn-link text-danger p-0" (click)="eliminarArchivo(arc.id)"><i
-                class="bi bi-trash"></i></button>
-          </div>
-        </div>
-        <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;">
-        <button class="btn btn-outline-dark btn-sm w-100 fw-bold" (click)="fileInput.click()"><i
-            class="bi bi-cloud-upload me-2"></i>Subir Documento</button>
-      </div>
+        <select class="form-select mb-3 bg-body border-2 rounded-3" [(ngModel)]="nuevoPago.metodo_pago">
+          <option value="EFECTIVO">Efectivo</option>
+          <option value="TRANSFERENCIA">Transferencia</option>
+          <option value="TARJETA">Tarjeta</option>
+          <option value="MERCADOPAGO">MercadoPago</option>
+        </select>
 
-      <div class="glass-card no-print shadow-sm">
-        <h3 class="section-title">Generar Documentos</h3>
-        <button class="btn btn-outline-primary btn-sm w-100 fw-bold mb-2"
-          (click)="previsualizar('VOUCHER')">Voucher</button>
-        <button class="btn btn-outline-success btn-sm w-100 fw-bold mb-2"
-          (click)="previsualizar('COTIZACION')">Cotización</button>
-        <button class="btn btn-sm btn-outline-secondary w-100" (click)="enviarPorMail()"><i
-            class="bi bi-envelope me-1"></i>Enviar por Mail</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade show d-block bg-dark bg-opacity-75" *ngIf="mostrarPreview"
-    style="z-index: 2100; overflow-y: auto;">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content border-0">
-        <div class="modal-header bg-white border-bottom no-print">
-          <h5 class="modal-title fw-bold text-uppercase">Vista Previa: {{ tipoDoc }}</h5>
-          <div class="ms-auto">
-            <button class="btn btn-primary btn-sm me-2" (click)="imprimir()"><i class="bi bi-printer me-1"></i>
-              Imprimir</button>
-            <button class="btn btn-light btn-sm" (click)="mostrarPreview = false">Cerrar</button>
-          </div>
-        </div>
-        <div class="modal-body bg-light">
-          <div class="doc-a4-sheet shadow-lg mx-auto bg-white p-5" id="documento-imprimible">
-            <div class="row border-bottom pb-3 mb-4">
-              <div class="col-7">
-                <h1 class="h2 fw-bold text-primary m-0 text-uppercase">{{ auth.getNombreEmpresa() }}</h1>
-                <p class="small text-muted mb-0">Legajo EVT: Ley 18.829 | Empresa de Viajes y Turismo</p>
-              </div>
-              <div class="col-5 text-end border-start">
-                <div class="badge bg-dark mb-2 text-uppercase">{{ tipoDoc === 'VOUCHER' ? 'Voucher de Servicios' :
-                  'Estado de Cuenta' }}</div>
-                <div class="fw-bold">Nro. Operación: #{{ reserva.id }}</div>
-                <div class="small">Fecha Emisión: {{ today | date:'dd/MM/yyyy' }}</div>
-              </div>
+        <!-- === DATOS DE TARJETA (refactorizado) === -->
+        <div *ngIf="nuevoPago.metodo_pago === 'TARJETA'"
+          class="card-form-premium mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.7rem;">
+              <i class="bi bi-credit-card-2-front me-1"></i> Información del Plástico
             </div>
-            <div [ngSwitch]="tipoDoc">
-              <div *ngSwitchCase="'VOUCHER'">
-                <h6 class="fw-bold border-bottom pb-2 mb-3">SERVICIOS CONFIRMADOS</h6>
-                <div *ngFor="let s of reserva.servicios_items" class="p-3 border mb-2 rounded">
-                  <span class="badge bg-primary mb-2">{{ s.tipo_item }}</span>
-                  <div class="fw-bold h6">{{ s.hotel_nombre || s.aerolinea || s.nombre_item }}</div>
-                  <p class="small text-muted mb-0">{{ s.servicio_descripcion }}</p>
+            <div class="card-brand-pill" *ngIf="bancoDetectado">
+              {{ bancoDetectado }}
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-12">
+              <input type="text" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.numero"
+                placeholder="0000 0000 0000 0000" maxlength="19" (input)="detectarBanco()">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <input type="text" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.vencimiento"
+                placeholder="MM/AAAA" maxlength="7">
+            </div>
+            <div class="col-6">
+              <input type="password" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.cvv"
+                placeholder="CVV" maxlength="4">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="small text-muted fw-bold" style="font-size: 0.65rem;">CUOTAS</label>
+              <select class="form-select bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.cuotas">
+                <option [ngValue]="1">1 cuota (sin interés)</option>
+                <option [ngValue]="3">3 cuotas</option>
+                <option [ngValue]="6">6 cuotas</option>
+                <option [ngValue]="9">9 cuotas</option>
+                <option [ngValue]="12">12 cuotas</option>
+                <option [ngValue]="18">18 cuotas</option>
+                <option [ngValue]="24">24 cuotas</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="small text-muted fw-bold" style="font-size: 0.65rem;">INTERÉS %</label>
+              <input type="number" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.interes"
+                placeholder="0" min="0" max="100" step="0.5">
+            </div>
+          </div>
+
+          <!-- Resumen de cuotas -->
+          <div class="bg-body rounded-3 p-2 mt-2 border" *ngIf="datosTarjeta.cuotas > 1 && nuevoPago.monto > 0">
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">{{ datosTarjeta.cuotas }} cuotas de:</span>
+              <span class="fw-bold text-primary">{{ nuevoPago.moneda }} {{ montoPorCuota | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between small" *ngIf="datosTarjeta.interes > 0">
+              <span class="text-muted">Total con interés:</span>
+              <span class="fw-bold text-danger">{{ nuevoPago.moneda }} {{ montoTotalConInteres | number:'1.2-2'
+                }}</span>
+            </div>
+          </div>
+        </div>
+
+
+        <input type="text" class="form-control mb-3 bg-body border-2 rounded-3" [(ngModel)]="nuevoPago.observaciones"
+          placeholder="Observaciones (opcional)">
+
+        <button class="btn btn-dark w-100 fw-bold rounded-pill shadow" (click)="guardarPago()"
+          [disabled]="!nuevoPago.monto">
+          <i class="bi bi-wallet2 me-2"></i> Asentar Movimiento
+        </button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- RECIBOS EMITIDOS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="form-card p-4 no-print" *ngIf="recibos.length > 0">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold m-0 text-dark text-uppercase small">
+            <i class="bi bi-receipt-cutoff me-2 text-primary"></i> Recibos Emitidos
+          </h6>
+          <span class="badge bg-primary rounded-pill">{{ recibos.length }}</span>
+        </div>
+
+        <div class="vstack gap-2">
+          <div *ngFor="let r of recibos"
+            class="d-flex align-items-center justify-content-between p-3 border rounded-4 bg-body shadow-sm"
+            [class.opacity-50]="r.anulado" [class.border-danger]="r.anulado">
+
+            <div class="d-flex align-items-center gap-3 overflow-hidden">
+              <div
+                class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                style="width: 40px; height: 40px;">
+                <i class="bi bi-receipt fs-5"></i>
+              </div>
+              <div class="overflow-hidden">
+                <div class="fw-bold small text-truncate">
+                  Recibo X N° {{ r.nro_recibo }}
+                  <span class="badge bg-danger ms-1" *ngIf="r.anulado">ANULADO</span>
+                </div>
+                <div class="text-muted text-truncate" style="font-size: 0.7rem;">
+                  {{ r.fecha_emision | date:'dd/MM/yyyy HH:mm' }} ·
+                  {{ r.moneda }} {{ r.monto | number:'1.2-2' }} ·
+                  {{ r.metodo_pago }}
+                  <span *ngIf="r.tarjeta_banco"> · {{ r.tarjeta_banco }}</span>
                 </div>
               </div>
             </div>
+
+            <div class="d-flex gap-1 flex-shrink-0">
+              <button class="btn btn-sm btn-outline-primary rounded-pill px-2" (click)="verRecibo(r)" title="Ver">
+                <i class="bi bi-eye"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger rounded-pill px-2" (click)="anularRecibo(r.id)"
+                *ngIf="!r.anulado" title="Anular">
+                <i class="bi bi-x-circle"></i>
+              </button>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Card Generar Docs y Archivos -->
+      <div class="form-card p-4 no-print d-flex flex-column gap-3">
+        <h6 class="fw-bold m-0 text-dark text-uppercase small"><i class="bi bi-file-earmark-arrow-down me-2"></i>
+          Emisión Docs</h6>
+
+        <div class="d-grid gap-2">
+          <button
+            class="btn btn-outline-primary fw-bold rounded-pill shadow-sm d-flex justify-content-between align-items-center px-4"
+            (click)="previsualizar('VOUCHER')">
+            <span><i class="bi bi-ticket-perforated me-2"></i> Gen. Voucher</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+          <button
+            class="btn btn-outline-success fw-bold rounded-pill shadow-sm d-flex justify-content-between align-items-center px-4"
+            (click)="previsualizar('COTIZACION')">
+            <span><i class="bi bi-calculator me-2"></i> Gen. Cotización</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+          <div class="d-grid gap-1">
+            <button class="btn btn-outline-primary btn-sm rounded-pill fw-bold shadow-sm"
+              (click)="enviarDocumento('VOUCHER', false)">
+              <i class="bi bi-envelope-paper me-1"></i> Enviar Voucher
+            </button>
+            <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shadow-sm"
+              (click)="enviarDocumento('COTIZACION', false)">
+              <i class="bi bi-envelope-paper me-1"></i> Enviar Cotización
+            </button>
+            <button class="btn btn-outline-dark btn-sm rounded-pill fw-bold shadow-sm"
+              (click)="enviarDocumento(tipoDoc, true)" *ngIf="archivos.length > 0">
+              <i class="bi bi-paperclip me-1"></i> Enviar {{ tipoDoc }} + Archivos ({{ archivos.length }})
+            </button>
+          </div>
+        </div>
+
+        <hr class="my-2 border-light">
+
+        <h6 class="fw-bold m-0 text-muted text-uppercase small"><i class="bi bi-cloud-arrow-up me-2"></i> Archivos</h6>
+
+        <div class="vstack gap-2">
+          <div *ngFor="let a of archivos"
+            class="d-flex justify-content-between align-items-center p-2 bg-body rounded-3 border shadow-sm">
+            <div class="d-flex align-items-center gap-2 overflow-hidden" style="cursor: pointer;"
+              (click)="descargarArchivo(a.ruta_archivo)">
+              <i class="bi fs-5" [ngClass]="{
+                'bi-file-earmark-pdf text-danger': a.tipo_archivo?.includes('pdf'),
+                'bi-file-earmark-image text-success': a.tipo_archivo?.includes('image'),
+                'bi-file-earmark-word text-primary': a.tipo_archivo?.includes('word') || a.tipo_archivo?.includes('doc'),
+                'bi-file-earmark text-muted': !a.tipo_archivo?.includes('pdf') && !a.tipo_archivo?.includes('image') && !a.tipo_archivo?.includes('word') && !a.tipo_archivo?.includes('doc')
+              }"></i>
+              <div class="overflow-hidden">
+                <span class="small fw-bold text-truncate d-block">{{ a.nombre_archivo }}</span>
+                <span class="text-muted d-block" style="font-size: 0.65rem;">{{ a.fecha_subida | date:'dd/MM/yy'
+                  }}</span>
+              </div>
+            </div>
+            <div class="d-flex gap-1 flex-shrink-0">
+              <button class="btn btn-sm btn-outline-primary rounded-circle" (click)="descargarArchivo(a.ruta_archivo)"
+                style="width:28px;height:28px;padding:0;" title="Descargar">
+                <i class="bi bi-download"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger rounded-circle" (click)="eliminarArchivo(a.id)"
+                style="width:28px;height:28px;padding:0;" title="Eliminar">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="archivos.length === 0" class="text-center small text-muted py-2">Sin archivos adjuntos.</div>
+        </div>
+
+        <label class="btn btn-outline-secondary btn-sm rounded-pill mt-1 w-100">
+          <i class="bi bi-upload me-1"></i> Subir Archivo (máx 10MB)
+          <input type="file" class="d-none" (change)="onFileSelected($event)"
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.txt">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL PREVIEW DOCUMENTOS (Voucher / Cotización) -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="mostrarPreview"
+    class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center overflow-auto py-4"
+    style="z-index: 9999; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);">
+
+    <div
+      class="d-flex justify-content-between align-items-center mb-3 no-print bg-dark border border-secondary border-opacity-50 p-3 rounded-4 shadow-lg mx-auto"
+      style="width: 100%; max-width: 210mm;">
+      <h5 class="fw-bold text-white m-0 d-flex align-items-center gap-2">
+        <i class="bi bi-printer text-primary"></i> Vista Previa {{ tipoDoc === 'VOUCHER' ? 'Voucher' : 'Cotización' }}
+      </h5>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary rounded-pill fw-bold shadow px-4" (click)="imprimir()"><i
+            class="bi bi-printer-fill me-2"></i> Imprimir a PDF</button>
+        <button class="btn btn-outline-light rounded-pill px-4" (click)="mostrarPreview = false">Cerrar</button>
+      </div>
+    </div>
+
+    <div class="modal-body p-0 d-flex justify-content-center">
+
+      <!-- Hoja A4 Imprimible -->
+      <div class="p-5 shadow-lg rounded-2 mb-5" id="documento-imprimible"
+        style="background-color: white !important; width: 100%; max-width: 210mm; min-height: 297mm; color: black !important;">
+
+        <!-- HEADER DEL DOCUMENTO -->
+        <div class="d-flex justify-content-between border-bottom border-2 border-dark pb-4 mb-5">
+          <div>
+            <h1 class="h2 fw-bold text-primary m-0 text-uppercase d-flex align-items-center gap-2"
+              style="letter-spacing: -1px;">
+              <i class="bi bi-globe-americas text-dark"></i> {{ auth.getNombreEmpresa() }}
+            </h1>
+            <p class="small text-muted mb-0 mt-2 fw-bold">Empresa de Viajes y Turismo | Legajo EVT: Ley 18.829</p>
+          </div>
+          <div class="text-end">
+            <div class="badge bg-dark px-3 py-2 text-uppercase fs-6 mb-3 rounded-pill">{{ tipoDoc === 'VOUCHER' ?
+              'Voucher Maestro de Servicios' : 'Cotización de Viaje' }}</div>
+            <div class="fw-bold fs-5">OP-ID: <span class="text-primary">#{{ reserva.id }}</span></div>
+            <div class="small fw-bold text-muted">Emisión oficial: {{ today | date:'dd/MM/yyyy' }}</div>
+          </div>
+        </div>
+
+        <!-- CONTENIDO DINÁMICO DEL DOCUMENTO -->
+        <div [ngSwitch]="tipoDoc">
+
+          <div *ngSwitchCase="'VOUCHER'">
+
+            <!-- Datos del expediente -->
+            <div style="background: #f8fafc !important; color: #000 !important;" class="p-4 rounded-3 mb-4 border">
+              <h6 class="fw-bold text-uppercase small mb-3 border-bottom pb-2" style="color: #555 !important;">Datos del
+                Expediente</h6>
+              <div class="row">
+                <div class="col-4">
+                  <div class="small fw-bold" style="color: #888 !important;">Pasajero Principal</div>
+                  <div class="fs-5 fw-bold" style="color: #000 !important;">{{ reserva.nombre_titular }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="small fw-bold" style="color: #888 !important;">DNI / Pasaporte</div>
+                  <div class="fw-bold" style="color: #000 !important;">{{ reserva.dni_titular || '-' }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="small fw-bold" style="color: #888 !important;">Destino</div>
+                  <div class="fs-5 fw-bold" style="color: #000 !important;">{{ reserva.destino_final }}</div>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-4" *ngIf="reserva.fecha_viaje_salida">
+                  <div class="small fw-bold" style="color: #888 !important;">Salida</div>
+                  <div class="fw-bold" style="color: #000 !important;">{{ reserva.fecha_viaje_salida | date:'dd/MM/yyyy'
+                    }}</div>
+                </div>
+                <div class="col-4" *ngIf="reserva.fecha_viaje_regreso">
+                  <div class="small fw-bold" style="color: #888 !important;">Regreso</div>
+                  <div class="fw-bold" style="color: #000 !important;">{{ reserva.fecha_viaje_regreso |
+                    date:'dd/MM/yyyy' }}</div>
+                </div>
+                <div class="col-4" *ngIf="reserva.operador_mayorista">
+                  <div class="small fw-bold" style="color: #888 !important;">Operador</div>
+                  <div class="fw-bold" style="color: #000 !important;">{{ reserva.operador_mayorista }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Manifiesto de pasajeros -->
+            <div *ngIf="reserva.pasajeros && reserva.pasajeros.length > 0" class="mb-4">
+              <h6 class="fw-bold border-bottom border-2 pb-2 mb-3"
+                style="color: #000 !important; border-color: #333 !important;">
+                <i class="bi bi-people-fill me-2"></i> Manifiesto de Pasajeros
+              </h6>
+              <table style="width: 100%; border-collapse: collapse; color: #000 !important;">
+                <thead>
+                  <tr style="background: #f1f5f9 !important;">
+                    <th style="padding: 8px; text-align: left; font-size: 0.75rem; color: #555 !important;">NOMBRE</th>
+                    <th style="padding: 8px; text-align: left; font-size: 0.75rem; color: #555 !important;">
+                      DNI/PASAPORTE</th>
+                    <th style="padding: 8px; text-align: left; font-size: 0.75rem; color: #555 !important;">TIPO</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 8px; font-weight: bold; color: #000 !important;">{{ reserva.nombre_titular }}
+                      <span class="badge bg-dark" style="font-size: 0.6rem;">TITULAR</span></td>
+                    <td style="padding: 8px; color: #000 !important;">{{ reserva.dni_titular || '-' }}</td>
+                    <td style="padding: 8px; color: #000 !important;">ADULTO</td>
+                  </tr>
+                  <tr *ngFor="let p of reserva.pasajeros" style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 8px; color: #000 !important;">{{ p.nombre_completo }}</td>
+                    <td style="padding: 8px; color: #000 !important;">{{ p.dni_pasaporte || '-' }}</td>
+                    <td style="padding: 8px; color: #000 !important;">{{ p.tipo_pasajero || 'ADULTO' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Servicios contratados -->
+            <h5 class="fw-bold border-bottom border-2 pb-2 mb-4"
+              style="color: #000 !important; border-color: #333 !important;">
+              <i class="bi bi-card-checklist me-2"></i> Detalle de Servicios Contratados
+            </h5>
+
+            <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0"
+              style="text-align: center; padding: 20px; color: #999 !important;">
+              Sin servicios cargados
+            </div>
+
+            <div class="vstack gap-3">
+              <div *ngFor="let s of reserva.servicios_items" class="p-4 border rounded-3"
+                style="background-color: #fff !important; page-break-inside: avoid; border-color: #ddd !important;">
+
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <span class="badge px-3 py-2 text-uppercase fw-bold rounded-pill mb-2"
+                      style="font-size: 0.7rem; border: 1px solid #333; color: #333 !important; background: transparent !important;">
+                      {{ s.tipo_item }}
+                    </span>
+                    <div class="fs-5 fw-bold" style="color: #000 !important;">
+                      {{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item || 'Servicio' }}
+                    </div>
+                  </div>
+                  <div class="text-end" *ngIf="s.pnr">
+                    <div class="small fw-bold" style="color: #888 !important;">PNR</div>
+                    <div class="fw-bold px-3 py-1 rounded"
+                      style="background: #1e293b !important; color: #fff !important;">{{ s.pnr }}</div>
+                  </div>
+                </div>
+
+                <!-- Detalles por tipo -->
+                <div style="color: #333 !important;" class="small">
+                  <!-- Hotel -->
+                  <div *ngIf="s.tipo_item === 'HOTEL'" class="row g-2">
+                    <div class="col-4" *ngIf="s.ciudad"><strong>Ciudad:</strong> {{ s.ciudad }}</div>
+                    <div class="col-4" *ngIf="s.check_in"><strong>Check-in:</strong> {{ s.check_in | date:'dd/MM/yyyy'
+                      }}</div>
+                    <div class="col-4" *ngIf="s.check_out"><strong>Check-out:</strong> {{ s.check_out |
+                      date:'dd/MM/yyyy' }}</div>
+                    <div class="col-4" *ngIf="s.regimen"><strong>Régimen:</strong> {{ s.regimen | titlecase }}</div>
+                  </div>
+
+                  <!-- Vuelo -->
+                  <div *ngIf="s.tipo_item === 'VUELO'" class="row g-2">
+                    <div class="col-6" *ngIf="s.origen && s.destino"><strong>Ruta:</strong> {{ s.origen }} → {{
+                      s.destino }}</div>
+                    <div class="col-6" *ngIf="s.nro_vuelo"><strong>Vuelo:</strong> {{ s.nro_vuelo }}</div>
+                    <div class="col-4" *ngIf="s.excursion_fecha"><strong>Fecha:</strong> {{ s.excursion_fecha |
+                      date:'dd/MM/yyyy' }}</div>
+                    <div class="col-4" *ngIf="s.hora_salida"><strong>Sale:</strong> {{ s.hora_salida }}</div>
+                    <div class="col-4" *ngIf="s.hora_llegada"><strong>Llega:</strong> {{ s.hora_llegada }}</div>
+                  </div>
+
+                  <!-- Asistencia -->
+                  <div *ngIf="s.tipo_item === 'ASISTENCIA'" class="row g-2">
+                    <div class="col-6" *ngIf="s.plan_asistencia"><strong>Plan:</strong> {{ s.plan_asistencia }}</div>
+                    <div class="col-6" *ngIf="s.nro_poliza"><strong>Póliza:</strong> {{ s.nro_poliza }}</div>
+                    <div class="col-12" *ngIf="s.cobertura_detalles"><strong>Cobertura:</strong> {{ s.cobertura_detalles
+                      }}</div>
+                  </div>
+
+                  <!-- Crucero -->
+                  <div *ngIf="s.tipo_item === 'CRUCERO'" class="row g-2">
+                    <div class="col-6" *ngIf="s.crucero_cabina"><strong>Cabina:</strong> {{ s.crucero_cabina }}</div>
+                    <div class="col-6" *ngIf="s.check_in"><strong>Embarque:</strong> {{ s.check_in | date:'dd/MM/yyyy'
+                      }}</div>
+                    <div class="col-12" *ngIf="s.crucero_itinerario"><strong>Itinerario:</strong> {{
+                      s.crucero_itinerario }}</div>
+                  </div>
+
+                  <!-- Visa -->
+                  <div *ngIf="s.tipo_item === 'VISA'" class="row g-2">
+                    <div class="col-6" *ngIf="s.pais_destino"><strong>País:</strong> {{ s.pais_destino }}</div>
+                    <div class="col-6" *ngIf="s.nro_tramite"><strong>Trámite:</strong> {{ s.nro_tramite }}</div>
+                    <div class="col-6" *ngIf="s.fecha_vencimiento_visa"><strong>Vence:</strong> {{
+                      s.fecha_vencimiento_visa | date:'dd/MM/yyyy' }}</div>
+                  </div>
+
+                  <!-- Servicio genérico -->
+                  <div *ngIf="s.tipo_item === 'SERVICIO'" class="row g-2">
+                    <div class="col-6" *ngIf="s.excursion_fecha"><strong>Fecha:</strong> {{ s.excursion_fecha |
+                      date:'dd/MM/yyyy' }}</div>
+                  </div>
+
+                  <!-- Descripción (para todos) -->
+                  <div class="mt-2 p-2 rounded" style="background: #f8fafc !important; white-space: pre-wrap;"
+                    *ngIf="s.servicio_descripcion">
+                    <i class="bi bi-info-circle me-1"></i> {{ s.servicio_descripcion }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pie del voucher -->
+            <div class="mt-5 pt-4 border-top text-center small"
+              style="color: #888 !important; border-color: #ccc !important;">
+              <p class="mb-0 fw-bold">Este documento es válido como confirmación de los servicios listados.</p>
+              <p>Por favor, presentarlo junto a su documentación de viaje oficial al momento de requerir los servicios.
+              </p>
+            </div>
+          </div>
+          <!-- ═══ ESTILO COTIZACIÓN ═══ -->
+          <div *ngSwitchCase="'COTIZACION'">
+
+            <div class="bg-light p-4 rounded-3 mb-4 border">
+              <h6 class="fw-bold text-uppercase text-muted small mb-3 border-bottom pb-2">Datos del Pasajero</h6>
+              <div class="row">
+                <div class="col-4">
+                  <div class="small fw-bold text-muted">Nombre</div>
+                  <div class="fw-bold">{{ reserva.nombre_titular }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="small fw-bold text-muted">DNI / Pasaporte</div>
+                  <div class="fw-bold">{{ reserva.dni_titular }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="small fw-bold text-muted">Destino</div>
+                  <div class="fw-bold">{{ reserva.destino_final }}</div>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-4" *ngIf="reserva.fecha_viaje_salida">
+                  <div class="small fw-bold text-muted">Salida</div>
+                  <div class="fw-bold">{{ reserva.fecha_viaje_salida | date:'dd/MM/yyyy' }}</div>
+                </div>
+                <div class="col-4" *ngIf="reserva.fecha_viaje_regreso">
+                  <div class="small fw-bold text-muted">Regreso</div>
+                  <div class="fw-bold">{{ reserva.fecha_viaje_regreso | date:'dd/MM/yyyy' }}</div>
+                </div>
+                <div class="col-4" *ngIf="reserva.pasajeros?.length > 0">
+                  <div class="small fw-bold text-muted">Pasajeros</div>
+                  <div class="fw-bold">{{ (reserva.pasajeros?.length || 0) + 1 }} persona(s)</div>
+                </div>
+              </div>
+            </div>
+
+            <h5 class="fw-bold border-bottom border-dark pb-2 mb-4 text-uppercase">
+              <i class="bi bi-receipt-cutoff me-2"></i> Desglose de Inversión
+            </h5>
+
+            <table class="table table-sm mb-4" style="color: black !important;">
+              <thead>
+                <tr class="border-bottom border-2 border-dark">
+                  <th class="fw-bold text-uppercase small">Concepto</th>
+                  <th class="fw-bold text-uppercase small">Detalle</th>
+                  <th class="fw-bold text-uppercase small text-end">Valor (USD)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let s of (datosCotizacion?.servicios_cotizacion || reserva.servicios_items)"
+                  class="border-bottom">
+                  <td>
+                    <span class="badge border border-secondary text-dark px-2 py-1 rounded-pill"
+                      style="font-size: 0.65rem;">{{ s.tipo_item }}</span>
+                  </td>
+                  <td class="fw-bold">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item ||
+                    'Servicio' }}</td>
+                  <td class="text-end fw-bold">US$ {{ (s.venta_bruta_cliente || 0) | number:'1.2-2' }}</td>
+                </tr>
+                <tr *ngIf="reserva.gastos_administrativos_usd > 0" class="border-bottom">
+                  <td><span class="badge border border-secondary text-dark px-2 py-1 rounded-pill"
+                      style="font-size: 0.65rem;">ADMIN</span></td>
+                  <td class="fw-bold">Gastos administrativos</td>
+                  <td class="text-end fw-bold">US$ {{ reserva.gastos_administrativos_usd | number:'1.2-2' }}</td>
+                </tr>
+                <tr *ngIf="reserva.bonificacion_descuento_usd > 0" class="border-bottom text-success">
+                  <td><span class="badge border border-success text-success px-2 py-1 rounded-pill"
+                      style="font-size: 0.65rem;">DESC</span></td>
+                  <td class="fw-bold">Bonificación / Descuento</td>
+                  <td class="text-end fw-bold">- US$ {{ reserva.bonificacion_descuento_usd | number:'1.2-2' }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="border-top border-3 border-dark">
+                  <td colspan="2" class="fw-bold fs-5 text-uppercase">INVERSIÓN TOTAL</td>
+                  <td class="text-end fw-bold fs-5 text-primary">US$ {{ reserva.total_venta_final_usd | number:'1.2-2'
+                    }}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div class="bg-light border rounded-3 p-4 mt-4" *ngIf="reserva.cotizacion_dolar">
+              <div class="small fw-bold text-muted mb-1">COTIZACIÓN DE REFERENCIA</div>
+              <div class="fw-bold">1 USD = $ {{ reserva.cotizacion_dolar | number:'1.2-2' }} ARS</div>
+              <div class="fw-bold text-dark mt-1">Equivalente en pesos: <strong class="text-primary">$ {{
+                  (reserva.total_venta_final_usd * reserva.cotizacion_dolar) | number:'1.2-2' }} ARS</strong></div>
+            </div>
+
+            <div class="mt-5 pt-4 border-top text-center text-muted small">
+              <p class="mb-0 fw-bold">Esta cotización tiene carácter informativo y está sujeta a disponibilidad y tipo
+                de cambio vigente.</p>
+              <p>Validez: 5 días hábiles desde la fecha de emisión. Consulte condiciones de pago.</p>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
   </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL PREVIEW RECIBO -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+    style="z-index: 10000; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);"
+    *ngIf="mostrarRecibo && reciboPreview" (click)="mostrarRecibo = false">
+
+    <div class="bg-white rounded-4 shadow-lg p-0 position-relative"
+      style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+
+      <!-- Barra de acciones (no se imprime) -->
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom no-print">
+        <h6 class="fw-bold m-0"><i class="bi bi-receipt me-2"></i>Vista previa del Recibo</h6>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-primary rounded-pill px-3" (click)="imprimirRecibo()">
+            <i class="bi bi-printer me-1"></i> Imprimir
+          </button>
+          <button class="btn btn-sm btn-outline-dark rounded-pill" (click)="mostrarRecibo = false">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recibo imprimible -->
+      <div class="p-4 print-section" id="recibo-print">
+
+        <!-- Header del recibo -->
+        <div class="text-center mb-4 pb-3 border-bottom border-2 border-dark">
+          <h4 class="fw-bold mb-1 text-uppercase">{{ reciboPreview.empresa_nombre || auth.getNombreEmpresa() }}</h4>
+          <div class="small text-muted" *ngIf="reciboPreview.empresa_titular">
+            Titular: {{ reciboPreview.empresa_titular }}
+          </div>
+          <div class="small text-muted" *ngIf="reciboPreview.empresa_cuit">
+            CUIT: {{ reciboPreview.empresa_cuit }}
+          </div>
+          <div class="small text-muted" *ngIf="reciboPreview.empresa_domicilio">
+            {{ reciboPreview.empresa_domicilio }}
+          </div>
+        </div>
+
+        <!-- Tipo y número -->
+        <div class="d-flex justify-content-between align-items-start mb-4">
+          <div>
+            <span class="badge bg-dark px-3 py-2 fs-6 rounded-pill">{{ reciboPreview.tipo_recibo || 'RECIBO X' }}</span>
+          </div>
+          <div class="text-end">
+            <div class="fw-bold fs-5 text-primary">N° {{ reciboPreview.nro_recibo }}</div>
+            <div class="small text-muted">{{ reciboPreview.fecha_emision | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+        </div>
+
+        <!-- Datos del cliente -->
+        <div class="bg-light rounded-3 p-3 mb-4">
+          <div class="row">
+            <div class="col-8">
+              <div class="small text-muted fw-bold" style="font-size: 0.7rem;">RECIBÍ DE</div>
+              <div class="fw-bold">{{ reciboPreview.cliente_nombre || 'Sin especificar' }}</div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="small text-muted fw-bold" style="font-size: 0.7rem;">DNI/PASAPORTE</div>
+              <div class="fw-bold">{{ reciboPreview.cliente_dni || '-' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Referencia de reserva -->
+        <div class="mb-4" *ngIf="reciboPreview.id_reserva">
+          <div class="small text-muted fw-bold" style="font-size: 0.7rem;">LEGAJO / RESERVA</div>
+          <div class="fw-bold">#{{ reciboPreview.id_reserva }}</div>
+        </div>
+
+        <!-- Concepto -->
+        <div class="mb-4">
+          <div class="small text-muted fw-bold" style="font-size: 0.7rem;">EN CONCEPTO DE</div>
+          <div>{{ reciboPreview.concepto || 'Pago de servicios turísticos' }}</div>
+        </div>
+
+        <!-- MONTO PRINCIPAL -->
+        <div class="bg-dark text-white rounded-3 p-4 mb-4 text-center">
+          <div class="small text-white-50 fw-bold" style="font-size: 0.7rem;">LA SUMA DE</div>
+          <div class="display-6 fw-bold">
+            {{ reciboPreview.moneda }} {{ reciboPreview.monto | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <!-- Método de pago -->
+        <div class="row g-3 mb-4">
+          <div class="col-6">
+            <div class="small text-muted fw-bold" style="font-size: 0.7rem;">MÉTODO DE PAGO</div>
+            <div class="fw-bold">
+              <i class="bi me-1" [ngClass]="{
+                'bi-cash-stack text-success': reciboPreview.metodo_pago === 'EFECTIVO',
+                'bi-bank text-info': reciboPreview.metodo_pago === 'TRANSFERENCIA',
+                'bi-credit-card text-primary': reciboPreview.metodo_pago === 'TARJETA',
+                'bi-phone text-warning': reciboPreview.metodo_pago === 'MERCADOPAGO'
+              }"></i>
+              {{ reciboPreview.metodo_pago }}
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="small text-muted fw-bold" style="font-size: 0.7rem;">MONEDA</div>
+            <div class="fw-bold">{{ reciboPreview.moneda }}</div>
+          </div>
+        </div>
+
+        <!-- Datos de tarjeta (solo si pagó con tarjeta) -->
+        <div class="border rounded-3 p-3 mb-4 bg-light" *ngIf="reciboPreview.metodo_pago === 'TARJETA'">
+          <div class="small fw-bold text-muted mb-2" style="font-size: 0.7rem;">
+            <i class="bi bi-credit-card-2-front me-1"></i> DATOS DE TARJETA
+          </div>
+          <div class="row g-2 small">
+            <div class="col-6" *ngIf="reciboPreview.tarjeta_numero">
+              <span class="text-muted">Tarjeta:</span> <strong>{{ reciboPreview.tarjeta_numero }}</strong>
+            </div>
+            <div class="col-6" *ngIf="reciboPreview.tarjeta_banco">
+              <span class="text-muted">Banco:</span> <strong>{{ reciboPreview.tarjeta_banco }}</strong>
+            </div>
+            <div class="col-6" *ngIf="reciboPreview.tarjeta_vencimiento">
+              <span class="text-muted">Vence:</span> <strong>{{ reciboPreview.tarjeta_vencimiento }}</strong>
+            </div>
+            <div class="col-6" *ngIf="reciboPreview.tarjeta_cuotas > 1">
+              <span class="text-muted">Cuotas:</span> <strong>{{ reciboPreview.tarjeta_cuotas }}</strong>
+            </div>
+            <div class="col-12" *ngIf="reciboPreview.tarjeta_interes > 0">
+              <span class="text-muted">Interés:</span> <strong>{{ reciboPreview.tarjeta_interes }}%</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="mb-4" *ngIf="reciboPreview.observaciones">
+          <div class="small text-muted fw-bold" style="font-size: 0.7rem;">OBSERVACIONES</div>
+          <div class="small fst-italic">{{ reciboPreview.observaciones }}</div>
+        </div>
+
+        <!-- Anulado -->
+        <div class="bg-danger text-white text-center p-3 rounded-3 mb-4 fw-bold" *ngIf="reciboPreview.anulado">
+          <i class="bi bi-exclamation-octagon-fill me-2"></i> RECIBO ANULADO — {{ reciboPreview.fecha_anulacion |
+          date:'dd/MM/yyyy HH:mm' }}
+        </div>
+
+        <!-- Pie de recibo -->
+        <div class="border-top border-2 border-dark pt-4 mt-4">
+          <div class="row">
+            <div class="col-6 text-center">
+              <div class="border-top border-dark pt-2 mt-5 mx-4">
+                <div class="small text-muted">Firma del receptor</div>
+              </div>
+            </div>
+            <div class="col-6 text-center">
+              <div class="border-top border-dark pt-2 mt-5 mx-4">
+                <div class="small text-muted">Firma y sello</div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mt-3 small text-muted fst-italic">
+            Este recibo no tiene validez fiscal — Documento interno
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </div>

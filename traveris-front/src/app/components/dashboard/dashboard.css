@@ -1,26 +1,31 @@
 /* --- COMPONENTE DE NOTIFICACIONES UNIFICADO --- */
 
-/* 1. Botón Flotante (Tu código original) */
+/* 1. Botón Flotante */
 .notification-bell {
   position: fixed;
   bottom: 30px;
   right: 30px;
   width: 60px;
   height: 60px;
-  background-color: #ef4444; /* Rojo de tu root */
+  background: var(--accent-gradient);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+  box-shadow: var(--shadow-accent);
   cursor: pointer;
   z-index: 2000;
   border: none;
+  transition: transform 0.2s;
+}
+
+.notification-bell:hover {
+  transform: scale(1.05);
 }
 
 .notification-bell i {
   color: white !important;
-  font-size: 26px; /* Tamaño ideal */
+  font-size: 26px;
   line-height: 1;
 }
 
@@ -29,25 +34,26 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: white;
-  color: #ef4444;
-  border: 2px solid #ef4444;
+  background: var(--danger);
+  color: white;
+  border: 2px solid var(--bg-body);
   border-radius: 50%;
   padding: 2px 7px;
   font-size: 11px;
   font-weight: 800;
 }
 
-/* 3. Panel de Notificaciones (Estilo Compacto Prolijo) */
+/* 3. Panel de Notificaciones */
 .notification-panel {
   position: fixed;
   bottom: 100px;
   right: 30px;
-  width: 300px; /* Ancho prolijo */
-  max-height: 400px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  width: 320px;
+  max-height: 420px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-xl);
   z-index: 2001;
   overflow: hidden;
   display: flex;
@@ -56,12 +62,14 @@
 
 /* Encabezado del panel */
 .notification-panel .bg-danger {
-  padding: 10px 15px !important;
+  background: var(--accent-gradient) !important;
+  padding: 14px 18px !important;
 }
 
 .notification-panel h6 {
-  font-size: 0.9rem !important;
+  font-size: 0.88rem !important;
   margin-bottom: 0;
+  color: white !important;
 }
 
 /* Lista de items */
@@ -71,26 +79,28 @@
 }
 
 .notif-item {
-  padding: 12px 15px !important;
-  border-bottom: 1px solid #f1f1f1;
+  padding: 14px 18px !important;
+  border-bottom: 1px solid var(--border-light);
   transition: all 0.2s;
   cursor: pointer;
   text-decoration: none !important;
 }
 
 .notif-item:hover {
-  background-color: #fcfcfc;
+  background-color: var(--bg-card-hover);
 }
 
 /* Ajuste de textos internos */
 .notif-item span.fw-bold {
-  font-size: 0.8rem !important;
+  font-size: 0.82rem !important;
   display: block;
+  color: var(--text-main);
 }
 
 .notif-item small {
-  font-size: 0.7rem !important;
+  font-size: 0.72rem !important;
   display: block;
+  color: var(--text-muted);
 }
 
 /* Scrollbar estética */
@@ -98,6 +108,6 @@
   width: 4px;
 }
 .notif-list::-webkit-scrollbar-thumb {
-  background: #eee;
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
 }

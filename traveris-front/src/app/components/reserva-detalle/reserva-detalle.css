@@ -1,34 +1,32 @@
-/* --- TUS ESTILOS ORIGINALES --- */
+/* --- ESTILOS PARA VISTA DOCUMENTO A4 --- */
 .doc-preview-container {
-    background: white;
-    color: #1a202c;
+    background: var(--bg-card);
+    color: var(--text-main);
     padding: 1.5cm;
     width: 210mm;
     min-height: 297mm;
     margin: auto;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     line-height: 1.4;
 }
 
 .doc-header {
     display: flex;
     justify-content: space-between;
-    border-bottom: 2px solid #2d3748;
+    border-bottom: 2px solid var(--border);
     padding-bottom: 20px;
     margin-bottom: 30px;
 }
 
-/* ... (resto de tus estilos de tabla y A4 sheet) ... */
-
 .doc-a4-sheet {
   width: 210mm;
   min-height: 297mm;
-  font-family: 'Helvetica', 'Arial', sans-serif;
-  color: #2c3e50;
+  font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
+  color: var(--text-main);
   box-sizing: border-box;
 }
 
-/* --- NUEVOS ESTILOS PARA CONTROL DE VENCIMIENTO --- */
+/* --- ESTILOS CONTROL DE VENCIMIENTO --- */
 .extra-small {
     font-size: 0.7rem;
     line-height: 1.2;
@@ -38,10 +36,34 @@
     border-color: rgba(239, 68, 68, 0.25) !important;
 }
 
-/* Resaltado del input de fecha cuando el agente está editando */
+/* Resaltado del input de fecha */
 input[type="date"].border-danger:focus {
     border-color: var(--danger) !important;
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* --- ESTILO FORMULARIO TARJETA --- */
+.card-form-premium {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.card-form-premium:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.card-brand-pill {
+    background: var(--bg-body);
+    padding: 2px 10px;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    border: 1px solid var(--border);
 }
 
 @media print {
@@ -53,4 +75,68 @@ input[type="date"].border-danger:focus {
         padding: 10mm !important; box-shadow: none !important;
     }
     .modal-header, .btn, .no-print { display: none !important; }
+}
+
+documento-imprimible,
+#documento-imprimible *,
+#recibo-print,
+#recibo-print * {
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+ 
+#documento-imprimible {
+    background-color: #ffffff !important;
+}
+ 
+#documento-imprimible .bg-light,
+#recibo-print .bg-light {
+    background-color: #f8fafc !important;
+}
+ 
+#documento-imprimible .text-muted {
+    color: #6b7280 !important;
+}
+ 
+#documento-imprimible .text-primary {
+    color: #2563eb !important;
+}
+ 
+#documento-imprimible .text-dark {
+    color: #111827 !important;
+}
+ 
+#documento-imprimible .border-dark {
+    border-color: #333 !important;
+}
+ 
+#documento-imprimible .badge.bg-dark {
+    background-color: #1e293b !important;
+    color: #fff !important;
+}
+ 
+#documento-imprimible table th {
+    color: #555 !important;
+}
+ 
+#documento-imprimible table td {
+    color: #000 !important;
+}
+ 
+/* Print: ocultar elementos no-print */
+@media print {
+    .no-print { display: none !important; }
+    
+    #documento-imprimible,
+    #recibo-print {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 20mm !important;
+    }
+ 
+    body {
+        background: white !important;
+    }
 }

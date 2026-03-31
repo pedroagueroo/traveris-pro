@@ -1,35 +1,172 @@
-/* Contenedor que centra el formulario en la pantalla */
+/* ==================== CLIENTE NUEVO (FORMULARIO PREMIUM) ==================== */
+
+/* Contenedor principal responsive */
 .form-container-elite {
-    max-width: 850px;
-    margin: 2rem auto;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-/* Tabs con estilo moderno */
-.nav-tabs-premium {
+/* Header del panel */
+.form-header {
     border-bottom: 2px solid var(--border);
-    background-color: #f8fafc;
-    padding-top: 10px;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-.nav-tabs-premium .nav-link {
+/* Pestañas Premium - Estilo Píldora moderna similar a SaaS */
+.nav-pills-premium {
+    gap: 10px;
+    padding: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: inline-flex;
+    max-width: 100%;
+}
+
+.nav-pills-premium .nav-item {
+    min-width: 140px;
+}
+
+.nav-pills-premium .nav-link {
     border: none;
+    background: transparent;
     color: var(--text-muted);
-    font-weight: 700;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 12px 24px;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.nav-pills-premium .nav-link:hover {
+    color: var(--text-main);
+    background: var(--bg-body);
+}
+
+.nav-pills-premium .nav-link.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: var(--shadow-accent);
+}
+
+/* Tarjeta del formulario */
+.form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    padding: 2.5rem;
     transition: all 0.3s ease;
 }
 
-.nav-tabs-premium .nav-link.active {
-    background-color: transparent;
-    color: var(--accent-blue);
-    border-bottom: 3px solid var(--accent-blue);
+/* Inputs Visuales Premium */
+.input-premium-group {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
 }
 
-/* Ajuste para los inputs dentro del formulario */
-.form-control:focus, .form-select:focus {
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+.input-premium-icon {
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 2px solid var(--border);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.input-premium {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+    border: 2px solid var(--border);
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+    padding-left: 0;
+    background-color: transparent;
+    color: var(--text-main);
+    transition: all 0.15s ease-in-out;
+}
+
+.input-premium:focus {
+    border-color: var(--accent);
+    box-shadow: none;
+    background-color: transparent;
+}
+
+/* Efecto focus en el contenedor (simulado vía JS o CSS `has()`) */
+.input-premium-group:has(.input-premium:focus) .input-premium-icon {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.input-premium-group:has(.input-premium:focus) .input-premium {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent-light);
+}
+
+/* Inputs sin icono (fallback) */
+.form-control.premium-standalone, .form-select.premium-standalone {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    background-color: transparent;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+}
+
+.form-control.premium-standalone:focus, .form-select.premium-standalone:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-light);
+}
+
+/* Separadores de sección */
+.section-divider {
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin: 2rem 0 1.5rem;
+}
+
+.section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-card {
+        padding: 1.5rem;
+    }
+    .nav-pills-premium {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        border-radius: 12px;
+    }
+    .nav-pills-premium .nav-item {
+        flex: 0 0 auto;
+    }
 }

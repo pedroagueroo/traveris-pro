@@ -1,4 +1,4 @@
-import { Component, NgModule, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api';
 import { CommonModule } from '@angular/common';
@@ -29,23 +29,40 @@ export class ReservaDetalleComponent implements OnInit {
 
   deudaProveedor: number = 0;
 
-  nuevoPago = {
+  nuevoPago: any = {
     id_reserva: 0,
     monto: 0,
     moneda: 'USD',
     tipo_movimiento: 'PAGO_CLIENTE',
     metodo_pago: 'EFECTIVO',
     observaciones: '',
-    cotizacion_manual: 0 // 👈 Agregamos esto para corregir el error
+    cotizacion_manual: 0
   };
 
   archivos: any[] = [];
-
   fechaLimiteEditable: string = '';
 
+  // --- RECIBOS ---
+  recibos: any[] = [];
+  reciboPreview: any = null;
+  mostrarRecibo: boolean = false;
+  datosCotizacion: any = null;
 
+  // --- TARJETA + CUOTAS ---
+  datosTarjeta: any = {
+    numero: '',
+    vencimiento: '',
+    cvv: '',
+    cuotas: 1,
+    interes: 0
+  };
+  bancoDetectado: string = '';
 
-  constructor(private route: ActivatedRoute, private api: ApiService, public auth: AuthService) { }
+  constructor(
+    private route: ActivatedRoute,
+    private api: ApiService,
+    public auth: AuthService
+  ) { }
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -55,76 +72,15 @@ export class ReservaDetalleComponent implements OnInit {
     }
   }
 
-  enviarPorMail() {
-    if (!this.reserva.email_titular) {
-      alert("El cliente no tiene un email registrado.");
-      return;
-    }
+  // ============================================================
+  // CARGAR DATOS PRINCIPALES
+  // ============================================================
 
-    const datosMail = {
-      destinatario: this.reserva.email_titular,
-      nombreCliente: this.reserva.nombre_titular,
-      tipoDoc: this.tipoDoc,
-      destino: this.reserva.destino_final
-    };
-
-    this.api.enviarMail(this.idReserva, datosMail).subscribe({
-      next: () => alert("¡Email enviado correctamente al cliente!"),
-      error: () => alert("Hubo un error al conectar con el servidor de correo.")
-    });
-  }
-
-  eliminarArchivo(id: number) {
-    if (confirm("¿Estás seguro de eliminar este documento?")) {
-      this.api.eliminarArchivoReserva(id).subscribe({
-        next: () => {
-          alert("Archivo eliminado");
-          this.obtenerArchivos(); // Refresca la lista
-        },
-        error: (err) => alert("No se pudo eliminar el archivo")
-      });
-    }
-  }
-
-  // Cargar al iniciar
-  obtenerArchivos() {
-    this.api.getArchivosReserva(this.idReserva).subscribe(data => this.archivos = data);
-  }
-
-  onFileSelected(event: any) {
-    const file: File = event.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append('archivo', file);
-
-      // Llamamos al API (necesitás crear esta función en el ApiService)
-      this.api.subirArchivoReserva(this.idReserva, formData).subscribe(() => {
-        alert("Archivo subido con éxito");
-        this.obtenerArchivos(); // Recargamos la lista
-      });
-    }
-  }
-
-  previsualizar(tipo: 'VOUCHER' | 'COTIZACION') {
-    this.tipoDoc = tipo;
-    this.mostrarPreview = true;
-  }
-
-  imprimir() {
-    // Le damos un pequeño delay para que el navegador procese el CSS de impresión
-    setTimeout(() => {
-      window.print();
-    }, 200);
-  }
-
-  // En el cargarData(), seteamos la fecha en el input
   cargarData() {
     this.api.getReservaPorId(this.idReserva).subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.reserva = data;
 
-        // Si la reserva ya tiene fecha, la usamos. 
-        // Si no, calculamos 30 días antes de la salida para mostrarla en el input como sugerencia.
         if (this.reserva.fecha_limite_pago) {
           this.fechaLimiteEditable = this.reserva.fecha_limite_pago.split('T')[0];
         } else if (this.reserva.fecha_viaje_salida) {
@@ -134,12 +90,18 @@ export class ReservaDetalleComponent implements OnInit {
         }
 
         this.obtenerMovimientos();
+        this.obtenerArchivos();
+        this.cargarRecibos();
       }
     });
   }
 
+  // ============================================================
+  // MOVIMIENTOS Y FINANZAS
+  // ============================================================
+
   obtenerMovimientos() {
-    this.api.getMovimientosPorReserva(this.idReserva).subscribe(movs => {
+    this.api.getMovimientosPorReserva(this.idReserva).subscribe((movs: any[]) => {
       this.movimientos = movs;
       this.procesarFinanzas();
     });
@@ -150,82 +112,350 @@ export class ReservaDetalleComponent implements OnInit {
     const costoTotal = parseFloat(this.reserva.costo_total_operador_usd || 0);
 
     this.totalCobradoUSD = 0;
-    let totalPagadoOperadorUSD = 0; // Nueva variable local
+    let totalPagadoOperadorUSD = 0;
     this.saldoARS = 0;
 
-    this.movimientos.forEach(m => {
-      const montoNum = Math.abs(parseFloat(m.monto));
+    this.movimientos.forEach((m: any) => {
+      const montoNum = parseFloat(m.monto);
       if (m.moneda === 'USD') {
         if (m.tipo_movimiento === 'PAGO_CLIENTE') {
           this.totalCobradoUSD += montoNum;
         }
         if (m.tipo_movimiento === 'PAGO_PROVEEDOR') {
-          totalPagadoOperadorUSD += montoNum; // Sumamos lo pagado al operador
+          totalPagadoOperadorUSD += montoNum;
         }
       } else if (m.moneda === 'ARS') {
         if (m.tipo_movimiento === 'PAGO_CLIENTE') this.saldoARS += montoNum;
       }
     });
 
-    // Calculamos las deudas finales
     this.deudaCliente = totalVenta - this.totalCobradoUSD;
-    this.deudaProveedor = costoTotal - totalPagadoOperadorUSD; // 👈 Esto arregla el 0.00
-
+    this.deudaProveedor = costoTotal - totalPagadoOperadorUSD;
     this.porcentajeCobrado = totalVenta > 0 ? (this.totalCobradoUSD / totalVenta) * 100 : 0;
-
-
-    // Dentro de procesarFinanzas()
-    this.movimientos.forEach(m => {
-      const montoNum = Math.abs(parseFloat(m.monto));
-
-      if (m.tipo_movimiento === 'PAGO_CLIENTE') {
-        if (m.moneda === 'USD') {
-          this.totalCobradoUSD += montoNum;
-        } else {
-          // Si pagó en ARS, usamos la cotización que guardamos en observaciones o una variable de la DB
-          // Por ahora, asumimos que el usuario registró el equivalente en el momento
-          // Tip: Podés guardar en el campo 'observaciones' la leyenda "Cobro ARS equivalent a USD XXX"
-          this.totalCobradoUSD += (m.monto_en_usd_equivalente || 0);
-        }
-      }
-    });
-
   }
+
+  // ============================================================
+  // DETECCIÓN DE BANCO POR BIN (primeros dígitos)
+  // ============================================================
+
+  detectarBanco() {
+    const num = (this.datosTarjeta.numero || '').replace(/\s/g, '');
+    if (num.length < 4) { this.bancoDetectado = ''; return; }
+
+    const prefix = num.substring(0, 6);
+
+    if (num.startsWith('4')) {
+      if (prefix.startsWith('451761') || prefix.startsWith('450799')) { this.bancoDetectado = 'Banco Nación (Visa)'; return; }
+      if (prefix.startsWith('450601') || prefix.startsWith('455002')) { this.bancoDetectado = 'Banco Provincia (Visa)'; return; }
+      if (prefix.startsWith('427562') || prefix.startsWith('450903')) { this.bancoDetectado = 'Banco Galicia (Visa)'; return; }
+      if (prefix.startsWith('472825') || prefix.startsWith('476507')) { this.bancoDetectado = 'BBVA (Visa)'; return; }
+      if (prefix.startsWith('426211') || prefix.startsWith('403478')) { this.bancoDetectado = 'Santander (Visa)'; return; }
+      if (prefix.startsWith('458767') || prefix.startsWith('415829')) { this.bancoDetectado = 'Banco Macro (Visa)'; return; }
+      this.bancoDetectado = 'Visa'; return;
+    }
+    if (num.startsWith('5') || (parseInt(prefix) >= 222100 && parseInt(prefix) <= 272099)) {
+      if (prefix.startsWith('515073') || prefix.startsWith('525547')) { this.bancoDetectado = 'Banco Nación (MC)'; return; }
+      if (prefix.startsWith('517562') || prefix.startsWith('528956')) { this.bancoDetectado = 'Banco Galicia (MC)'; return; }
+      if (prefix.startsWith('546553') || prefix.startsWith('525499')) { this.bancoDetectado = 'BBVA (MC)'; return; }
+      if (prefix.startsWith('544407') || prefix.startsWith('548510')) { this.bancoDetectado = 'Santander (MC)'; return; }
+      this.bancoDetectado = 'Mastercard'; return;
+    }
+    if (num.startsWith('34') || num.startsWith('37')) { this.bancoDetectado = 'American Express'; return; }
+    if (prefix.startsWith('604244') || prefix.startsWith('589657')) { this.bancoDetectado = 'Cabal'; return; }
+    if (prefix.startsWith('589562')) { this.bancoDetectado = 'Tarjeta Naranja'; return; }
+
+    this.bancoDetectado = 'Otro';
+  }
+
+  // Calcula monto por cuota con interés
+  get montoPorCuota(): number {
+    if (!this.nuevoPago.monto || this.datosTarjeta.cuotas < 1) return 0;
+    const montoConInteres = this.nuevoPago.monto * (1 + (this.datosTarjeta.interes / 100));
+    return montoConInteres / this.datosTarjeta.cuotas;
+  }
+
+  get montoTotalConInteres(): number {
+    if (!this.nuevoPago.monto) return 0;
+    return this.nuevoPago.monto * (1 + (this.datosTarjeta.interes / 100));
+  }
+
+  // ============================================================
+  // GUARDAR PAGO + GENERAR RECIBO AUTOMÁTICO + CUOTAS
+  // ============================================================
 
   guardarPago() {
+    if (!this.nuevoPago.monto) {
+      return alert("El monto es obligatorio");
+    }
+
+    // Validaciones extra si es tarjeta
+    if (this.nuevoPago.metodo_pago === 'TARJETA') {
+      const num = (this.datosTarjeta.numero || '').replace(/\s/g, '');
+      if (num.length < 13) return alert("Ingresá un número de tarjeta válido");
+      if (!this.datosTarjeta.vencimiento) return alert("Ingresá la fecha de vencimiento de la tarjeta");
+      if (!this.datosTarjeta.cvv || this.datosTarjeta.cvv.length < 3) return alert("Ingresá el CVV");
+    }
+
     this.nuevoPago.id_reserva = this.idReserva;
 
-    // Agregamos la categoría automática por ser desde el detalle de reserva
-    const pagoFinal = { ...this.nuevoPago, categoria: 'RESERVA' };
+    const esTarjeta = this.nuevoPago.metodo_pago === 'TARJETA';
+    const cuotas = esTarjeta ? (this.datosTarjeta.cuotas || 1) : 1;
+    const montoTotalReal = esTarjeta ? this.montoTotalConInteres : this.nuevoPago.monto;
 
-    this.api.crearMovimientoCaja(this.nuevoPago).subscribe(() => {
-      alert("Movimiento Asentado");
-      this.cargarData();
-      this.nuevoPago.monto = 0;
+    // Si hay cuotas > 1, generar un movimiento por cada cuota con fecha primer día de cada mes
+    if (esTarjeta && cuotas > 1) {
+      this.registrarPagoEnCuotas(montoTotalReal, cuotas);
+    } else {
+      this.registrarPagoUnico(montoTotalReal);
+    }
+  }
+
+  private registrarPagoUnico(monto: number) {
+    const payloadCaja: any = {
+      ...this.nuevoPago,
+      monto: monto,
+      metodo_pago: this.nuevoPago.metodo_pago,
+      empresa_nombre: this.auth.getNombreEmpresa(),
+      categoria: 'RESERVA'
+    };
+
+    this.api.crearMovimientoCaja(payloadCaja).subscribe({
+      next: (movimientoCreado: any) => {
+        this.generarReciboAutomatico(movimientoCreado.id, monto);
+      },
+      error: (err: any) => {
+        alert("Error al registrar el pago: " + (err.error?.error || "Error de servidor"));
+      }
     });
   }
+
+  private registrarPagoEnCuotas(montoTotal: number, cuotas: number) {
+    const montoPorCuota = Math.round((montoTotal / cuotas) * 100) / 100;
+    const hoy = new Date();
+    let cuotasRegistradas = 0;
+    let errores = 0;
+
+    for (let i = 0; i < cuotas; i++) {
+      // Fecha: primer día de cada mes siguiente
+      const fechaCuota = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+
+      const payloadCuota: any = {
+        id_reserva: this.idReserva,
+        monto: montoPorCuota,
+        moneda: this.nuevoPago.moneda,
+        tipo_movimiento: this.nuevoPago.tipo_movimiento,
+        metodo_pago: 'TARJETA',
+        observaciones: `Cuota ${i + 1}/${cuotas} - ${this.bancoDetectado || 'Tarjeta'} - Legajo #${this.idReserva}`,
+        empresa_nombre: this.auth.getNombreEmpresa(),
+        categoria: 'RESERVA'
+      };
+
+      this.api.crearMovimientoCaja(payloadCuota).subscribe({
+        next: (mov: any) => {
+          cuotasRegistradas++;
+          // Solo generar recibo en la primera cuota
+          if (cuotasRegistradas === 1) {
+            this.generarReciboAutomatico(mov.id, montoTotal);
+          }
+          if (cuotasRegistradas + errores === cuotas) {
+            alert(`${cuotasRegistradas} cuota(s) de ${this.nuevoPago.moneda} ${montoPorCuota.toFixed(2)} registradas correctamente.`);
+            this.cargarData();
+            this.resetFormularioPago();
+          }
+        },
+        error: () => {
+          errores++;
+          if (cuotasRegistradas + errores === cuotas) {
+            alert(`Se registraron ${cuotasRegistradas} cuotas. ${errores} fallaron.`);
+            this.cargarData();
+          }
+        }
+      });
+    }
+  }
+
+  private generarReciboAutomatico(idMovimiento: number, monto: number) {
+    const esTarjeta = this.nuevoPago.metodo_pago === 'TARJETA';
+
+    const payloadRecibo: any = {
+      id_reserva: this.idReserva,
+      id_movimiento: idMovimiento,
+      id_cliente: this.reserva.id_titular,
+      empresa_nombre: this.auth.getNombreEmpresa(),
+      empresa_cuit: null,
+      empresa_domicilio: null,
+      empresa_titular: null,
+      monto: monto,
+      moneda: this.nuevoPago.moneda,
+      metodo_pago: this.nuevoPago.metodo_pago || 'EFECTIVO',
+      cliente_nombre: this.reserva.nombre_titular,
+      cliente_dni: this.reserva.dni_titular,
+      observaciones: this.nuevoPago.observaciones,
+      concepto: `Pago legajo #${this.idReserva} - ${this.reserva.destino_final || ''}`,
+      tipo_recibo: 'RECIBO_X',
+      // Datos de tarjeta (solo si aplica)
+      tarjeta_numero: esTarjeta ? this.datosTarjeta.numero : null,
+      tarjeta_vencimiento: esTarjeta ? this.datosTarjeta.vencimiento : null,
+      tarjeta_cuotas: esTarjeta ? this.datosTarjeta.cuotas : 1,
+      tarjeta_interes: esTarjeta ? this.datosTarjeta.interes : 0
+    };
+
+    this.api.generarRecibo(payloadRecibo).subscribe({
+      next: (reciboRes: any) => {
+        const cuotasMsg = esTarjeta && this.datosTarjeta.cuotas > 1
+          ? ` en ${this.datosTarjeta.cuotas} cuotas`
+          : '';
+        alert(`Recibo X N° ${reciboRes.recibo.nro_recibo} generado${cuotasMsg}.`);
+        this.cargarData();
+        this.resetFormularioPago();
+      },
+      error: () => {
+        alert("Pago registrado, pero no se pudo generar el recibo automático.");
+        this.cargarData();
+        this.resetFormularioPago();
+      }
+    });
+  }
+
+  private resetFormularioPago() {
+    this.nuevoPago.monto = 0;
+    this.nuevoPago.observaciones = '';
+    this.datosTarjeta = { numero: '', vencimiento: '', cvv: '', cuotas: 1, interes: 0 };
+    this.bancoDetectado = '';
+  }
+
+  // ============================================================
+  // RECIBOS
+  // ============================================================
+
+  cargarRecibos() {
+    this.api.getRecibosPorReserva(this.idReserva).subscribe({
+      next: (data: any[]) => this.recibos = data,
+      error: () => this.recibos = []
+    });
+  }
+
+  verRecibo(recibo: any) {
+    this.reciboPreview = recibo;
+    this.mostrarRecibo = true;
+  }
+
+  imprimirRecibo() {
+    setTimeout(() => window.print(), 200);
+  }
+
+  anularRecibo(id: number) {
+    if (confirm("¿Estás seguro de anular este recibo? La operación no se puede deshacer.")) {
+      this.api.anularRecibo(id).subscribe({
+        next: () => {
+          alert("Recibo anulado correctamente");
+          this.cargarRecibos();
+        },
+        error: () => alert("Error al anular el recibo")
+      });
+    }
+  }
+
+  // ============================================================
+  // ESTADO
+  // ============================================================
 
   cambiarEstado() {
     this.api.actualizarEstadoReserva(this.idReserva, this.reserva.estado).subscribe();
   }
 
-  imprimirVoucherTotal() { window.print(); }
+  // ============================================================
+  // DOCUMENTOS Y ARCHIVOS
+  // ============================================================
 
-  // ... dentro de la clase ReservaDetalleComponent
+  descargarArchivo(ruta: string) {
+    const url = this.api.getUrlDescarga(ruta);
+    window.open(url, '_blank');
+  }
+
+  previsualizar(tipo: 'VOUCHER' | 'COTIZACION') {
+    this.tipoDoc = tipo;
+    this.mostrarPreview = true;
+  }
+
+  imprimir() {
+    setTimeout(() => window.print(), 200);
+  }
+
+  enviarDocumento(tipo: string, conArchivos: boolean) {
+    if (!this.reserva.email_titular) {
+      alert("El cliente no tiene un email registrado.");
+      return;
+    }
+
+    if (!confirm(`¿Enviar ${tipo} ${conArchivos ? 'con archivos adjuntos ' : ''}a ${this.reserva.email_titular}?`)) {
+      return;
+    }
+
+    const datosMail: any = {
+      destinatario: this.reserva.email_titular,
+      nombreCliente: this.reserva.nombre_titular,
+      tipoDoc: tipo,
+      destino: this.reserva.destino_final,
+      adjuntarArchivos: conArchivos
+    };
+
+    this.api.enviarMail(this.idReserva, datosMail).subscribe({
+      next: (res: any) => {
+        const archMsg = res.archivosAdjuntos > 0 ? ` (${res.archivosAdjuntos} archivo(s) adjunto(s))` : '';
+        alert(`¡${tipo} enviado correctamente a ${this.reserva.email_titular}!${archMsg}`);
+      },
+      error: (err: any) => alert("Error al enviar: " + (err.error?.error || "Falla de conexión con el servidor de correo"))
+    });
+  }
+
+  obtenerArchivos() {
+    this.api.getArchivosReserva(this.idReserva).subscribe((data: any[]) => this.archivos = data);
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('archivo', file);
+      this.api.subirArchivoReserva(this.idReserva, formData).subscribe(() => {
+        alert("Archivo subido con éxito");
+        this.obtenerArchivos();
+      });
+    }
+  }
+
+  eliminarArchivo(id: number) {
+    if (confirm("¿Estás seguro de eliminar este documento?")) {
+      this.api.eliminarArchivoReserva(id).subscribe({
+        next: () => {
+          alert("Archivo eliminado");
+          this.obtenerArchivos();
+        },
+        error: () => alert("No se pudo eliminar el archivo")
+      });
+    }
+  }
+
+  // ============================================================
+  // DEADLINE DE PAGO
+  // ============================================================
 
   actualizarFechaPago() {
     if (!this.fechaLimiteEditable || !this.reserva) return;
 
-    // Mapeamos asegurando que si algún campo es null, se envíe como null y no rompa el itinerario
     const serviciosMapeados = this.reserva.servicios_items ? this.reserva.servicios_items.map((s: any) => ({
       tipo_item: s.tipo_item,
       costo_neto_operador: s.costo_neto_operador || 0,
       venta_bruta_cliente: s.venta_bruta_cliente || 0,
       detalles: {
-        hotel_nombre: s.hotel_nombre || null, ciudad: s.ciudad || null, check_in: s.check_in || null, check_out: s.check_out || null,
-        aerolinea: s.aerolinea || null, nro_vuelo: s.nro_vuelo || null, origen: s.origen || null, destino: s.destino || null, pnr: s.pnr || null,
+        hotel_nombre: s.hotel_nombre || null, ciudad: s.ciudad || null,
+        check_in: s.check_in || null, check_out: s.check_out || null,
+        aerolinea: s.aerolinea || null, nro_vuelo: s.nro_vuelo || null,
+        origen: s.origen || null, destino: s.destino || null, pnr: s.pnr || null,
         nombre_servicio: s.nombre_item || null, servicio_descripcion: s.servicio_descripcion || null,
-        crucero_nombre: s.crucero_nombre || null, crucero_cabina: s.crucero_cabina || null, crucero_itinerario: s.crucero_itinerario || null,
+        crucero_nombre: s.crucero_nombre || null, crucero_cabina: s.crucero_cabina || null,
+        crucero_itinerario: s.crucero_itinerario || null,
         fecha: s.excursion_fecha || null
       }
     })) : [];
@@ -242,8 +472,9 @@ export class ReservaDetalleComponent implements OnInit {
         alert("¡Fecha actualizada! Si el saldo es mayor a 0, aparecerá en el Radar.");
         this.cargarData();
       },
-      error: (err) => alert("Error al guardar: " + (err.error?.error || "Desconocido"))
+      error: (err: any) => alert("Error al guardar: " + (err.error?.error || "Desconocido"))
     });
   }
-}
 
+  imprimirVoucherTotal() { window.print(); }
+}

@@ -1,0 +1,14 @@
+﻿[33mÔØ»[39m Building...
+[32mÔ£ö[39m Building...
+[1mInitial chunk files[22m  [2m | [22m[1mNames[22m        [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mmain-SPZEWDIF.js[39m     [2m | [22m[2mmain[22m         [2m | [22m[36m894.33 kB[39m[2m | [22m              [36m219.81 kB[39m
+[32mstyles-447NAWNN.css[39m  [2m | [22m[2mstyles[22m       [2m | [22m[36m349.30 kB[39m[2m | [22m               [36m36.73 kB[39m
+[32mscripts-TTWY4XDY.js[39m  [2m | [22m[2mscripts[22m      [2m | [22m [36m80.45 kB[39m[2m | [22m               [36m21.60 kB[39m
+[32mpolyfills-5CFQRCPP.js[39m[2m | [22m[2mpolyfills[22m    [2m | [22m [36m34.59 kB[39m[2m | [22m               [36m11.33 kB[39m
+
+[1m [22m                    [2m | [22m[1mInitial total[22m[2m | [22m  [1m1.36 MB[22m[2m | [22m              [1m289.47 kB[22m
+
+Application bundle generation complete. [24.179 seconds] - 2026-03-30T22:09:39.889Z
+
+Output location: C:\Users\vic_n\OneDrive\Escritorio\Nueva carpeta (2)\traveris-pro\traveris-front\dist\traveris-front
+

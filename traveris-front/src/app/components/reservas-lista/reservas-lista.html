@@ -1,7 +1,8 @@
-<div class="container mt-4 animate-fade-in">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="px-3 px-md-4 py-4 animate-fade-in">
+    <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Gestión de Legajos</h2>
+            <h2 class="fw-bold mb-1">Gestión de Legajos</h2>
             <p class="text-muted small mb-0">Administración central de reservas y saldos</p>
         </div>
         <button class="btn btn-elite shadow-sm" routerLink="/reservas/nuevo">
@@ -10,9 +11,12 @@
     </div>
 
     <div class="glass-card p-2 mb-4">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <button class="btn btn-outline-danger border-2 fw-bold px-3" (click)="eliminarTodasReservas()">
+                <i class="bi bi-trash3 me-2"></i>Eliminar Todas
+            </button>
             <span class="label-tech ms-3 mt-1">FILTRAR POR ESTADO</span>
-            <div class="nav nav-pills p-1 bg-light rounded-3" style="font-size: 0.8rem;">
+            <div class="nav nav-pills p-1 rounded-3" style="font-size: 0.8rem;">
                 <button (click)="filtrar('TODOS')" class="nav-link border-0 py-1 px-3">Todas</button>
                 <button (click)="filtrar('ABIERTO')" class="nav-link border-0 py-1 px-3">Solo Abiertas</button>
                 <button (click)="filtrar('DEUDA')" class="nav-link border-0 py-1 px-3 text-danger">
@@ -51,26 +55,27 @@
                             </div>
                         </td>
                         <td class="text-center">
-                            <span class="status-pill" [ngClass]="r.saldo > 0.01 ? 'status-pending' : 'status-paid'">
-                                {{ r.saldo > 0.01 ? 'SALDO PENDIENTE' : 'PAGADO TOTAL' }}
+                            <span class="status-pill" [ngClass]="{'status-pending': r.saldo_real > 0.01, 'status-paid': (r.saldo_real >= -0.01 && r.saldo_real <= 0.01), 'bg-info text-white border-0 px-2 py-1 rounded-pill': r.saldo_real < -0.01}">
+                                {{ r.saldo_real > 0.01 ? 'SALDO PENDIENTE' : (r.saldo_real < -0.01 ? 'SALDO A FAVOR' : 'PAGADO TOTAL') }}
                             </span>
-                            <div class="fw-bold mt-1" [class.text-danger]="r.saldo > 0.01">
-                                USD {{ (r.saldo || 0) | number:'1.2-2' }}
+                            <div class="fw-bold mt-1" [ngClass]="{'text-danger': r.saldo_real > 0.01, 'text-success': r.saldo_real < -0.01}">
+                                USD {{ (r.saldo_real || 0) | number:'1.2-2' }}
                             </div>
                         </td>
                         <td class="text-end pe-4">
-                            <button class="btn btn-view btn-sm px-3" [routerLink]="['/reservas', r.id]">
-                                <i class="bi bi-search me-1"></i> Detalles
-                            </button>
-                        <td class="text-end pe-4">
                             <div class="d-flex justify-content-end gap-2">
-                                <button class="btn btn-view btn-sm px-3" [routerLink]="['/reservas', r.id]"
-                                    title="Ver Detalle">
-                                    <i class="bi bi-search"></i>
+                                <button
+                                    class="btn btn-primary btn-sm px-3 rounded-pill align-items-center d-flex gap-1 shadow-sm"
+                                    [routerLink]="['/reservas', r.id]" title="Ver Detalle">
+                                    <i class="bi bi-search"></i> <span class="d-none d-md-inline fw-bold">Detalle</span>
                                 </button>
-                                <button class="btn btn-light btn-sm border" [routerLink]="['/reservas/editar', r.id]"
-                                    title="Editar Legajo">
+                                <button class="btn btn-light btn-sm border d-flex align-items-center"
+                                    [routerLink]="['/reservas/editar', r.id]" title="Editar Legajo">
                                     <i class="bi bi-pencil-fill text-warning"></i>
+                                </button>
+                                <button class="btn btn-light btn-sm border d-flex align-items-center text-danger"
+                                    (click)="eliminarReservaIndividual(r.id)" title="Eliminar Legajo">
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </div>
                         </td>

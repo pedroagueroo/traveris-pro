@@ -1,0 +1,168 @@
+<div class="container mt-4 animate-fade-in">
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1">
+        <i class="bi bi-cloud-upload me-2"></i>Importar Clientes
+      </h2>
+      <p class="text-muted small mb-0">Cargá tu archivo Excel exportado desde App Tour</p>
+    </div>
+    <a routerLink="/clientes" class="btn btn-outline-secondary border-2 fw-bold px-3">
+      <i class="bi bi-arrow-left me-2"></i>Volver a Clientes
+    </a>
+  </div>
+
+  <!-- ===================== ETAPA 1: SELECCIÓN ===================== -->
+  <div *ngIf="etapa === 'seleccion'">
+
+    <!-- ZONA DRAG & DROP -->
+    <div class="upload-zone glass-card" [class.dragging]="arrastrando"
+      [class.has-file]="archivoSeleccionado" (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+      (click)="fileInput.click()">
+
+      <input #fileInput type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)"
+        style="display: none">
+
+      <!-- Sin archivo -->
+      <div *ngIf="!archivoSeleccionado" class="upload-placeholder">
+        <div class="upload-icon-container">
+          <i class="bi bi-file-earmark-excel"></i>
+        </div>
+        <h4 class="fw-bold text-dark mt-3 mb-1">Arrastrá tu archivo aquí</h4>
+        <p class="text-muted mb-3">o hacé clic para seleccionarlo</p>
+        <span class="badge bg-light text-muted border px-3 py-2">
+          <i class="bi bi-info-circle me-1"></i>Formatos: .xlsx, .xls — Máximo: 10MB
+        </span>
+      </div>
+
+      <!-- Con archivo seleccionado -->
+      <div *ngIf="archivoSeleccionado" class="file-preview" (click)="$event.stopPropagation()">
+        <div class="file-icon">
+          <i class="bi bi-file-earmark-excel-fill"></i>
+        </div>
+        <div class="file-info">
+          <h5 class="fw-bold mb-0">{{ archivoSeleccionado.name }}</h5>
+          <small class="text-muted">{{ formatFileSize(archivoSeleccionado.size) }}</small>
+        </div>
+        <button class="btn btn-light btn-sm border" (click)="quitarArchivo(); $event.stopPropagation()"
+          title="Quitar archivo">
+          <i class="bi bi-x-lg text-danger"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div *ngIf="errorGeneral" class="alert-error mt-3 animate-slide-up">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorGeneral }}
+    </div>
+
+    <!-- BOTÓN IMPORTAR -->
+    <div *ngIf="archivoSeleccionado" class="text-center mt-4 animate-slide-up">
+      <button class="btn btn-elite btn-lg shadow px-5" (click)="importar()">
+        <i class="bi bi-cloud-upload-fill me-2"></i>Importar Clientes
+      </button>
+      <p class="text-muted small mt-2">
+        Los clientes existentes (mismo DNI) se actualizarán automáticamente
+      </p>
+    </div>
+  </div>
+
+  <!-- ===================== ETAPA 2: PROCESANDO ===================== -->
+  <div *ngIf="etapa === 'procesando'" class="glass-card p-5 text-center animate-fade-in">
+    <div class="processing-spinner mb-4">
+      <div class="spinner-ring"></div>
+      <i class="bi bi-file-earmark-excel processing-icon"></i>
+    </div>
+    <h4 class="fw-bold text-dark mb-2">Procesando archivo...</h4>
+    <p class="text-muted mb-4">Esto puede tomar unos segundos según la cantidad de registros</p>
+
+    <div class="progress-container">
+      <div class="progress-bar-custom">
+        <div class="progress-fill" [style.width.%]="progreso"></div>
+      </div>
+      <small class="text-muted mt-2 d-block">{{ progreso | number: '1.0-0' }}%</small>
+    </div>
+  </div>
+
+  <!-- ===================== ETAPA 3: RESULTADO ===================== -->
+  <div *ngIf="etapa === 'resultado' && resultado" class="animate-fade-in">
+
+    <!-- RESUMEN -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="stat-card glass-card p-4 text-center">
+          <div class="stat-icon total"><i class="bi bi-list-ol"></i></div>
+          <h2 class="fw-bold mb-0">{{ resultado.total }}</h2>
+          <small class="text-muted fw-bold text-uppercase">Total filas</small>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card glass-card p-4 text-center">
+          <div class="stat-icon success"><i class="bi bi-person-plus-fill"></i></div>
+          <h2 class="fw-bold text-success mb-0">{{ resultado.insertados }}</h2>
+          <small class="text-muted fw-bold text-uppercase">Nuevos</small>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card glass-card p-4 text-center">
+          <div class="stat-icon update"><i class="bi bi-arrow-repeat"></i></div>
+          <h2 class="fw-bold mb-0" style="color: #3b82f6">{{ resultado.actualizados }}</h2>
+          <small class="text-muted fw-bold text-uppercase">Actualizados</small>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card glass-card p-4 text-center">
+          <div class="stat-icon error"><i class="bi bi-exclamation-triangle-fill"></i></div>
+          <h2 class="fw-bold text-danger mb-0">{{ resultado.errores }}</h2>
+          <small class="text-muted fw-bold text-uppercase">Errores</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENSAJE DE ÉXITO -->
+    <div class="alert-success glass-card p-4 mb-4" *ngIf="resultado.errores === 0">
+      <i class="bi bi-check-circle-fill me-2"></i>
+      <strong>¡Importación perfecta!</strong> Todos los registros fueron procesados sin errores.
+    </div>
+
+    <!-- TABLA DE ERRORES -->
+    <div *ngIf="resultado.detalles_errores.length > 0" class="glass-card overflow-hidden mb-4">
+      <div class="p-3 bg-danger bg-opacity-10 border-bottom">
+        <h6 class="fw-bold text-danger mb-0">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Detalles de errores ({{ resultado.detalles_errores.length }})
+        </h6>
+      </div>
+      <div class="table-responsive" style="max-height: 300px; overflow-y: auto">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-3">Fila</th>
+              <th>Nombre</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let err of resultado.detalles_errores">
+              <td class="ps-3"><span class="badge bg-danger bg-opacity-10 text-danger">{{ err.fila }}</span></td>
+              <td class="fw-semibold">{{ err.datos }}</td>
+              <td class="text-muted small">{{ err.motivo }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="d-flex justify-content-center gap-3 mt-4">
+      <button class="btn btn-outline-secondary fw-bold px-4" (click)="nuevaImportacion()">
+        <i class="bi bi-arrow-repeat me-2"></i>Nueva Importación
+      </button>
+      <a routerLink="/clientes" class="btn btn-elite shadow px-4">
+        <i class="bi bi-people-fill me-2"></i>Ver Clientes Importados
+      </a>
+    </div>
+  </div>
+
+</div>

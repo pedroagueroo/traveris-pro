@@ -1,67 +1,101 @@
-<div class="container animate-fade-in form-container-elite">
+<div class="px-3 px-md-4 py-4 form-container-elite animate-fade-in">
     
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="form-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <div>
-            <span class="label-tech">GESTIÓN DE PASAJEROS</span>
-            <h2 class="fw-bold text-dark mb-0">
+            <span class="badge bg-light text-primary border border-primary px-3 py-2 shadow-sm mb-2">GESTIÓN DE PASAJEROS</span>
+            <h2 class="fw-bold mb-0">
                 {{ clienteEditando.id ? 'Editar Ficha' : 'Nuevo Registro' }}
             </h2>
+            <p class="text-muted small mb-0 mt-1">Completa los datos solicitados para el legajo del cliente</p>
         </div>
-        <button type="button" class="btn btn-outline-dark btn-sm fw-bold px-3 border-2" (click)="botonCancelar()">
-            <i class="bi bi-x-lg me-1"></i> CANCELAR
+        <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill shadow-sm" (click)="botonCancelar()">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Clientes
         </button>
     </div>
 
-    <div class="glass-card p-0 shadow-lg overflow-hidden border-0">
-        
-        <ul class="nav nav-tabs nav-tabs-premium px-4" id="clienteTab" role="tablist">
+    <!-- Navegación superior estilo SaaS -->
+    <div class="d-flex justify-content-center mb-4">
+        <ul class="nav nav-pills-premium shadow-sm" id="clienteTab" role="tablist">
             <li class="nav-item">
                 <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#datos">
-                    <i class="bi bi-person-fill me-2"></i>Cliente
+                    <i class="bi bi-person-fill me-2"></i>1. Cliente
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#documentos">
-                    <i class="bi bi-file-earmark-text-fill me-2"></i>Documentación
+                    <i class="bi bi-file-earmark-text-fill me-2"></i>2. Documentación
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#preferencias">
-                    <i class="bi bi-star-fill me-2"></i>Preferencias
+                    <i class="bi bi-star-fill me-2"></i>3. Preferencias
                 </button>
             </li>
         </ul>
+    </div>
 
-        <div class="tab-content p-4 p-md-5">
+    <div class="form-card">
+        <div class="tab-content">
             
+            <!-- ====== TAB 1: DATOS PERSONALES ====== -->
             <div class="tab-pane fade show active" id="datos">
-                <div class="row g-4">
+                
+                <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-person me-2"></i>Datos Personales</h5>
+                
+                <div class="row g-4 mb-4">
                     <div class="col-md-8">
-                        <label class="label-tech">NOMBRE COMPLETO</label>
-                        <input type="text" class="form-control" name="nombre" [(ngModel)]="clienteEditando.nombre_completo"
-                               #nombre="ngModel" required [class.is-invalid]="nombre.invalid && nombre.touched">
-                        <div class="invalid-feedback small fw-bold">El nombre es obligatorio.</div>
+                        <label class="small fw-bold text-muted mb-2">NOMBRE COMPLETO</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-person-badge"></i></span>
+                            <input type="text" class="form-control input-premium" name="nombre" [(ngModel)]="clienteEditando.nombre_completo"
+                                   #nombre="ngModel" required [class.is-invalid]="nombre.invalid && nombre.touched" placeholder="Ej: Juan Pérez">
+                        </div>
+                        <div class="text-danger small fw-bold mt-1" *ngIf="nombre.invalid && nombre.touched">
+                            <i class="bi bi-exclamation-circle me-1"></i> El nombre es obligatorio.
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="label-tech">NRO. DOCUMENTO (DNI)</label>
-                        <input type="text" class="form-control" name="dni" [(ngModel)]="clienteEditando.dni_pasaporte"
-                               #dni="ngModel" required minlength="7" [class.is-invalid]="dni.invalid && dni.touched">
+                        <label class="small fw-bold text-muted mb-2">NRO. DOCUMENTO (DNI)</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-card-text"></i></span>
+                            <input type="text" class="form-control input-premium fw-bold" name="dni" [(ngModel)]="clienteEditando.dni_pasaporte"
+                                   #dni="ngModel" required minlength="7" [class.is-invalid]="dni.invalid && dni.touched" placeholder="Sin puntos ni espacios">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider">Contacto</div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted mb-2">CORREO ELECTRÓNICO</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control input-premium" [(ngModel)]="clienteEditando.email" name="email" placeholder="ejemplo@correo.com">
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="label-tech">CORREO ELECTRÓNICO</label>
-                        <input type="email" class="form-control" [(ngModel)]="clienteEditando.email" name="email" placeholder="ejemplo@correo.com">
+                        <label class="small fw-bold text-muted mb-2">TELÉFONO / CELULAR</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-whatsapp"></i></span>
+                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.telefono" name="tel" placeholder="+54 9 ...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider">Otra Información</div>
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted mb-2">FECHA DE NACIMIENTO</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-calendar-event"></i></span>
+                            <input type="date" class="form-control input-premium" [(ngModel)]="clienteEditando.fecha_nacimiento" name="fec">
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="label-tech">TELÉFONO / CELULAR</label>
-                        <input type="text" class="form-control" [(ngModel)]="clienteEditando.telefono" name="tel" placeholder="+54 9 ...">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="label-tech">FECHA DE NACIMIENTO</label>
-                        <input type="date" class="form-control" [(ngModel)]="clienteEditando.fecha_nacimiento" name="fec">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="label-tech">SEXO</label>
-                        <select class="form-select" [(ngModel)]="clienteEditando.sexo" name="sexo">
+                        <label class="small fw-bold text-muted mb-2">SEXO</label>
+                        <select class="form-select premium-standalone" [(ngModel)]="clienteEditando.sexo" name="sexo">
                             <option value="M">Masculino</option>
                             <option value="F">Femenino</option>
                             <option value="X">Otro</option>
@@ -70,77 +104,117 @@
                 </div>
             </div>
 
+            <!-- ====== TAB 2: DOCUMENTACIÓN ====== -->
             <div class="tab-pane fade" id="documentos">
+                
+                <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-file-earmark-text me-2"></i>Documentación Oficial</h5>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-muted mb-2">DNI EMISIÓN</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-calendar-plus"></i></span>
+                            <input type="date" class="form-control input-premium" [(ngModel)]="clienteEditando.dni_emision" name="dniEmi">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-muted mb-2">DNI VENCIMIENTO</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-calendar-x"></i></span>
+                            <input type="date" class="form-control input-premium" [(ngModel)]="clienteEditando.dni_vencimiento" name="dniVen">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-muted mb-2">NACIONALIDAD</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-globe-americas"></i></span>
+                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.nacionalidad" name="nac" placeholder="Ej: Argentino">
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="small fw-bold text-muted mb-2">CUIT / CUIL</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-briefcase"></i></span>
+                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.cuit_cuil" name="cuit" placeholder="XX-XXXXXXXX-X">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-divider">Pasaporte Internacional</div>
+                
                 <div class="row g-4">
                     <div class="col-md-4">
-                        <label class="label-tech">DNI EMISIÓN</label>
-                        <input type="date" class="form-control" [(ngModel)]="clienteEditando.dni_emision" name="dniEmi">
+                        <label class="small fw-bold text-primary mb-2">NRO. PASAPORTE</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon border-primary text-primary"><i class="bi bi-journal-album"></i></span>
+                            <input type="text" class="form-control input-premium border-primary text-primary fw-bold" [(ngModel)]="clienteEditando.pasaporte_nro" name="pnro" placeholder="Número Alfumérico">
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="label-tech">DNI VENCIMIENTO</label>
-                        <input type="date" class="form-control" [(ngModel)]="clienteEditando.dni_vencimiento" name="dniVen">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="label-tech">CUIT / CUIL</label>
-                        <input type="text" class="form-control" [(ngModel)]="clienteEditando.cuit_cuil" name="cuit">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="label-tech">NACIONALIDAD</label>
-                        <input type="text" class="form-control" [(ngModel)]="clienteEditando.nacionalidad" name="nac">
-                    </div>
-                    
-                    <div class="col-12"><hr class="my-2 opacity-10"></div>
-                    
-                    <div class="col-md-4">
-                        <label class="label-tech">NRO. PASAPORTE</label>
-                        <input type="text" class="form-control fw-bold text-primary" [(ngModel)]="clienteEditando.pasaporte_nro" name="pnro">
+                        <label class="small fw-bold text-muted mb-2">PAS. EMISIÓN</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-calendar-plus"></i></span>
+                            <input type="date" class="form-control input-premium" [(ngModel)]="clienteEditando.pasaporte_emision" name="pemi">
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="label-tech">PAS. EMISIÓN</label>
-                        <input type="date" class="form-control" [(ngModel)]="clienteEditando.pasaporte_emision" name="pemi">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="label-tech text-danger">PAS. VENCIMIENTO</label>
-                        <input type="date" class="form-control border-danger border-opacity-25" [(ngModel)]="clienteEditando.pasaporte_vencimiento" name="pven">
+                        <label class="small fw-bold text-danger mb-2">PAS. VENCIMIENTO</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon border-danger text-danger"><i class="bi bi-exclamation-diamond"></i></span>
+                            <input type="date" class="form-control input-premium border-danger text-danger" [(ngModel)]="clienteEditando.pasaporte_vencimiento" name="pven">
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- ====== TAB 3: PREFERENCIAS ====== -->
             <div class="tab-pane fade" id="preferencias">
+                
+                <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-star me-2"></i>Preferencias de Viaje</h5>
+
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <label class="label-tech">ASIENTO PREFERIDO</label>
-                        <select class="form-select" [(ngModel)]="clienteEditando.pref_asiento" name="asiento">
-                            <option value="VENTANILLA">Ventanilla</option>
-                            <option value="PASILLO">Pasillo</option>
-                            <option value="INDIFERENTE">Indiferente</option>
-                        </select>
+                        <label class="small fw-bold text-muted mb-2">ASIENTO PREFERIDO</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-airplane-engines"></i></span>
+                            <select class="form-select input-premium" [(ngModel)]="clienteEditando.pref_asiento" name="asiento">
+                                <option value="VENTANILLA">Ventanilla</option>
+                                <option value="PASILLO">Pasillo</option>
+                                <option value="INDIFERENTE">Indiferente</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="label-tech">COMIDA ESPECIAL / ALERGIAS</label>
-                        <input type="text" class="form-control" [(ngModel)]="clienteEditando.pref_comida" name="comida" placeholder="Ej: Celíaco, Vegano...">
+                        <label class="small fw-bold text-muted mb-2">COMIDA ESPECIAL / ALERGIAS</label>
+                        <div class="input-premium-group">
+                            <span class="input-premium-icon"><i class="bi bi-cup-hot"></i></span>
+                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.pref_comida" name="comida" placeholder="Ej: Celíaco, Vegano...">
+                        </div>
                     </div>
                     <div class="col-md-12">
-                        <label class="label-tech text-danger">OBSERVACIONES MÉDICAS O DE SALUD</label>
-                        <textarea class="form-control shadow-none" rows="4" [(ngModel)]="clienteEditando.observaciones_salud" name="obs" placeholder="Indique detalles vitales para el viaje..."></textarea>
+                        <label class="small fw-bold text-danger mb-2">OBSERVACIONES MÉDICAS O DE SALUD IMPORTANTES</label>
+                        <textarea class="form-control premium-standalone border-danger border-opacity-50" rows="4" [(ngModel)]="clienteEditando.observaciones_salud" name="obs" placeholder="Indique detalles vitales para el viaje..."></textarea>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="bg-light p-4 d-flex justify-content-end gap-3 border-top">
-            <button type="button" class="btn btn-light fw-bold px-4" (click)="botonCancelar()">Descartar</button>
+        <hr class="my-5" style="border-color: var(--border);">
+
+        <!-- BOTONERA -->
+        <div class="d-flex justify-content-end gap-3">
+            <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" (click)="botonCancelar()">Descartar</button>
 
             <button *ngIf="!clienteEditando.id" type="button" 
-                    class="btn btn-elite px-5 shadow"
+                    class="btn btn-elite px-5 shadow rounded-pill"
                     (click)="guardarNuevoCliente()" 
                     [disabled]="!clienteEditando.nombre_completo || !clienteEditando.dni_pasaporte || clienteEditando.dni_pasaporte.length < 7">
-                <i class="bi bi-person-plus-fill me-2"></i>Registrar Pasajero
+                <i class="bi bi-check-circle-fill me-2"></i>Registrar Pasajero
             </button>
 
-            <button *ngIf="clienteEditando.id" type="button" class="btn btn-elite px-5 shadow"
-                    (click)="actualizarCliente()">
+            <button *ngIf="clienteEditando.id" type="button" class="btn btn-elite px-5 shadow rounded-pill"
+                    (click)="actualizarCliente()"
+                    [disabled]="!clienteEditando.nombre_completo || !clienteEditando.dni_pasaporte">
                 <i class="bi bi-check-circle-fill me-2"></i>Guardar Cambios
             </button>
         </div>

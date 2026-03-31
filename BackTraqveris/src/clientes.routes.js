@@ -7,7 +7,7 @@ router.post('/enviar-saludo-cumple', async (req, res) => {
     const { email, nombre } = req.body;
 
     const mailOptions = {
-        from: '"Vicka Turismo" <tu-email@gmail.com>',
+        from: '"Vicka Turismo" <aguerop47@gmail.com>',
         to: email,
         subject: `🎂 ¡Feliz Cumpleaños ${nombre}!`,
         html: `<h1>¡Felicitaciones!</h1><p>Desde Vicka Turismo te deseamos lo mejor.</p>`

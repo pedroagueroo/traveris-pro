@@ -13,7 +13,7 @@ router.post('/:id/enviar-documento', async (req, res) => {
         const { destinatario, nombreCliente, tipoDoc, destino } = req.body;
 
         const mailOptions = {
-            from: 'Vicka Turismo <tu-email@gmail.com>',
+            from: '"Vicka Turismo" <aguerop47@gmail.com>',
             to: destinatario,
             subject: `📄 Tu ${tipoDoc} de viaje a ${destino} - Vicka Turismo`,
             html: `
@@ -29,7 +29,8 @@ router.post('/:id/enviar-documento', async (req, res) => {
         await transporter.sendMail(mailOptions);
         res.json({ success: true, message: "Email enviado con éxito" });
     } catch (err) {
-        res.status(500).json({ error: "Error al enviar el correo" });
+        console.error("ERROR ENVIAR DOCUMENTO:", err);
+        res.status(500).json({ error: err.message || "Error al enviar el correo" });
     }
 });
 
@@ -133,16 +134,18 @@ router.get('/radar/vencimientos/:empresa', async (req, res) => {
     }
 });
 
-// ... (Resto de tus rutas POST, PUT, GET se mantienen idénticas)
-
 // --- LISTADO POR AGENCIA CON SALDO REAL ---
 router.get('/agencia/:empresa', async (req, res) => {
     try {
         const { empresa } = req.params;
         const resultado = await pool.query(`
             SELECT r.*, c.nombre_completo as nombre_titular,
-                (COALESCE(r.precio_vuelo_usd, 0) + COALESCE(r.precio_hotel_usd, 0) + COALESCE(r.precio_excursiones_usd, 0) + COALESCE(r.precio_otros_servicios_usd, 0) + COALESCE(r.gastos_administrativos_usd, 0) - COALESCE(r.bonificacion_descuento_usd, 0) - COALESCE((SELECT SUM(monto) FROM movimientos_caja WHERE id_reserva = r.id AND moneda = 'USD' AND tipo_movimiento = 'PAGO_CLIENTE'), 0) + COALESCE((SELECT SUM(monto) FROM movimientos_caja WHERE id_reserva = r.id AND moneda = 'USD' AND tipo_movimiento = 'PAGO_PROVEEDOR'), 0)
-                ) as saldo_real
+                (COALESCE(r.total_venta_final_usd, 0) 
+                 - COALESCE((SELECT SUM(monto) FROM movimientos_caja WHERE id_reserva = r.id AND tipo_movimiento = 'PAGO_CLIENTE'), 0)
+                ) as saldo_cobrar,
+                (COALESCE(r.costo_total_operador_usd, 0) 
+                 - COALESCE((SELECT SUM(monto) FROM movimientos_caja WHERE id_reserva = r.id AND tipo_movimiento = 'PAGO_PROVEEDOR'), 0)
+                ) as saldo_pagar
             FROM reservas r JOIN clientes c ON r.id_titular = c.id WHERE r.empresa_nombre = $1 ORDER BY r.id DESC`, [empresa]);
         res.json(resultado.rows);
     } catch (err) {
@@ -154,7 +157,7 @@ router.get('/agencia/:empresa', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const reserva = await pool.query(`SELECT r.*, c.nombre_completo as nombre_titular, c.dni_pasaporte as dni_titular FROM reservas r JOIN clientes c ON r.id_titular = c.id WHERE r.id = $1`, [id]);
+        const reserva = await pool.query(`SELECT r.*, c.nombre_completo as nombre_titular, c.dni_pasaporte as dni_titular, c.email as email_titular FROM reservas r JOIN clientes c ON r.id_titular = c.id WHERE r.id = $1`, [id]);
         if (reserva.rows.length === 0) return res.status(404).json({ error: "No existe el legajo" });
         const pasajeros = await pool.query(`SELECT rp.*, c.nombre_completo, c.dni_pasaporte FROM reserva_pasajeros rp JOIN clientes c ON rp.id_cliente = c.id WHERE rp.id_reserva = $1`, [id]);
         const vuelos = await pool.query(`SELECT * FROM reserva_vuelos WHERE id_reserva = $1 ORDER BY fecha_salida`, [id]);
@@ -207,7 +210,7 @@ router.put('/:id/estado', async (req, res) => {
     }
 });
 
-// --- CREAR RESERVA (POST Acoplado) ---
+// --- CREAR RESERVA (POST) — FIX: incluye hora_salida, hora_llegada ---
 router.post('/', async (req, res) => {
     const client = await pool.connect();
     try {
@@ -222,9 +225,11 @@ router.post('/', async (req, res) => {
 
         if (servicios) {
             for (let s of servicios) {
-                const d = s.detalles;
-                await client.query(`INSERT INTO reserva_servicios_detallados (id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente, hotel_nombre, ciudad, check_in, check_out, aerolinea, nro_vuelo, origen, destino, pnr, crucero_nombre, crucero_cabina, crucero_itinerario, nombre_item, servicio_descripcion, excursion_fecha) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
-                    [idReserva, s.tipo_item, s.costo_neto_operador || 0, s.venta_bruta_cliente || 0, d.hotel_nombre || null, d.ciudad || null, d.check_in || null, d.check_out || null, d.aerolinea || null, d.nro_vuelo || null, d.origen || null, d.destino || null, d.pnr || null, d.crucero_nombre || null, d.crucero_cabina || null, d.crucero_itinerario || null, d.nombre_servicio || null, d.servicio_descripcion || null, d.fecha || null]);
+                const d = s.detalles || {};
+                await client.query(
+                    `INSERT INTO reserva_servicios_detallados (id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente, hotel_nombre, ciudad, check_in, check_out, regimen, aerolinea, nro_vuelo, origen, destino, pnr, crucero_nombre, crucero_cabina, crucero_itinerario, nombre_item, servicio_descripcion, excursion_fecha, hora_salida, hora_llegada) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+                    [idReserva, s.tipo_item, s.costo_neto_operador || 0, s.venta_bruta_cliente || 0, d.hotel_nombre || null, d.ciudad || null, d.check_in || null, d.check_out || null, d.regimen || null, d.aerolinea || null, d.nro_vuelo || null, d.origen || null, d.destino || null, d.pnr || null, d.crucero_nombre || null, d.crucero_cabina || null, d.crucero_itinerario || null, d.nombre_servicio || null, d.servicio_descripcion || null, d.fecha || null, d.hora_salida || null, d.hora_llegada || null]
+                );
             }
         }
         if (acompaniantes) {
@@ -241,8 +246,8 @@ router.post('/', async (req, res) => {
         res.json({ success: true, id: idReserva });
     } catch (e) {
         await client.query('ROLLBACK');
-        console.error(e);
-        res.status(500).json({ error: "Error al crear legajo" });
+        console.error("ERROR CREAR RESERVA:", e);
+        res.status(500).json({ error: e.message || "Error al crear legajo" });
     } finally {
         client.release();
     }
@@ -263,6 +268,7 @@ router.get('/completa/:id', async (req, res) => {
             detalles: {
                 hotel_nombre: s.hotel_nombre, ciudad: s.ciudad, check_in: s.check_in, check_out: s.check_out, regimen: s.regimen,
                 aerolinea: s.aerolinea, nro_vuelo: s.nro_vuelo, origen: s.origen, destino: s.destino, pnr: s.pnr, fecha: s.excursion_fecha,
+                hora_salida: s.hora_salida, hora_llegada: s.hora_llegada,
                 plan: s.plan_asistencia, nro_poliza: s.nro_poliza, cobertura: s.cobertura_detalles,
                 pais: s.pais_destino, nro_tramite: s.nro_tramite, fecha_vencimiento: s.fecha_vencimiento_visa,
                 crucero_nombre: s.crucero_nombre, crucero_cabina: s.crucero_cabina, crucero_itinerario: s.crucero_itinerario,
@@ -271,11 +277,12 @@ router.get('/completa/:id', async (req, res) => {
         }));
         res.json({ reserva: resReserva.rows[0], acompaniantes: resAcomp.rows, servicios: serviciosMapeados });
     } catch (err) {
+        console.error("ERROR GET COMPLETA:", err);
         res.status(500).json({ error: "Error al traer legajo completo" });
     }
 });
 
-// --- ACTUALIZAR RESERVA (PUT Acoplado) ---
+// --- ACTUALIZAR RESERVA (PUT) — FIX: incluye hora_salida, hora_llegada ---
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const client = await pool.connect();
@@ -299,16 +306,18 @@ router.put('/:id', async (req, res) => {
         if (servicios) {
             for (let s of servicios) {
                 const d = s.detalles || {};
-                await client.query(`INSERT INTO reserva_servicios_detallados (id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente, hotel_nombre, ciudad, check_in, check_out, regimen, aerolinea, nro_vuelo, origen, destino, pnr, plan_asistencia, nro_poliza, cobertura_detalles, pais_destino, nro_tramite, fecha_vencimiento_visa, crucero_nombre, crucero_cabina, crucero_itinerario, nombre_item, servicio_descripcion, excursion_fecha) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)`,
-                    [id, s.tipo_item, s.costo_neto_operador || 0, s.venta_bruta_cliente || 0, d.hotel_nombre || null, d.ciudad || null, d.check_in || null, d.check_out || null, d.regimen || null, d.aerolinea || null, d.nro_vuelo || null, d.origen || null, d.destino || null, d.pnr || null, d.plan || null, d.nro_poliza || null, d.cobertura || null, d.pais || null, d.nro_tramite || null, d.fecha_vencimiento || null, d.crucero_nombre || null, d.crucero_cabina || null, d.crucero_itinerario || null, d.nombre_servicio || null, d.servicio_descripcion || null, d.fecha || null]);
+                await client.query(
+                    `INSERT INTO reserva_servicios_detallados (id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente, hotel_nombre, ciudad, check_in, check_out, regimen, aerolinea, nro_vuelo, origen, destino, pnr, plan_asistencia, nro_poliza, cobertura_detalles, pais_destino, nro_tramite, fecha_vencimiento_visa, crucero_nombre, crucero_cabina, crucero_itinerario, nombre_item, servicio_descripcion, excursion_fecha, hora_salida, hora_llegada) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)`,
+                    [id, s.tipo_item, s.costo_neto_operador || 0, s.venta_bruta_cliente || 0, d.hotel_nombre || null, d.ciudad || null, d.check_in || null, d.check_out || null, d.regimen || null, d.aerolinea || null, d.nro_vuelo || null, d.origen || null, d.destino || null, d.pnr || null, d.plan || null, d.nro_poliza || null, d.cobertura || null, d.pais || null, d.nro_tramite || null, d.fecha_vencimiento || null, d.crucero_nombre || null, d.crucero_cabina || null, d.crucero_itinerario || null, d.nombre_servicio || null, d.servicio_descripcion || null, d.fecha || null, d.hora_salida || null, d.hora_llegada || null]
+                );
             }
         }
         await client.query('COMMIT');
         res.json({ success: true });
     } catch (e) {
         await client.query('ROLLBACK');
-        console.error(e);
-        res.status(500).json({ error: "Error interno al actualizar" });
+        console.error("ERROR ACTUALIZAR RESERVA:", e);
+        res.status(500).json({ error: e.message || "Error interno al actualizar" });
     } finally {
         client.release();
     }

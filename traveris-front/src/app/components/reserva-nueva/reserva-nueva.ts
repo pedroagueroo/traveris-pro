@@ -138,25 +138,26 @@ export class ReservaNuevaComponent implements OnInit {
   quitarVuelo(i: number) { this.vuelos.splice(i, 1); }
 
   agregarServicio(tipo: string) {
+    const baseOperativo = { operador_mayorista: '', nro_expediente: '', observaciones: '' };
     const nuevoItem: any = {
       tipo_item: tipo,
       costo_neto_operador: 0,
       venta_bruta_cliente: 0,
-      detalles: {}
+      detalles: { ...baseOperativo }
     };
 
     if (tipo === 'HOTEL') {
-      nuevoItem.detalles = { hotel_nombre: '', ciudad: '', check_in: '', check_out: '', regimen: 'DESAYUNO' };
+      nuevoItem.detalles = { ...baseOperativo, hotel_nombre: '', ciudad: '', check_in: '', check_out: '', regimen: 'DESAYUNO' };
     } else if (tipo === 'VUELO') {
-      nuevoItem.detalles = { aerolinea: '', nro_vuelo: '', origen: '', destino: '', pnr: '', fecha: '', hora_salida: '', hora_llegada: '' };
+      nuevoItem.detalles = { ...baseOperativo, aerolinea: '', nro_vuelo: '', origen: '', destino: '', pnr: '', fecha: '', hora_salida: '', hora_llegada: '' };
     } else if (tipo === 'ASISTENCIA') {
-      nuevoItem.detalles = { plan: '', nro_poliza: '', cobertura: '' };
+      nuevoItem.detalles = { ...baseOperativo, plan: '', nro_poliza: '', cobertura: '' };
     } else if (tipo === 'VISA') {
-      nuevoItem.detalles = { pais: '', nro_tramite: '', fecha_vencimiento: '' };
+      nuevoItem.detalles = { ...baseOperativo, pais: '', nro_tramite: '', fecha_vencimiento: '' };
     } else if (tipo === 'CRUCERO') {
-      nuevoItem.detalles = { crucero_nombre: '', crucero_cabina: '', crucero_itinerario: '', check_in: '', check_out: '' };
+      nuevoItem.detalles = { ...baseOperativo, crucero_nombre: '', crucero_cabina: '', crucero_itinerario: '', check_in: '', check_out: '' };
     } else if (tipo === 'SERVICIO') {
-      nuevoItem.detalles = { nombre_servicio: '', servicio_descripcion: '', fecha: '' };
+      nuevoItem.detalles = { ...baseOperativo, nombre_servicio: '', servicio_descripcion: '', fecha: '' };
     }
 
     this.servicios.push(nuevoItem);

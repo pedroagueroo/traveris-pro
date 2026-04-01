@@ -82,35 +82,7 @@
           </div>
         </div>
 
-        <div class="section-divider">Datos Operativos</div>
-
-        <div class="col-md-4">
-          <label class="small fw-bold text-muted mb-2">OPERADOR / MAYORISTA</label>
-          <div class="input-premium-group">
-            <span class="input-premium-icon"><i class="bi bi-building"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.operador_mayorista"
-              placeholder="Nombre Operador">
-          </div>
-        </div>
-        <div class="col-md-4">
-          <label class="small fw-bold text-muted mb-2">N° EXPEDIENTE / FILE</label>
-          <div class="input-premium-group">
-            <span class="input-premium-icon"><i class="bi bi-hash"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.nro_expediente_operador"
-              placeholder="Referencia Operador">
-          </div>
-        </div>
-        <div class="col-md-4">
-          <label class="small fw-bold text-muted mb-2">OBSERVACIONES INTERNAS</label>
-          <div class="input-premium-group">
-            <span class="input-premium-icon"><i class="bi bi-sticky"></i></span>
-            <input type="text" class="form-control input-premium" [(ngModel)]="reserva.observaciones_internas"
-              placeholder="Notas privadas...">
-          </div>
-        </div>
-
-        <!-- Punto 10: Eliminados cotización dólar, fecha salida y fecha regreso del paso 1 -->
-        <!-- Estos campos se manejan en la pestaña de Itinerario y Finanzas -->
+        <!-- Datos Operativos movidos a nivel servicio en Fase 2 -->
       </div>
     </div>
 
@@ -190,43 +162,15 @@
         </div>
       </div>
 
-      <!-- Fechas de viaje (movidas acá desde paso 1) -->
+      <!-- Fechas de viaje -->
       <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-md-6">
           <label class="small fw-bold text-muted mb-1">FECHA SALIDA</label>
           <input type="date" class="form-control" [(ngModel)]="reserva.fecha_viaje_salida">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
           <label class="small fw-bold text-muted mb-1">FECHA REGRESO</label>
           <input type="date" class="form-control" [(ngModel)]="reserva.fecha_viaje_regreso">
-        </div>
-        <div class="col-md-3">
-          <label class="small fw-bold text-muted mb-1">MONEDA BASE</label>
-          <select class="form-select fw-bold" [(ngModel)]="reserva.moneda_pago">
-            <option value="USD">USD - Dólar Estadounidense</option>
-            <option value="ARS">ARS - Peso Argentino</option>
-            <option value="EUR">EUR - Euro</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label class="small fw-bold text-muted mb-1">COTIZACIÓN (SI APLICA)</label>
-          <input type="number" class="form-control" [(ngModel)]="reserva.cotizacion_dolar" placeholder="Ej: 1200">
-        </div>
-      </div>
-
-
-      <!-- Mini Formulario de Costos Rápidos -->
-      <div class="section-divider mt-2">Carga Rápida de Importes (Opcional si no detalla servicios)</div>
-      <div class="row g-3 mb-4 p-3 bg-light border rounded-4 shadow-sm">
-        <div class="col-md-6">
-          <label class="small fw-bold text-muted mb-1">COSTO TOTAL PROVEEDOR ({{ reserva.moneda_pago }})</label>
-          <input type="number" class="form-control border-danger fw-bold" [(ngModel)]="reserva.costo_total_operador_usd" (input)="recalcularTodo()">
-          <div class="extra-small text-muted mt-1">Suma manual total a pagar al operador</div>
-        </div>
-        <div class="col-md-6">
-          <label class="small fw-bold text-muted mb-1">PRECIO TOTAL CLIENTE ({{ reserva.moneda_pago }})</label>
-          <input type="number" class="form-control border-success fw-bold text-success" [(ngModel)]="reserva.total_venta_final_usd" (input)="recalcularTodo()">
-          <div class="extra-small text-muted mt-1">Precio final que paga el titular</div>
         </div>
       </div>
 
@@ -257,6 +201,22 @@
             <label class="small fw-bold text-muted mb-1">VENTA AL CLIENTE (USD)</label>
             <input type="number" class="form-control border-success" [(ngModel)]="s.venta_bruta_cliente"
               (input)="recalcularTodo()">
+          </div>
+        </div>
+
+        <!-- Datos operativos por servicio -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="small fw-bold text-muted mb-1">OPERADOR / MAYORISTA</label>
+            <input type="text" class="form-control" [(ngModel)]="s.detalles.operador_mayorista" placeholder="Operador">
+          </div>
+          <div class="col-md-4">
+            <label class="small fw-bold text-muted mb-1">N° EXPEDIENTE / FILE</label>
+            <input type="text" class="form-control" [(ngModel)]="s.detalles.nro_expediente" placeholder="Referencia">
+          </div>
+          <div class="col-md-4">
+            <label class="small fw-bold text-muted mb-1">OBSERVACIONES</label>
+            <input type="text" class="form-control" [(ngModel)]="s.detalles.observaciones" placeholder="Notas...">
           </div>
         </div>
 
@@ -293,7 +253,7 @@
               class="form-control" [(ngModel)]="s.detalles.destino"></div>
           <div class="col-md-3"><label class="small fw-bold text-muted mb-1">PNR</label><input type="text"
               class="form-control" [(ngModel)]="s.detalles.pnr"></div>
-          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">FECHA</label><input type="date"
+          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">FECHA SALIDA</label><input type="date"
               class="form-control" [(ngModel)]="s.detalles.fecha"></div>
           <div class="col-md-3"><label class="small fw-bold text-muted mb-1">HORA SALIDA</label><input type="time"
               class="form-control" [(ngModel)]="s.detalles.hora_salida"></div>

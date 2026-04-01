@@ -400,7 +400,7 @@ export class ReservaDetalleComponent implements OnInit {
       adjuntarArchivos: conArchivos
     };
 
-    this.api.enviarMail(this.idReserva, datosMail).subscribe({
+    this.api.enviarDocumentoReserva(this.idReserva, datosMail).subscribe({
       next: (res: any) => {
         const archMsg = res.archivosAdjuntos > 0 ? ` (${res.archivosAdjuntos} archivo(s) adjunto(s))` : '';
         alert(`¡${tipo} enviado correctamente a ${this.reserva.email_titular}!${archMsg}`);
@@ -456,7 +456,11 @@ export class ReservaDetalleComponent implements OnInit {
         nombre_servicio: s.nombre_item || null, servicio_descripcion: s.servicio_descripcion || null,
         crucero_nombre: s.crucero_nombre || null, crucero_cabina: s.crucero_cabina || null,
         crucero_itinerario: s.crucero_itinerario || null,
-        fecha: s.excursion_fecha || null
+        fecha: s.excursion_fecha || null,
+        hora_salida: s.hora_salida || null, hora_llegada: s.hora_llegada || null,
+        regimen: s.regimen || null,
+        plan: s.plan_asistencia || null, nro_poliza: s.nro_poliza || null, cobertura: s.cobertura_detalles || null,
+        pais: s.pais_destino || null, nro_tramite: s.nro_tramite || null, fecha_vencimiento: s.fecha_vencimiento_visa || null
       }
     })) : [];
 
@@ -478,3 +482,4 @@ export class ReservaDetalleComponent implements OnInit {
 
   imprimirVoucherTotal() { window.print(); }
 }
+

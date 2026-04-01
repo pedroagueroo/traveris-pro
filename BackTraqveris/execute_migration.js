@@ -14,17 +14,24 @@ const pool = new Pool({
 });
 
 const sql = `
--- 1. Añadir columnas a movimientos_caja para trazabilidad de pagos completa
-ALTER TABLE movimientos_caja 
-ADD COLUMN IF NOT EXISTS banco VARCHAR(100),
-ADD COLUMN IF NOT EXISTS numero_tarjeta VARCHAR(50),
-ADD COLUMN IF NOT EXISTS cuotas INTEGER DEFAULT 1,
-ADD COLUMN IF NOT EXISTS detalle_transaccion TEXT;
+-- ============================================================
+-- MIGRACIÓN FASE 1: Fix editar reserva + campos nuevos
+-- ============================================================
 
--- 2. Añadir columnas a reservas para Soft Delete y Moneda Base
-ALTER TABLE reservas 
-ADD COLUMN IF NOT EXISTS estado_eliminado BOOLEAN DEFAULT FALSE,
-ADD COLUMN IF NOT EXISTS moneda_pago VARCHAR(10) DEFAULT 'USD';
+-- 1. Columnas hora_salida/hora_llegada (FIX CRÍTICO: causa error 500 al editar vuelos)
+ALTER TABLE reserva_servicios_detallados 
+  ADD COLUMN IF NOT EXISTS hora_salida VARCHAR(10),
+  ADD COLUMN IF NOT EXISTS hora_llegada VARCHAR(10);
+
+-- 2. Campo fecha_llegada para servicio de vuelos
+ALTER TABLE reserva_servicios_detallados 
+  ADD COLUMN IF NOT EXISTS fecha_llegada DATE;
+
+-- 3. Campos operador/expediente/observaciones a nivel servicio (prep Fase 2)
+ALTER TABLE reserva_servicios_detallados
+  ADD COLUMN IF NOT EXISTS operador_mayorista VARCHAR(200),
+  ADD COLUMN IF NOT EXISTS nro_expediente VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS observaciones_servicio TEXT;
 `;
 
 async function runMigration() {

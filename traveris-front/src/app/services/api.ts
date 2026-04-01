@@ -78,6 +78,18 @@ export class ApiService {
   }
 
   // ============================================================
+  // SECCIÓN EMAIL / DOCUMENTOS
+  // ============================================================
+
+  enviarDocumentoReserva(idReserva: any, datos: any): Observable<any> {
+    return this.http.post(`${this.URL}/reservas/${idReserva}/enviar-documento`, datos);
+  }
+
+  enviarSaludoCumpleCliente(idCliente: number, datos: any): Observable<any> {
+    return this.http.post(`${this.URL}/clientes/enviar-saludo-cumple`, datos);
+  }
+
+  // ============================================================
   // SECCIÓN CAJA (MOVIMIENTOS)
   // ============================================================
 

@@ -105,6 +105,19 @@ export class ApiService {
     return this.http.post(`${this.URL}/caja/convertir-moneda`, datos);
   }
 
+  // --- TARJETAS GUARDADAS ---
+  getTarjetasGuardadas(empresa: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/caja/tarjetas/${empresa}`);
+  }
+
+  crearTarjetaGuardada(datos: any): Observable<any> {
+    return this.http.post(`${this.URL}/caja/tarjetas`, datos);
+  }
+
+  eliminarTarjetaGuardada(id: number): Observable<any> {
+    return this.http.delete(`${this.URL}/caja/tarjetas/${id}`);
+  }
+
   // ============================================================
   // SECCIÓN DASHBOARD
   // ============================================================

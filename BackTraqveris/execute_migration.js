@@ -15,23 +15,27 @@ const pool = new Pool({
 
 const sql = `
 -- ============================================================
--- MIGRACIÓN FASE 1: Fix editar reserva + campos nuevos
+-- MIGRACIÓN FASE 3: Sistema de Pagos
 -- ============================================================
 
--- 1. Columnas hora_salida/hora_llegada (FIX CRÍTICO: causa error 500 al editar vuelos)
-ALTER TABLE reserva_servicios_detallados 
-  ADD COLUMN IF NOT EXISTS hora_salida VARCHAR(10),
-  ADD COLUMN IF NOT EXISTS hora_llegada VARCHAR(10);
+-- 1. Tabla tarjetas guardadas por empresa
+CREATE TABLE IF NOT EXISTS tarjetas_guardadas (
+  id SERIAL PRIMARY KEY,
+  empresa_nombre VARCHAR(200) NOT NULL,
+  alias VARCHAR(100),
+  ultimos_4 VARCHAR(4),
+  tipo_tarjeta VARCHAR(50),
+  banco VARCHAR(100),
+  vencimiento VARCHAR(7),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- 2. Campo fecha_llegada para servicio de vuelos
-ALTER TABLE reserva_servicios_detallados 
-  ADD COLUMN IF NOT EXISTS fecha_llegada DATE;
-
--- 3. Campos operador/expediente/observaciones a nivel servicio (prep Fase 2)
-ALTER TABLE reserva_servicios_detallados
-  ADD COLUMN IF NOT EXISTS operador_mayorista VARCHAR(200),
-  ADD COLUMN IF NOT EXISTS nro_expediente VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS observaciones_servicio TEXT;
+-- 2. Ampliar movimientos_caja con referencia a tarjeta guardada
+ALTER TABLE movimientos_caja
+  ADD COLUMN IF NOT EXISTS id_tarjeta_guardada INTEGER,
+  ADD COLUMN IF NOT EXISTS tarjeta_cuotas INTEGER DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS tarjeta_interes NUMERIC(5,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tarjeta_monto_total NUMERIC(14,2);
 `;
 
 async function runMigration() {

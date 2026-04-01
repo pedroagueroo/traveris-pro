@@ -211,12 +211,17 @@ export class ReservaDetalleComponent implements OnInit {
   }
 
   private registrarPagoUnico(monto: number) {
+    const esTarjeta = this.nuevoPago.metodo_pago === 'TARJETA';
     const payloadCaja: any = {
       ...this.nuevoPago,
       monto: monto,
       metodo_pago: this.nuevoPago.metodo_pago,
       empresa_nombre: this.auth.getNombreEmpresa(),
-      categoria: 'RESERVA'
+      categoria: 'RESERVA',
+      tarjeta_banco: esTarjeta ? this.bancoDetectado : null,
+      tarjeta_cuotas: esTarjeta ? this.datosTarjeta.cuotas : null,
+      tarjeta_interes: esTarjeta ? this.datosTarjeta.interes : null,
+      tarjeta_monto_total: esTarjeta ? this.montoTotalConInteres : null
     };
 
     this.api.crearMovimientoCaja(payloadCaja).subscribe({

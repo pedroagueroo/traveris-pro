@@ -40,7 +40,9 @@ export class ReservasListaComponent implements OnInit {
     } else if (tipo === 'ABIERTO') {
       this.reservas = this.reservasCompletas.filter((r: any) => r.estado === 'ABIERTO');
     } else if (tipo === 'DEUDA') {
-      this.reservas = this.reservasCompletas.filter((r: any) => Math.abs(parseFloat(r.saldo_real)) > 0.01);
+      this.reservas = this.reservasCompletas.filter((r: any) => parseFloat(r.saldo_real) > 0.01);
+    } else if (tipo === 'SALDADA') {
+      this.reservas = this.reservasCompletas.filter((r: any) => Math.abs(parseFloat(r.saldo_real)) <= 0.01);
     }
   }
 

@@ -58,11 +58,16 @@
                             </div>
                         </td>
                         <td class="text-center">
-                            <span class="status-pill" [ngClass]="{'status-pending': r.saldo_real > 0.01, 'status-paid': (r.saldo_real >= -0.01 && r.saldo_real <= 0.01), 'bg-info text-white border-0 px-2 py-1 rounded-pill': r.saldo_real < -0.01}">
-                                {{ r.saldo_real > 0.01 ? 'SALDO PENDIENTE' : (r.saldo_real < -0.01 ? 'SALDO A FAVOR' : 'PAGADO TOTAL') }}
+                            <span class="status-pill" [ngClass]="{'status-pending': !r.estaSaldada, 'status-paid': r.estaSaldada}">
+                                {{ r.estaSaldada ? 'CUENTA SALDADA' : 'CON SALDO' }}
                             </span>
-                            <div class="fw-bold mt-1" [ngClass]="{'text-danger': r.saldo_real > 0.01, 'text-success': r.saldo_real < -0.01}">
-                                USD {{ (r.saldo_real || 0) | number:'1.2-2' }}
+                            <div class="fw-bold mt-1" style="font-size: 0.8rem;" *ngIf="!r.estaSaldada">
+                                <div *ngIf="r.saldo_cobrar_ars > 0.01" class="text-danger">ARS {{ r.saldo_cobrar_ars | number:'1.2-2' }}</div>
+                                <div *ngIf="r.saldo_cobrar_usd > 0.01" class="text-danger">USD {{ r.saldo_cobrar_usd | number:'1.2-2' }}</div>
+                                <div *ngIf="r.saldo_cobrar_eur > 0.01" class="text-danger">EUR {{ r.saldo_cobrar_eur | number:'1.2-2' }}</div>
+                                <div *ngIf="r.saldo_cobrar_ars < -0.01" class="text-success">ARS FAVOR {{ (r.saldo_cobrar_ars * -1) | number:'1.2-2' }}</div>
+                                <div *ngIf="r.saldo_cobrar_usd < -0.01" class="text-success">USD FAVOR {{ (r.saldo_cobrar_usd * -1) | number:'1.2-2' }}</div>
+                                <div *ngIf="r.saldo_cobrar_eur < -0.01" class="text-success">EUR FAVOR {{ (r.saldo_cobrar_eur * -1) | number:'1.2-2' }}</div>
                             </div>
                         </td>
                         <td class="text-end pe-4">

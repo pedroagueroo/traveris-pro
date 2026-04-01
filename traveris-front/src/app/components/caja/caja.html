@@ -68,21 +68,49 @@
     <h6 class="fw-bold text-muted text-uppercase small mb-3 no-print"><i class="bi bi-pie-chart-fill me-2"></i> Desglose
         por Método de Ingreso</h6>
     <div class="row g-3 mb-5 no-print">
-        <div class="col-6 col-md-3" *ngFor="let s of saldosDetallados">
-            <div class="form-card p-3 h-100 d-flex flex-column justify-content-center"
-                [ngClass]="{'border-start border-4 border-success': s.saldo >= 0, 'border-start border-4 border-danger': s.saldo < 0}">
+        <div class="col-md">
+            <div class="form-card p-3 h-100 border-start border-4 border-success d-flex flex-column justify-content-center bg-body shadow-sm">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">{{ s.metodo_pago }}
-                    </div>
-                    <i class="bi fs-5" [ngClass]="{
-                      'bi-cash-coin text-success': s.metodo_pago === 'EFECTIVO',
-                      'bi-credit-card-2-front text-primary': s.metodo_pago === 'TARJETA',
-                      'bi-arrow-left-right text-info': s.metodo_pago === 'TRANSFERENCIA',
-                      'bi-phone-vibrate text-primary': s.metodo_pago === 'MERCADOPAGO'
-                    }"></i>
+                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Pesos (ARS)</div>
+                    <i class="bi bi-cash-coin text-success fs-5"></i>
                 </div>
-                <h5 class="fw-bold mb-0 text-dark">{{ s.moneda === 'ARS' ? '$' : 'USD' }} {{ s.saldo | number:'1.2-2' }}
-                </h5>
+                <h5 class="fw-bold mb-0 text-dark">$ {{ saldosMacro.efectivoARS | number:'1.2-2' }}</h5>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="form-card p-3 h-100 border-start border-4 border-success d-flex flex-column justify-content-center bg-body shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Dólares (USD)</div>
+                    <i class="bi bi-cash-coin text-success fs-5"></i>
+                </div>
+                <h5 class="fw-bold mb-0 text-dark">US$ {{ saldosMacro.efectivoUSD | number:'1.2-2' }}</h5>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="form-card p-3 h-100 border-start border-4 border-success d-flex flex-column justify-content-center bg-body shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Euros (EUR)</div>
+                    <i class="bi bi-cash-coin text-success fs-5"></i>
+                </div>
+                <h5 class="fw-bold mb-0 text-dark">€ {{ saldosMacro.efectivoEUR | number:'1.2-2' }}</h5>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="form-card p-3 h-100 border-start border-4 border-warning d-flex flex-column justify-content-center bg-body shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Tarjeta</div>
+                    <i class="bi bi-credit-card-2-front text-warning fs-5"></i>
+                </div>
+                <h5 class="fw-bold mb-0 text-dark">$ {{ saldosMacro.tarjetas | number:'1.2-2' }}</h5>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="form-card p-3 h-100 border-start border-4 border-info d-flex flex-column justify-content-center bg-body shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Transferencias</div>
+                    <i class="bi bi-arrow-left-right text-info fs-5"></i>
+                </div>
+                <h5 class="fw-bold mb-0 text-dark">$ {{ saldosMacro.transferencias | number:'1.2-2' }}</h5>
             </div>
         </div>
     </div>

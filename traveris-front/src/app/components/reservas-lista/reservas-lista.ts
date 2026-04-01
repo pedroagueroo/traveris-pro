@@ -26,9 +26,24 @@ export class ReservasListaComponent implements OnInit {
   obtenerReservas() {
     const miAgencia = this.auth.getNombreEmpresa();
     this.api.getReservasPorAgencia(miAgencia).subscribe({
-      next: (data: any) => {
-        this.reservas = data;
-        this.reservasCompletas = [...data];
+      next: (data: any[]) => {
+        const processed = data.map((r: any) => {
+            const cArs = parseFloat(r.saldo_cobrar_ars) || 0;
+            const cUsd = parseFloat(r.saldo_cobrar_usd) || 0;
+            const cEur = parseFloat(r.saldo_cobrar_eur) || 0;
+            const pArs = parseFloat(r.saldo_pagar_ars) || 0;
+            const pUsd = parseFloat(r.saldo_pagar_usd) || 0;
+            const pEur = parseFloat(r.saldo_pagar_eur) || 0;
+            
+            // Requisito 11.1: Saldada SOLO SI TODOS los balances son 0.
+            r.estaSaldada = Math.abs(cArs) <= 0.01 && Math.abs(cUsd) <= 0.01 && Math.abs(cEur) <= 0.01 && 
+                            Math.abs(pArs) <= 0.01 && Math.abs(pUsd) <= 0.01 && Math.abs(pEur) <= 0.01;
+            
+            r.tieneDeudaCliente = cArs > 0.01 || cUsd > 0.01 || cEur > 0.01;
+            return r;
+        });
+        this.reservas = processed;
+        this.reservasCompletas = [...processed];
       },
       error: (err: any) => console.error('Error al traer reservas:', err)
     });
@@ -40,9 +55,9 @@ export class ReservasListaComponent implements OnInit {
     } else if (tipo === 'ABIERTO') {
       this.reservas = this.reservasCompletas.filter((r: any) => r.estado === 'ABIERTO');
     } else if (tipo === 'DEUDA') {
-      this.reservas = this.reservasCompletas.filter((r: any) => parseFloat(r.saldo_real) > 0.01);
+      this.reservas = this.reservasCompletas.filter((r: any) => r.tieneDeudaCliente);
     } else if (tipo === 'SALDADA') {
-      this.reservas = this.reservasCompletas.filter((r: any) => Math.abs(parseFloat(r.saldo_real)) <= 0.01);
+      this.reservas = this.reservasCompletas.filter((r: any) => r.estaSaldada);
     }
   }
 

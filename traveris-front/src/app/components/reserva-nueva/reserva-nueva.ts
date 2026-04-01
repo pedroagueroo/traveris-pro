@@ -49,7 +49,14 @@ export class ReservaNuevaComponent implements OnInit {
 
   mostrarModalCliente: boolean = false;
   indexAcompanianteActual: number = -1;
-  nuevoClienteRapido = { nombre_completo: '', dni_pasaporte: '', email: '', empresa_nombre: '' };
+  nuevoClienteRapido: any = {
+    nombre_completo: '', dni_pasaporte: '', email: ''
+  };
+
+  // Multimoneda Variables
+  totalesCosto = { ARS: 0, USD: 0, EUR: 0 };
+  totalesVenta = { ARS: 0, USD: 0, EUR: 0 };
+  rentabilidades = { ARS: 0, USD: 0, EUR: 0 };
 
   constructor(
     private api: ApiService,
@@ -141,6 +148,8 @@ export class ReservaNuevaComponent implements OnInit {
     const baseOperativo = { operador_mayorista: '', nro_expediente: '', observaciones: '' };
     const nuevoItem: any = {
       tipo_item: tipo,
+      moneda_venta: 'USD',
+      moneda_costo: 'USD',
       costo_neto_operador: 0,
       venta_bruta_cliente: 0,
       detalles: { ...baseOperativo }
@@ -169,15 +178,41 @@ export class ReservaNuevaComponent implements OnInit {
   }
 
   recalcularTodo() {
-    this.totalCostoNeto = this.servicios.reduce((acc: number, s: any) => acc + (Number(s.costo_neto_operador) || 0), 0);
-    this.subtotalVentaBruta = this.servicios.reduce((acc: number, s: any) => acc + (Number(s.venta_bruta_cliente) || 0), 0);
+    this.totalesCosto = { ARS: 0, USD: 0, EUR: 0 };
+    this.totalesVenta = { ARS: 0, USD: 0, EUR: 0 };
+
+    this.servicios.forEach((s: any) => {
+      const costo = Number(s.costo_neto_operador) || 0;
+      const venta = Number(s.venta_bruta_cliente) || 0;
+
+      const monCost = s.moneda_costo || 'USD';
+      if ((this.totalesCosto as any)[monCost] !== undefined) {
+         (this.totalesCosto as any)[monCost] += costo;
+      }
+
+      const monVent = s.moneda_venta || 'USD';
+      if ((this.totalesVenta as any)[monVent] !== undefined) {
+         (this.totalesVenta as any)[monVent] += venta;
+      }
+    });
 
     const gastos = Number(this.reserva.gastos_administrativos_usd) || 0;
     const desc = Number(this.reserva.bonificacion_descuento_usd) || 0;
 
-    this.reserva.total_venta_final_usd = this.subtotalVentaBruta + gastos - desc;
-    this.reserva.costo_total_operador_usd = this.totalCostoNeto;
-    this.rentabilidadEstimada = this.reserva.total_venta_final_usd - this.totalCostoNeto;
+    // Gastos extras globales impactan momentáneamente al USD hasta que se migren
+    this.totalesVenta.USD += gastos - desc;
+
+    // Mantener variables legacy
+    this.reserva.total_venta_final_usd = this.totalesVenta.USD;
+    this.reserva.costo_total_operador_usd = this.totalesCosto.USD;
+    
+    this.rentabilidades.ARS = this.totalesVenta.ARS - this.totalesCosto.ARS;
+    this.rentabilidades.USD = this.totalesVenta.USD - this.totalesCosto.USD;
+    this.rentabilidades.EUR = this.totalesVenta.EUR - this.totalesCosto.EUR;
+
+    this.totalCostoNeto = this.totalesCosto.USD;
+    this.subtotalVentaBruta = this.totalesVenta.USD;
+    this.rentabilidadEstimada = this.rentabilidades.USD;
   }
 
   // --- Funciones de sanitización ---
@@ -210,6 +245,8 @@ export class ReservaNuevaComponent implements OnInit {
       }
       return {
         tipo_item: s.tipo_item || null,
+        moneda_venta: s.moneda_venta || 'USD',
+        moneda_costo: s.moneda_costo || 'USD',
         costo_neto_operador: this.sanitizeNumber(s.costo_neto_operador) ?? 0,
         venta_bruta_cliente: this.sanitizeNumber(s.venta_bruta_cliente) ?? 0,
         detalles

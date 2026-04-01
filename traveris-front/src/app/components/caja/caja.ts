@@ -71,6 +71,8 @@ export class Caja implements OnInit {
   // CARGA DE DATOS
   // ============================================================
 
+  saldosMacro: any = { efectivoARS: 0, efectivoUSD: 0, efectivoEUR: 0, tarjetas: 0, transferencias: 0 };
+
   cargarCaja() {
     const miAgencia = this.auth.getNombreEmpresa();
 
@@ -78,6 +80,26 @@ export class Caja implements OnInit {
 
     this.api.getBalanceBilleteras(miAgencia).subscribe((data: any[]) => {
       this.saldosDetallados = data;
+      
+      this.saldosMacro = { efectivoARS: 0, efectivoUSD: 0, efectivoEUR: 0, tarjetas: 0, transferencias: 0 };
+      
+      data.forEach(item => {
+         const metodo = (item.metodo_pago || '').toUpperCase();
+         const isEfectivo = metodo === 'EFECTIVO';
+         const isTransfer = metodo.includes('TRANSF') || metodo.includes('MERCADOPAGO') || metodo.includes('BBVA') || metodo.includes('GALICIA');
+         const isTarjeta = metodo.includes('TARJETA');
+         const val = parseFloat(item.saldo) || 0;
+         
+         if (isEfectivo) {
+             if (item.moneda === 'ARS') this.saldosMacro.efectivoARS += val;
+             if (item.moneda === 'USD') this.saldosMacro.efectivoUSD += val;
+             if (item.moneda === 'EUR') this.saldosMacro.efectivoEUR += val;
+         } else if (isTarjeta) {
+             this.saldosMacro.tarjetas += val;
+         } else if (isTransfer) {
+             this.saldosMacro.transferencias += val;
+         }
+      });
     });
 
     this.api.getReporteDiario(miAgencia).subscribe((data: any[]) => this.movimientosHoy = data);

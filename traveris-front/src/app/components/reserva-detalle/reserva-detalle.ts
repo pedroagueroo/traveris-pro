@@ -23,12 +23,18 @@ export class ReservaDetalleComponent implements OnInit {
   movimientos: any[] = [];
 
   deudaCliente: number = 0;
-  totalCobradoUSD: number = 0;
   porcentajeCobrado: number = 0;
   saldoARS: number = 0;
-
+  
   deudaProveedor: number = 0;
   mostrarDesgloseServicio: boolean = false;
+
+  // MULTIMONEDA 9 DECK
+  totalesVenta = { ARS: 0, USD: 0, EUR: 0 };
+  totalesCosto = { ARS: 0, USD: 0, EUR: 0 };
+  saldosCobrar = { ARS: 0, USD: 0, EUR: 0 };
+  saldosPagar = { ARS: 0, USD: 0, EUR: 0 };
+  estaSaldada: boolean = false;
 
   nuevoPago: any = {
     id_reserva: 0,
@@ -109,30 +115,38 @@ export class ReservaDetalleComponent implements OnInit {
   }
 
   procesarFinanzas() {
-    const totalVenta = parseFloat(this.reserva.total_venta_final_usd || 0);
-    const costoTotal = parseFloat(this.reserva.costo_total_operador_usd || 0);
+    this.totalesVenta = { ARS: 0, USD: 0, EUR: 0 };
+    this.totalesCosto = { ARS: 0, USD: 0, EUR: 0 };
+    
+    if (this.reserva.servicios_items) {
+      this.reserva.servicios_items.forEach((s: any) => {
+        const monVta = s.moneda_venta || 'USD';
+        const monCst = s.moneda_costo || 'USD';
+        (this.totalesVenta as any)[monVta] += parseFloat(s.venta_bruta_cliente) || 0;
+        (this.totalesCosto as any)[monCst] += parseFloat(s.costo_neto_operador) || 0;
+      });
+    }
 
-    this.totalCobradoUSD = 0;
-    let totalPagadoOperadorUSD = 0;
-    this.saldoARS = 0;
+    const gastos = parseFloat(this.reserva.gastos_administrativos_usd) || 0;
+    const desc = parseFloat(this.reserva.bonificacion_descuento_usd) || 0;
+    this.totalesVenta.USD += (gastos - desc);
+    
+    this.saldosCobrar.ARS = parseFloat(this.reserva.saldo_cobrar_ars) || 0;
+    this.saldosCobrar.USD = parseFloat(this.reserva.saldo_cobrar_usd) || 0;
+    this.saldosCobrar.EUR = parseFloat(this.reserva.saldo_cobrar_eur) || 0;
+    
+    this.saldosPagar.ARS = parseFloat(this.reserva.saldo_pagar_ars) || 0;
+    this.saldosPagar.USD = parseFloat(this.reserva.saldo_pagar_usd) || 0;
+    this.saldosPagar.EUR = parseFloat(this.reserva.saldo_pagar_eur) || 0;
 
-    this.movimientos.forEach((m: any) => {
-      const montoNum = parseFloat(m.monto);
-      if (m.moneda === 'USD') {
-        if (m.tipo_movimiento === 'PAGO_CLIENTE') {
-          this.totalCobradoUSD += montoNum;
-        }
-        if (m.tipo_movimiento === 'PAGO_PROVEEDOR') {
-          totalPagadoOperadorUSD += montoNum;
-        }
-      } else if (m.moneda === 'ARS') {
-        if (m.tipo_movimiento === 'PAGO_CLIENTE') this.saldoARS += montoNum;
-      }
-    });
+    this.estaSaldada = 
+        Math.abs(this.saldosCobrar.ARS) <= 0.01 && Math.abs(this.saldosCobrar.USD) <= 0.01 && Math.abs(this.saldosCobrar.EUR) <= 0.01 &&
+        Math.abs(this.saldosPagar.ARS) <= 0.01 && Math.abs(this.saldosPagar.USD) <= 0.01 && Math.abs(this.saldosPagar.EUR) <= 0.01;
 
-    this.deudaCliente = totalVenta - this.totalCobradoUSD;
-    this.deudaProveedor = costoTotal - totalPagadoOperadorUSD;
-    this.porcentajeCobrado = totalVenta > 0 ? (this.totalCobradoUSD / totalVenta) * 100 : 0;
+    // Legacy checks (to keep old stuff running temporarily without breaking)
+    this.deudaCliente = this.saldosCobrar.USD;
+    this.deudaProveedor = this.saldosPagar.USD;
+    this.porcentajeCobrado = this.totalesVenta.USD > 0 ? ((this.totalesVenta.USD - this.saldosCobrar.USD) / this.totalesVenta.USD) * 100 : 0;
   }
 
   // ============================================================

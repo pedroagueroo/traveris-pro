@@ -17,40 +17,67 @@
     </div>
   </div>
 
-  <div class="row g-3 mb-5 text-center">
-    <div class="col-md-3">
-      <div class="card bg-danger text-white shadow border-0 h-100">
-        <div class="card-body">
-          <h6 class="text-uppercase small fw-bold opacity-75">Saldos a Cobrar</h6>
-          <h3 class="fw-bold">USD {{ stats.saldoPendienteGlobal | number:'1.2-2' }}</h3>
-          <p class="mb-0 extra-small">Deuda de pasajeros</p>
+  <!-- PANEL: SALDOS A COBRAR -->
+  <div class="mb-4">
+    <h5 class="fw-bold mb-3 d-flex align-items-center">
+      <i class="bi bi-box-arrow-in-right text-danger me-2 fs-4"></i> Deuda de Clientes (A Cobrar)
+    </h5>
+    <div class="row g-3 text-center">
+      <div class="col-md-4">
+        <div class="card bg-danger bg-opacity-10 text-danger border-danger border-opacity-25 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-uppercase small fw-bold">Pesos Argentinos</h6>
+            <h3 class="fw-bold mb-0">ARS {{ stats.saldoPendienteARS | number:'1.2-2' }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-danger bg-opacity-10 text-danger border-danger border-opacity-25 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-uppercase small fw-bold">Dólares</h6>
+            <h3 class="fw-bold mb-0">USD {{ stats.saldoPendienteUSD | number:'1.2-2' }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-danger bg-opacity-10 text-danger border-danger border-opacity-25 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-uppercase small fw-bold">Euros</h6>
+            <h3 class="fw-bold mb-0">EUR {{ stats.saldoPendienteEUR | number:'1.2-2' }}</h3>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card bg-warning text-dark shadow border-0 h-100">
-        <div class="card-body">
-          <h6 class="text-uppercase small fw-bold opacity-75">Saldos a Pagar</h6>
-          <h3 class="fw-bold">USD {{ stats.deudaProveedoresGlobal | number:'1.2-2' }}</h3>
-          <p class="mb-0 extra-small">Deuda a operadores</p>
+  </div>
+
+  <!-- PANEL: SALDOS A PAGAR -->
+  <div class="mb-5">
+    <h5 class="fw-bold mb-3 d-flex align-items-center">
+      <i class="bi bi-box-arrow-up-right text-warning me-2 fs-4" style="filter: drop-shadow(0px 0px 1px #888);"></i> Deuda a Operadores (A Pagar)
+    </h5>
+    <div class="row g-3 text-center">
+      <div class="col-md-4">
+        <div class="card bg-warning bg-opacity-10 text-warning-emphasis border-warning border-opacity-50 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-uppercase small fw-bold">Pesos Argentinos</h6>
+            <h3 class="fw-bold mb-0">ARS {{ stats.deudaProveedoresARS | number:'1.2-2' }}</h3>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card bg-primary text-white shadow border-0 h-100">
-        <div class="card-body">
-          <h6 class="text-uppercase small fw-bold opacity-75">En Curso</h6>
-          <h3 class="fw-bold">{{ stats.legajosActivos }}</h3>
-          <p class="mb-0 extra-small">Operaciones abiertas</p>
+      <div class="col-md-4">
+        <div class="card bg-warning bg-opacity-10 text-warning-emphasis border-warning border-opacity-50 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-uppercase small fw-bold">Dólares</h6>
+            <h3 class="fw-bold mb-0">USD {{ stats.deudaProveedoresUSD | number:'1.2-2' }}</h3>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card bg-success text-white shadow border-0 h-100">
-        <div class="card-body">
-          <h6 class="text-uppercase small fw-bold opacity-75">Total Histórico</h6>
-          <h3 class="fw-bold">{{ stats.totalLegajos }}</h3>
-          <p class="mb-0 extra-small">Volumen de ventas</p>
+      <div class="col-md-4">
+        <div class="card bg-warning bg-opacity-10 text-warning-emphasis border-warning border-opacity-50 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-uppercase small fw-bold">Euros</h6>
+            <h3 class="fw-bold mb-0">EUR {{ stats.deudaProveedoresEUR | number:'1.2-2' }}</h3>
+          </div>
         </div>
       </div>
     </div>

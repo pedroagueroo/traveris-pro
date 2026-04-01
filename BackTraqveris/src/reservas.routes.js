@@ -189,7 +189,9 @@ router.get('/dashboard/stats/:empresa', async (req, res) => {
                 COALESCE(SUM(total_venta_final_usd) - (SELECT COALESCE(SUM(monto), 0) FROM movimientos_caja mc WHERE mc.tipo_movimiento = 'PAGO_CLIENTE' AND mc.id_reserva IN (SELECT id FROM reservas WHERE empresa_nombre = $1)), 0) as "saldoPendienteGlobal",
                 COALESCE(SUM(costo_total_operador_usd) - (SELECT COALESCE(SUM(monto), 0) FROM movimientos_caja mc WHERE mc.tipo_movimiento = 'PAGO_PROVEEDOR' AND mc.id_reserva IN (SELECT id FROM reservas WHERE empresa_nombre = $1)), 0) as "deudaProveedoresGlobal",
                 COUNT(*) FILTER (WHERE estado = 'ABIERTO') as "legajosActivos",
-                COUNT(*) as "totalLegajos"
+                COUNT(*) as "totalLegajos",
+                COALESCE(SUM(total_venta_final_usd), 0) as "totalFacturado",
+                COALESCE(SUM(total_venta_final_usd) - SUM(costo_total_operador_usd), 0) as "rentabilidadTotal"
             FROM reservas WHERE empresa_nombre = $1`;
         const result = await pool.query(query, [empresa]);
         res.json(result.rows[0]);
@@ -227,8 +229,8 @@ router.post('/', async (req, res) => {
             for (let s of servicios) {
                 const d = s.detalles || {};
                 await client.query(
-                    `INSERT INTO reserva_servicios_detallados (id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente, hotel_nombre, ciudad, check_in, check_out, regimen, aerolinea, nro_vuelo, origen, destino, pnr, crucero_nombre, crucero_cabina, crucero_itinerario, nombre_item, servicio_descripcion, excursion_fecha, hora_salida, hora_llegada) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
-                    [idReserva, s.tipo_item, s.costo_neto_operador || 0, s.venta_bruta_cliente || 0, d.hotel_nombre || null, d.ciudad || null, d.check_in || null, d.check_out || null, d.regimen || null, d.aerolinea || null, d.nro_vuelo || null, d.origen || null, d.destino || null, d.pnr || null, d.crucero_nombre || null, d.crucero_cabina || null, d.crucero_itinerario || null, d.nombre_servicio || null, d.servicio_descripcion || null, d.fecha || null, d.hora_salida || null, d.hora_llegada || null]
+                    `INSERT INTO reserva_servicios_detallados (id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente, hotel_nombre, ciudad, check_in, check_out, regimen, aerolinea, nro_vuelo, origen, destino, pnr, crucero_nombre, crucero_cabina, crucero_itinerario, nombre_item, servicio_descripcion, excursion_fecha, hora_salida, hora_llegada, operador_mayorista, nro_expediente, observaciones_servicio) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)`,
+                    [idReserva, s.tipo_item, s.costo_neto_operador || 0, s.venta_bruta_cliente || 0, d.hotel_nombre || null, d.ciudad || null, d.check_in || null, d.check_out || null, d.regimen || null, d.aerolinea || null, d.nro_vuelo || null, d.origen || null, d.destino || null, d.pnr || null, d.crucero_nombre || null, d.crucero_cabina || null, d.crucero_itinerario || null, d.nombre_servicio || null, d.servicio_descripcion || null, d.fecha || null, d.hora_salida || null, d.hora_llegada || null, d.operador_mayorista || null, d.nro_expediente || null, d.observaciones || null]
                 );
             }
         }
@@ -272,7 +274,8 @@ router.get('/completa/:id', async (req, res) => {
                 plan: s.plan_asistencia, nro_poliza: s.nro_poliza, cobertura: s.cobertura_detalles,
                 pais: s.pais_destino, nro_tramite: s.nro_tramite, fecha_vencimiento: s.fecha_vencimiento_visa,
                 crucero_nombre: s.crucero_nombre, crucero_cabina: s.crucero_cabina, crucero_itinerario: s.crucero_itinerario,
-                nombre_servicio: s.nombre_item, servicio_descripcion: s.servicio_descripcion
+                nombre_servicio: s.nombre_item, servicio_descripcion: s.servicio_descripcion,
+                operador_mayorista: s.operador_mayorista, nro_expediente: s.nro_expediente, observaciones: s.observaciones_servicio
             }
         }));
         res.json({ reserva: resReserva.rows[0], acompaniantes: resAcomp.rows, servicios: serviciosMapeados });
@@ -307,8 +310,8 @@ router.put('/:id', async (req, res) => {
             for (let s of servicios) {
                 const d = s.detalles || {};
                 await client.query(
-                    `INSERT INTO reserva_servicios_detallados (id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente, hotel_nombre, ciudad, check_in, check_out, regimen, aerolinea, nro_vuelo, origen, destino, pnr, plan_asistencia, nro_poliza, cobertura_detalles, pais_destino, nro_tramite, fecha_vencimiento_visa, crucero_nombre, crucero_cabina, crucero_itinerario, nombre_item, servicio_descripcion, excursion_fecha, hora_salida, hora_llegada) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)`,
-                    [id, s.tipo_item, s.costo_neto_operador || 0, s.venta_bruta_cliente || 0, d.hotel_nombre || null, d.ciudad || null, d.check_in || null, d.check_out || null, d.regimen || null, d.aerolinea || null, d.nro_vuelo || null, d.origen || null, d.destino || null, d.pnr || null, d.plan || null, d.nro_poliza || null, d.cobertura || null, d.pais || null, d.nro_tramite || null, d.fecha_vencimiento || null, d.crucero_nombre || null, d.crucero_cabina || null, d.crucero_itinerario || null, d.nombre_servicio || null, d.servicio_descripcion || null, d.fecha || null, d.hora_salida || null, d.hora_llegada || null]
+                    `INSERT INTO reserva_servicios_detallados (id_reserva, tipo_item, costo_neto_operador, venta_bruta_cliente, hotel_nombre, ciudad, check_in, check_out, regimen, aerolinea, nro_vuelo, origen, destino, pnr, plan_asistencia, nro_poliza, cobertura_detalles, pais_destino, nro_tramite, fecha_vencimiento_visa, crucero_nombre, crucero_cabina, crucero_itinerario, nombre_item, servicio_descripcion, excursion_fecha, hora_salida, hora_llegada, operador_mayorista, nro_expediente, observaciones_servicio) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)`,
+                    [id, s.tipo_item, s.costo_neto_operador || 0, s.venta_bruta_cliente || 0, d.hotel_nombre || null, d.ciudad || null, d.check_in || null, d.check_out || null, d.regimen || null, d.aerolinea || null, d.nro_vuelo || null, d.origen || null, d.destino || null, d.pnr || null, d.plan || null, d.nro_poliza || null, d.cobertura || null, d.pais || null, d.nro_tramite || null, d.fecha_vencimiento || null, d.crucero_nombre || null, d.crucero_cabina || null, d.crucero_itinerario || null, d.nombre_servicio || null, d.servicio_descripcion || null, d.fecha || null, d.hora_salida || null, d.hora_llegada || null, d.operador_mayorista || null, d.nro_expediente || null, d.observaciones || null]
                 );
             }
         }

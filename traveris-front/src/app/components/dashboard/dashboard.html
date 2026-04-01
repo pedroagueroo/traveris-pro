@@ -56,26 +56,62 @@
     </div>
   </div>
 
+  <!-- FILA 2: Métricas de Rentabilidad -->
+  <div class="row g-3 mb-5 text-center">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="text-uppercase small fw-bold text-muted">Rentabilidad Bruta</h6>
+          <h3 class="fw-bold text-success">USD {{ stats.rentabilidadTotal | number:'1.2-2' }}</h3>
+          <p class="mb-0 extra-small text-muted">Venta total - Costo total</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="text-uppercase small fw-bold text-muted">Total Facturado</h6>
+          <h3 class="fw-bold text-primary">USD {{ stats.totalFacturado | number:'1.2-2' }}</h3>
+          <p class="mb-0 extra-small text-muted">Suma de ventas totales</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="text-uppercase small fw-bold text-muted">Promedio por Legajo</h6>
+          <h3 class="fw-bold text-dark">USD {{ (stats.totalLegajos > 0 ? (stats.totalFacturado / stats.totalLegajos) : 0) | number:'1.2-2' }}</h3>
+          <p class="mb-0 extra-small text-muted">Ticket promedio</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <h5 class="text-muted fw-bold mb-3 text-uppercase small">Acciones Rápidas</h5>
   <div class="row g-3 mb-5">
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md">
       <button class="btn btn-outline-primary w-100 py-3 shadow-sm fw-bold" routerLink="/clientes">
         <i class="bi bi-people fs-3 d-block mb-2"></i> Clientes
       </button>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md">
       <button class="btn btn-outline-success w-100 py-3 shadow-sm fw-bold" routerLink="/clientes/nuevo">
         <i class="bi bi-person-plus fs-3 d-block mb-2"></i> Nuevo Pasajero
       </button>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md">
       <button class="btn btn-outline-warning w-100 py-3 shadow-sm fw-bold text-dark" routerLink="/reservas">
         <i class="bi bi-calendar-check fs-3 d-block mb-2"></i> Reservas
       </button>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md">
       <button class="btn btn-outline-danger w-100 py-3 shadow-sm fw-bold" routerLink="/caja">
         <i class="bi bi-cash-coin fs-3 d-block mb-2"></i> Caja
+      </button>
+    </div>
+    <div class="col-6 col-md">
+      <button class="btn btn-outline-info w-100 py-3 shadow-sm fw-bold" routerLink="/estadisticas">
+        <i class="bi bi-bar-chart-line fs-3 d-block mb-2"></i> Estadísticas
       </button>
     </div>
   </div>

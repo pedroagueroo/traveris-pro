@@ -11,6 +11,7 @@ import { Login } from './components/login/login';
 import { authGuard } from './guards/auth-guard';
 import { Caja } from './components/caja/caja';
 import { ImportClientesComponent } from './components/import-clientes/import-clientes';
+import { EstadisticasComponent } from './components/estadisticas/estadisticas';
 
 export const routes: Routes = [
   // 1. LA ÚNICA RUTA PÚBLICA
@@ -34,6 +35,9 @@ export const routes: Routes = [
       { path: 'reservas/editar/:id', component: ReservaNuevaComponent }, // <--- AGREGADA
       { path: 'reservas/:id', component: ReservaDetalleComponent }, 
       { path: 'reservas-cliente/:id', component: ReservasClienteComponent },
+
+      // Estadísticas
+      { path: 'estadisticas', component: EstadisticasComponent },
 
       // Redirección interna: Si entra a la raíz vacía y está logueado, al dashboard
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }

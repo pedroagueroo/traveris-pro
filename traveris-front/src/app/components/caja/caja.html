@@ -348,14 +348,19 @@
             </div>
         </div>
 
-        <div *ngIf="cierreMensual && mostrarCierre" class="mt-4 p-4 bg-body-secondary rounded-4 border">
+        <div *ngIf="cierreMensual && mostrarCierre" class="mt-4 p-4 bg-body-secondary rounded-4 border print-section" id="cierre-mensual-print">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-bold mb-0"><i class="bi bi-check-circle text-success me-2"></i> Cierre {{
                     getNombreMes(cierreMensual.periodo.mes) }} {{ cierreMensual.periodo.anio }}</h6>
-                <button class="btn btn-sm btn-outline-secondary rounded-pill"
-                    (click)="mostrarCierre = false">Cerrar</button>
+                <div class="d-flex gap-2 no-print">
+                    <button class="btn btn-sm btn-primary rounded-pill fw-bold px-3" (click)="imprimirCierreMensualPDF()">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Descargar PDF
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill"
+                        (click)="mostrarCierre = false">Cerrar</button>
+                </div>
             </div>
-            <div class="row g-3">
+            <div class="row g-3 mb-3">
                 <div class="col-md-3">
                     <div class="p-3 bg-body rounded-3 border text-center">
                         <div class="small fw-bold text-muted" style="font-size: 0.65rem;">RESULTADO ARS</div>
@@ -383,6 +388,33 @@
                         <div class="small fw-bold text-success" style="font-size: 0.65rem;">UTILIDAD BRUTA</div>
                         <div class="h5 fw-bold mb-0 text-success">US$ {{ cierreMensual.rentabilidad.utilidadBruta |
                             number:'1.2-2' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desglose detallado por método de pago -->
+            <div class="row g-3" *ngIf="cierreMensual.desglose">
+                <div class="col-12">
+                    <div class="p-3 bg-body rounded-3 border">
+                        <h6 class="fw-bold small text-muted text-uppercase mb-3"><i class="bi bi-list-columns me-1"></i> Desglose por Método de Pago</h6>
+                        <table class="table table-sm table-bordered mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Método</th>
+                                    <th class="text-end">Ingresos</th>
+                                    <th class="text-end">Egresos</th>
+                                    <th class="text-end fw-bold">Neto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let d of cierreMensual.desglose">
+                                    <td class="fw-bold">{{ d.metodo_pago }}</td>
+                                    <td class="text-end text-success">{{ d.ingresos | number:'1.2-2' }}</td>
+                                    <td class="text-end text-danger">{{ d.egresos | number:'1.2-2' }}</td>
+                                    <td class="text-end fw-bold" [class.text-success]="d.neto >= 0" [class.text-danger]="d.neto < 0">{{ d.neto | number:'1.2-2' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

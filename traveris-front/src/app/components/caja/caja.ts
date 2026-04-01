@@ -164,6 +164,13 @@ export class Caja implements OnInit {
     window.print();
   }
 
+  imprimirCierreMensualPDF() {
+    const titulo = document.title;
+    document.title = `Cierre_${this.getNombreMes(this.mesSeleccionado)}_${this.anioSeleccionado}_${this.auth.getNombreEmpresa()}`;
+    window.print();
+    document.title = titulo;
+  }
+
   // ============================================================
   // MODAL PAGO TARJETA (requerido por caja.html)
   // ============================================================

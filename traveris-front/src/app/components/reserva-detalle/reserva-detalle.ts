@@ -28,6 +28,7 @@ export class ReservaDetalleComponent implements OnInit {
   saldoARS: number = 0;
 
   deudaProveedor: number = 0;
+  mostrarDesgloseServicio: boolean = false;
 
   nuevoPago: any = {
     id_reserva: 0,

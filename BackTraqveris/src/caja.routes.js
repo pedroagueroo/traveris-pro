@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('./db');
 const { obtenerCotizacionDolar } = require('./cotizacion.service');
 
-// 1. CONVERTIR MONEDA (Lógica de Transacción - Mantenemos tu código)
+// 1. CONVERTIR MONEDA
 router.post('/convertir-moneda', async (req, res) => {
     const client = await pool.connect();
     try {
@@ -30,7 +30,7 @@ router.post('/convertir-moneda', async (req, res) => {
     } finally { client.release(); }
 });
 
-// 2. OBTENER MOVIMIENTOS DE UNA RESERVA (Arregla el error 404 del detalle)
+// 2. OBTENER MOVIMIENTOS DE UNA RESERVA
 router.get('/reserva/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -60,29 +60,39 @@ router.get('/ultimos/:empresa', async (req, res) => {
     }
 });
 
-// 4. REGISTRAR PAGO Y ELIMINAR (Tus códigos originales)
+// 4. REGISTRAR PAGO (expandido con datos de tarjeta)
 router.post('/', async (req, res) => {
-    const { id_reserva, monto, moneda, tipo_movimiento } = req.body;
+    const { id_reserva, monto, moneda, tipo_movimiento, metodo_pago, observaciones,
+            tarjeta_banco, tarjeta_cuotas, tarjeta_interes, tarjeta_monto_total,
+            id_tarjeta_guardada } = req.body;
     try {
-        const nuevo = await pool.query('INSERT INTO movimientos_caja (id_reserva, monto, moneda, tipo_movimiento, fecha_pago) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING *', [id_reserva, monto, moneda, tipo_movimiento]);
+        const nuevo = await pool.query(
+            `INSERT INTO movimientos_caja 
+             (id_reserva, monto, moneda, tipo_movimiento, metodo_pago, observaciones,
+              tarjeta_banco, tarjeta_cuotas, tarjeta_interes, tarjeta_monto_total,
+              id_tarjeta_guardada, fecha_pago) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP) 
+             RETURNING *`,
+            [id_reserva, monto, moneda, tipo_movimiento, 
+             metodo_pago || 'EFECTIVO', observaciones || null,
+             tarjeta_banco || null, tarjeta_cuotas || 1, tarjeta_interes || 0, 
+             tarjeta_monto_total || null, id_tarjeta_guardada || null]
+        );
         res.json(nuevo.rows[0]);
-    } catch (err) { res.status(500).json({ error: "Error al registrar" }); }
+    } catch (err) {
+        console.error("Error al registrar pago:", err);
+        res.status(500).json({ error: "Error al registrar pago" });
+    }
 });
 
-// ELIMINAR MOVIMIENTO (Corregido)
+// ELIMINAR MOVIMIENTO
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-
-        const result = await pool.query(
-            'DELETE FROM movimientos_caja WHERE id = $1',
-            [id]
-        );
-
+        const result = await pool.query('DELETE FROM movimientos_caja WHERE id = $1', [id]);
         if (result.rowCount === 0) {
             return res.status(404).json({ error: "Movimiento no encontrado" });
         }
-
         res.json({ mensaje: "Movimiento eliminado correctamente" });
     } catch (err) {
         console.error("Error al eliminar movimiento:", err);
@@ -90,5 +100,49 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// ============================================================
+// TARJETAS GUARDADAS
+// ============================================================
+
+// Listar tarjetas de una empresa
+router.get('/tarjetas/:empresa', async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT * FROM tarjetas_guardadas WHERE empresa_nombre = $1 ORDER BY alias ASC',
+            [req.params.empresa]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error tarjetas:", err);
+        res.status(500).json({ error: "Error al obtener tarjetas" });
+    }
+});
+
+// Crear tarjeta guardada
+router.post('/tarjetas', async (req, res) => {
+    const { empresa_nombre, alias, ultimos_4, tipo_tarjeta, banco, vencimiento } = req.body;
+    try {
+        const result = await pool.query(
+            `INSERT INTO tarjetas_guardadas (empresa_nombre, alias, ultimos_4, tipo_tarjeta, banco, vencimiento) 
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [empresa_nombre, alias, ultimos_4, tipo_tarjeta, banco, vencimiento]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error("Error crear tarjeta:", err);
+        res.status(500).json({ error: "Error al guardar tarjeta" });
+    }
+});
+
+// Eliminar tarjeta guardada  
+router.delete('/tarjetas/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM tarjetas_guardadas WHERE id = $1', [req.params.id]);
+        res.json({ mensaje: "Tarjeta eliminada" });
+    } catch (err) {
+        console.error("Error eliminar tarjeta:", err);
+        res.status(500).json({ error: "Error al eliminar tarjeta" });
+    }
+});
 
 module.exports = router;

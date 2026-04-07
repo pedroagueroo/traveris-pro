@@ -53,6 +53,20 @@ export class ReservaDetalleComponent implements OnInit {
   archivos: any[] = [];
   fechaLimiteEditable: string = '';
 
+  // --- UI TOGGLES ---
+  mostrarItinerario: boolean = false;
+  mostrarRecibos: boolean = false;
+  paginaRecibos: number = 0;
+  mostrarDesgloseContable: boolean = false;
+
+  get recibosPaginados(): any[] {
+    const start = this.paginaRecibos * 3;
+    return this.recibos.slice(start, start + 3);
+  }
+  get totalPaginasRecibos(): number {
+    return Math.ceil(this.recibos.length / 3);
+  }
+
   // --- RECIBOS ---
   recibos: any[] = [];
   reciboPreview: any = null;

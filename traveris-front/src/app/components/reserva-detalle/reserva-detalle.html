@@ -25,9 +25,9 @@
     </div>
   </div>
 
-  <div class="row g-4 h-100">
+  <div class="row g-4 mb-4">
     <!-- COLUMNA 1: INFO Y PASAJEROS -->
-    <div class="col-lg-3 d-flex flex-column gap-4">
+    <div class="col-lg-4 d-flex flex-column gap-4">
 
       <!-- Card Información Base -->
       <div class="form-card p-4 h-100 border-top border-4 border-primary">
@@ -115,8 +115,8 @@
       </div>
     </div>
 
-    <!-- COLUMNA 2: ITINERARIO -->
-    <div class="col-lg-6">
+    <!-- COLUMNA 2: ITINERARIO (OCULTO AQUI, MOVIDO ABAJO) -->
+    <div class="col-lg-12 d-none" id="itinerario-viejo">
       <div class="form-card h-100 p-0 overflow-hidden d-flex flex-column">
         <div class="p-4 border-bottom bg-body">
           <h5 class="fw-bold m-0 text-primary"><i class="bi bi-map-fill me-2"></i> Itinerario Detallado</h5>
@@ -179,8 +179,8 @@
       </div>
     </div>
 
-    <!-- COLUMNA 3: FINANZAS Y GESTIÓN -->
-    <div class="col-lg-3 d-flex flex-column gap-4">
+    <!-- COLUMNA DERECHA: FINANZAS Y GESTIÓN (PRIORIDAD) -->
+    <div class="col-lg-8 d-flex flex-column gap-4">
 
       <!-- Card Estado Contable -->
       <div class="form-card p-4 border-top border-4 border-success h-100">
@@ -290,6 +290,9 @@
                     <td class="ps-2 fw-bold">
                       <span class="badge bg-dark me-1" style="font-size: 0.55rem;">{{ s.tipo_item }}</span>
                       {{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item || '-' }}
+                      <span class="badge bg-info text-dark ms-1 opacity-75 fw-normal" style="font-size: 0.60rem;" *ngIf="s.proveedor_nombre" title="Operador / Proveedor">
+                        <i class="bi bi-building me-1"></i>{{ s.proveedor_nombre }}
+                      </span>
                     </td>
                     <td class="text-end text-danger">{{ s.costo_neto_operador | number:'1.0-0' }}</td>
                     <td class="text-end text-success">{{ s.venta_bruta_cliente | number:'1.0-0' }}</td>
@@ -364,10 +367,69 @@
         </button>
       </div>
 
+    <!-- SECCION ITINERARIO TOGGLABLE (Moved) -->
+    <button class="btn border-primary border-2 text-primary rounded-pill w-100 mb-3 fw-bold shadow-sm" *ngIf="!mostrarItinerario" (click)="mostrarItinerario = true">
+        <i class="bi bi-map-fill me-2"></i> Ver Itinerario Completo
+    </button>
+    </div> <!-- END COLUMNA DERECHA FINANZAS -->
+  </div> <!-- END ROW 1 -->
+
+  <!-- BLOQUE INFERIOR SECUNDARIO -->
+  <div class="row g-4 mb-4">
+    <!-- COLUMNA ITINERARIO (Toggable full width) -->
+    <div class="col-12" *ngIf="mostrarItinerario">
+        <div class="form-card h-100 p-0 overflow-hidden d-flex flex-column border-top border-4 border-primary">
+            <div class="p-4 border-bottom bg-body d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold m-0 text-primary"><i class="bi bi-map-fill me-2"></i> Itinerario Detallado</h5>
+                <p class="small text-muted mb-0 mt-1">Todos los servicios confirmados para esta operación.</p>
+            </div>
+            <button class="btn btn-outline-secondary rounded-pill btn-sm px-3" (click)="mostrarItinerario = false">Ocultar Itinerario</button>
+            </div>
+            <div class="p-4 flex-grow-1 overflow-auto d-flex flex-row flex-nowrap gap-3 pb-3" style="max-width: 100%; overflow-x: auto; overflow-y: hidden;">
+            <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0" class="text-center py-5 text-muted w-100">
+                <i class="bi bi-calendar-x fs-1 opacity-25"></i>
+                <p class="mt-2 fw-bold">Sin servicios cargados</p>
+            </div>
+            <div *ngFor="let s of reserva.servicios_items; let i = index" class="border rounded-4 overflow-hidden shadow-sm flex-shrink-0" style="width: 350px;">
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-body">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-dark text-white px-3 py-2 rounded-pill text-uppercase fw-bold" style="font-size: 0.65rem;">{{ s.tipo_item }}</span>
+                    <span class="fw-bold text-dark">{{ s.hotel_nombre || s.aerolinea || s.crucero_nombre || s.nombre_item || 'Servicio' }}</span>
+                </div>
+                <span class="badge bg-success-subtle text-success border border-success px-2" *ngIf="s.pnr">PNR: {{ s.pnr }}</span>
+                </div>
+                <div class="p-3">
+                <div class="row g-2 small">
+                    <div class="col-6" *ngIf="s.ciudad"><span class="text-muted">Ciudad:</span> <strong>{{ s.ciudad }}</strong></div>
+                    <div class="col-6" *ngIf="s.check_in"><span class="text-muted">Check-in:</span> <strong>{{ s.check_in | date:'dd/MM/yy' }}</strong></div>
+                    <div class="col-6" *ngIf="s.check_out"><span class="text-muted">Check-out:</span> <strong>{{ s.check_out | date:'dd/MM/yy' }}</strong></div>
+                    <div class="col-6" *ngIf="s.origen"><span class="text-muted">Ruta:</span> <strong>{{ s.origen }} → {{ s.destino }}</strong></div>
+                    <div class="col-6" *ngIf="s.nro_vuelo"><span class="text-muted">Vuelo:</span> <strong>{{ s.nro_vuelo }}</strong></div>
+                    <div class="col-6" *ngIf="s.regimen"><span class="text-muted">Régimen:</span> <strong>{{ s.regimen }}</strong></div>
+                    <div class="col-6" *ngIf="s.plan_asistencia"><span class="text-muted">Plan:</span> <strong>{{ s.plan_asistencia }}</strong></div>
+                    <div class="col-6" *ngIf="s.nro_poliza"><span class="text-muted">Póliza:</span> <strong>{{ s.nro_poliza }}</strong></div>
+                </div>
+                <div class="bg-body p-3 mt-2 rounded-3 small text-muted border border-dashed fst-italic" style="white-space: pre-wrap;" *ngIf="s.servicio_descripcion">
+                    <i class="bi bi-info-circle me-1"></i> {{ s.servicio_descripcion }}
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- COLUMNA RECIBOS (50%) -->
+    <div class="col-lg-6 d-flex flex-column gap-4">
+      <div class="form-card p-4 text-center border-top border-4 border-secondary no-print" *ngIf="!mostrarRecibos && recibos.length > 0">
+         <h6 class="fw-bold mb-3"><i class="bi bi-receipt-cutoff text-primary me-2"></i> Recibos Emitidos ({{recibos.length}})</h6>
+         <button class="btn btn-outline-primary rounded-pill px-4 fw-bold" (click)="mostrarRecibos = true">Ver recibos emitidos</button>
+      </div>
+
       <!-- ═══════════════════════════════════════════════════════ -->
-      <!-- RECIBOS EMITIDOS -->
+      <!-- RECIBOS EMITIDOS DISPLAY -->
       <!-- ═══════════════════════════════════════════════════════ -->
-      <div class="form-card p-4 no-print" *ngIf="recibos.length > 0">
+      <div class="form-card p-4 no-print border-top border-4 border-secondary" *ngIf="mostrarRecibos && recibos.length > 0">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="fw-bold m-0 text-dark text-uppercase small">
             <i class="bi bi-receipt-cutoff me-2 text-primary"></i> Recibos Emitidos
@@ -376,7 +438,7 @@
         </div>
 
         <div class="vstack gap-2">
-          <div *ngFor="let r of recibos"
+          <div *ngFor="let r of recibosPaginados"
             class="d-flex align-items-center justify-content-between p-3 border rounded-4 bg-body shadow-sm"
             [class.opacity-50]="r.anulado" [class.border-danger]="r.anulado">
 
@@ -413,8 +475,26 @@
               </button>
             </div>
           </div>
+          
+          <!-- Paginación -->
+          <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top" *ngIf="totalPaginasRecibos > 1">
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" [disabled]="paginaRecibos === 0" (click)="paginaRecibos = paginaRecibos - 1">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </button>
+            <span class="small fw-bold text-muted">Pág {{paginaRecibos + 1}} de {{totalPaginasRecibos}}</span>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" [disabled]="paginaRecibos >= totalPaginasRecibos - 1" (click)="paginaRecibos = paginaRecibos + 1">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+          <div class="text-center mt-2">
+             <button class="btn btn-sm btn-link text-muted text-decoration-none" (click)="mostrarRecibos = false">Ocultar recibos</button>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- COLUMNA DOCS Y ARCHIVOS -->
+    <div class="col-lg-6 d-flex flex-column gap-4">
 
       <!-- Card Generar Docs y Archivos -->
       <div class="form-card p-4 no-print d-flex flex-column gap-3">
@@ -492,6 +572,7 @@
         </label>
       </div>
     </div>
+  </div> <!-- END ROW SECUNDARIO -->
   <!-- MODAL PREVIEW DOCUMENTOS (Voucher / Cotización) -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div *ngIf="mostrarPreview"

@@ -226,8 +226,8 @@ export class ReservaDetalleComponent implements OnInit {
               this.api.agregarTransferencia(payload).subscribe({
                   next: (res) => {
                       this.transferenciasGuardadas.push(res);
-                      this.nuevoPago.metodo_pago = 'TRANSFERENCIA';
-                      this.nuevoPago.observaciones = (this.nuevoPago.observaciones || '') + ` [Transferencia recibida a ${res.banco_alias}]`;
+                      this.nuevoPago.metodo_pago = 'TRANSFERENCIA_' + res.id;
+                      this.nuevoPago.observaciones = (this.nuevoPago.observaciones || '') + ` [Transferencia a ${res.banco_alias}]`;
                   },
                   error: () => { alert("Error al agregar medio de transferencia"); this.nuevoPago.metodo_pago = 'EFECTIVO'; }
               });
@@ -255,8 +255,25 @@ export class ReservaDetalleComponent implements OnInit {
       tarjeta_banco: null,
       tarjeta_cuotas: null,
       tarjeta_interes: null,
-      tarjeta_monto_total: null
+      tarjeta_monto_total: null,
+      banco: null
     };
+
+    if (payloadCaja.metodo_pago.startsWith('TARJETA_')) {
+      const id = parseInt(payloadCaja.metodo_pago.split('_')[1]);
+      const tarjeta = this.tarjetasGuardadas.find(t => t.id === id);
+      payloadCaja.metodo_pago = 'TARJETA';
+      payloadCaja.banco = tarjeta ? `${tarjeta.nombre_banco} (${tarjeta.nro_tarjeta_completo})` : 'Tarjeta';
+    } else if (payloadCaja.metodo_pago.startsWith('TRANSFERENCIA_')) {
+      const id = parseInt(payloadCaja.metodo_pago.split('_')[1]);
+      const transf = this.transferenciasGuardadas.find(t => t.id === id);
+      payloadCaja.metodo_pago = 'TRANSFERENCIA';
+      payloadCaja.banco = transf ? transf.banco_alias : 'Transferencia';
+    } else if (payloadCaja.metodo_pago === 'TRANSFERENCIA') {
+       // Si es ADD_TRANSFERENCIA, el método se establece dinámicamente a 'TRANSFERENCIA' 
+       // pero asumo que 'banco' ya debería estar en this.nuevoPago si modifiqué onMetodoPagoChange
+       // Wait, onMetodoPagoChange adds it to observaciones, but we want it in banco too! Let's do that!
+    }
 
     this.api.crearMovimientoCaja(payloadCaja).subscribe({
       next: (movimientoCreado: any) => {
@@ -576,7 +593,7 @@ export class ReservaDetalleComponent implements OnInit {
     this.api.crearTarjetaGuardada(payload).subscribe({
       next: (res: any) => {
         this.tarjetasGuardadas.push(res);
-        this.nuevoPago.metodo_pago = 'TARJETA';
+        this.nuevoPago.metodo_pago = 'TARJETA_' + res.id;
         this.nuevoPago.observaciones = (this.nuevoPago.observaciones || '') +
           ` [Pagado con ${res.nombre_banco} - *${nro.slice(-4)}]`;
         this.mostrarModalNuevaTarjeta = false;

@@ -6,7 +6,7 @@
     </div>
     <div class="col-12 col-md-6 text-md-end">
       <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-        <span class="badge bg-light text-primary border border-primary px-3 py-2 shadow-sm">
+        <span class="badge bg-body-tertiary text-primary border border-primary px-3 py-2 shadow-sm">
           <i class="bi bi-building-fill me-1"></i> Agencia: {{ nombreEmpresa }}
         </span>
         <span class="badge bg-dark text-white px-3 py-2 shadow-sm">
@@ -96,7 +96,7 @@
       </button>
     </div>
     <div class="col-6 col-md">
-      <button class="btn btn-outline-warning w-100 py-3 shadow-sm fw-bold text-dark" routerLink="/reservas">
+      <button class="btn btn-outline-warning w-100 py-3 shadow-sm fw-bold text-body" routerLink="/reservas">
         <i class="bi bi-calendar-check fs-3 d-block mb-2"></i> Reservas
       </button>
     </div>
@@ -134,7 +134,7 @@
               <tbody>
                 <tr *ngFor="let m of movimientos" class="animate-fade-in">
                   <td class="small text-muted">{{ m.fecha_pago | date:'dd/MM/yy HH:mm' }}hs</td>
-                  <td><span class="fw-bold text-dark">#{{ m.nro_legajo }}</span></td>
+                  <td><span class="fw-bold text-body">#{{ m.nro_legajo }}</span></td>
                   <td><small class="fw-bold text-uppercase" style="font-size: 0.7rem;">{{ m.tipo_movimiento }}</small></td>
                   <td>
                     <span class="badge rounded-pill" [ngClass]="m.moneda === 'USD' ? 'bg-success-subtle text-success border border-success' : 'bg-secondary-subtle text-secondary border border-secondary'">
@@ -181,7 +181,7 @@
           <div class="d-flex justify-content-between align-items-center">
             
             <div *ngIf="alerta.tipoAlerta === 'PAGO'" [routerLink]="['/reservas', alerta.id]" (click)="mostrarAlertas = false" style="cursor: pointer; flex: 1;">
-              <span class="d-block fw-bold text-dark small text-uppercase">{{ alerta.nombre_titular }}</span>
+              <span class="d-block fw-bold text-body small text-uppercase">{{ alerta.nombre_titular }}</span>
               <small class="text-muted d-block">Legajo #{{alerta.id}} — {{ alerta.destino_final }}</small>
               <small class="text-muted d-block">Venció: {{alerta.fecha_limite_pago | date:'dd/MM/yy'}}</small>
               <span class="badge bg-danger-subtle text-danger border border-danger mt-1" style="font-size: 0.6rem;">
@@ -204,7 +204,7 @@
         </div>
       </div>
 
-      <div class="p-2 text-center bg-light">
+      <div class="p-2 text-center bg-body-tertiary">
         <small class="text-muted" style="font-size: 0.65rem;">Centro de Notificaciones</small>
       </div>
     </div>

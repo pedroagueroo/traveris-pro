@@ -74,7 +74,7 @@ export class Caja implements OnInit {
   // CARGA DE DATOS
   // ============================================================
 
-  saldosMacro: any = { efectivoARS: 0, efectivoUSD: 0, efectivoEUR: 0, tarjetas: 0, transferencias: 0 };
+  desgloseAgrupado: any[] = [];
 
   cargarCaja() {
     const miAgencia = this.auth.getNombreEmpresa();
@@ -84,24 +84,38 @@ export class Caja implements OnInit {
     this.api.getBalanceBilleteras(miAgencia).subscribe((data: any[]) => {
       this.saldosDetallados = data;
       
-      this.saldosMacro = { efectivoARS: 0, efectivoUSD: 0, efectivoEUR: 0, tarjetas: 0, transferencias: 0 };
+      const gruposMap = new Map<string, any>();
       
       data.forEach(item => {
-         const metodo = (item.metodo_pago || '').toUpperCase();
-         const isEfectivo = metodo === 'EFECTIVO';
-         const isTransfer = metodo.includes('TRANSF') || metodo.includes('MERCADOPAGO') || metodo.includes('BBVA') || metodo.includes('GALICIA');
-         const isTarjeta = metodo.includes('TARJETA');
          const val = parseFloat(item.saldo) || 0;
+
+         const moneda = item.moneda || 'ARS';
+         const metodo = item.metodo_pago || 'OTROS';
+         const banco = item.banco || null;
          
-         if (isEfectivo) {
-             if (item.moneda === 'ARS') this.saldosMacro.efectivoARS += val;
-             if (item.moneda === 'USD') this.saldosMacro.efectivoUSD += val;
-             if (item.moneda === 'EUR') this.saldosMacro.efectivoEUR += val;
-         } else if (isTarjeta) {
-             this.saldosMacro.tarjetas += val;
-         } else if (isTransfer) {
-             this.saldosMacro.transferencias += val;
+         if (!gruposMap.has(moneda)) {
+            gruposMap.set(moneda, { moneda: moneda, total: 0, metodosMap: new Map<string, any>() });
          }
+         
+         const monedaObj = gruposMap.get(moneda);
+         monedaObj.total += val;
+         
+         if (!monedaObj.metodosMap.has(metodo)) {
+            monedaObj.metodosMap.set(metodo, { metodo: metodo, total: 0, detalles: [] });
+         }
+         
+         const metodoObj = monedaObj.metodosMap.get(metodo);
+         metodoObj.total += val;
+         
+         // Combine banks with similar names/no names? Nah just insert 
+         // If there are multiple entries for the same bank, they should come pre-aggregated by SQL.
+         metodoObj.detalles.push({ banco: banco, saldo: val });
+      });
+
+      // Convert maps back to arrays for the HTML to iterate over
+      this.desgloseAgrupado = Array.from(gruposMap.values()).map(m => {
+          m.metodos = Array.from(m.metodosMap.values());
+          return m;
       });
     });
 

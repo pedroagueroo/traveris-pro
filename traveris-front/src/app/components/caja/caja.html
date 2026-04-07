@@ -2,7 +2,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
         <div>
-            <h2 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+            <h2 class="fw-bold mb-0 text-body d-flex align-items-center gap-2">
                 <i class="bi bi-safe2 text-primary"></i> Control de Caja Fuerte
             </h2>
             <p class="text-muted small mb-0 mt-1">Visión financiera diaria y gestión de egresos operativos.</p>
@@ -26,7 +26,7 @@
                 <i class="bi bi-wallet2 position-absolute"
                     style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.1; color: #ffffff;"></i>
                 <div class="d-flex justify-content-between align-items-start position-relative z-1 mb-3">
-                    <span class="badge bg-white text-dark shadow-sm px-3 py-2 rounded-pill fw-bold">SALDO EN
+                    <span class="badge bg-body text-body shadow-sm px-3 py-2 rounded-pill fw-bold">SALDO EN
                         PESOS</span>
                     <div class="rounded-circle d-flex align-items-center justify-content-center"
                         style="background: rgba(255,255,255,0.1); width: 40px; height: 40px;">
@@ -47,7 +47,7 @@
                 <i class="bi bi-currency-dollar position-absolute"
                     style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.1; color: #ffffff;"></i>
                 <div class="d-flex justify-content-between align-items-start position-relative z-1 mb-3">
-                    <span class="badge bg-white shadow-sm px-3 py-2 rounded-pill fw-bold" style="color: #4361ee;">SALDO
+                    <span class="badge bg-body shadow-sm px-3 py-2 rounded-pill fw-bold" style="color: #4361ee;">SALDO
                         EN DÓLARES</span>
                     <div class="rounded-circle d-flex align-items-center justify-content-center"
                         style="background: rgba(255,255,255,0.1); width: 40px; height: 40px;">
@@ -68,7 +68,7 @@
                 <i class="bi bi-currency-euro position-absolute"
                     style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.1; color: #ffffff;"></i>
                 <div class="d-flex justify-content-between align-items-start position-relative z-1 mb-3">
-                    <span class="badge bg-white shadow-sm px-3 py-2 rounded-pill fw-bold" style="color: #059669;">SALDO
+                    <span class="badge bg-body shadow-sm px-3 py-2 rounded-pill fw-bold" style="color: #059669;">SALDO
                         EN EUROS</span>
                     <div class="rounded-circle d-flex align-items-center justify-content-center"
                         style="background: rgba(255,255,255,0.1); width: 40px; height: 40px;">
@@ -76,8 +76,8 @@
                     </div>
                 </div>
                 <div class="position-relative z-1">
-                    <h1 class="fw-bold mb-0 display-5 text-truncate" style="letter-spacing: -1px; color: #ffffff !important;" title="{{ saldosMacro.efectivoEUR | number:'1.2-2' }}">
-                        <span style="opacity: 0.75; font-size: 1.5rem; color: #ffffff;">€</span>{{ saldosMacro.efectivoEUR |
+                    <h1 class="fw-bold mb-0 display-5 text-truncate" style="letter-spacing: -1px; color: #ffffff !important;" title="{{ saldos.saldoEUR | number:'1.2-2' }}">
+                        <span style="opacity: 0.75; font-size: 1.5rem; color: #ffffff;">€</span>{{ saldos.saldoEUR |
                         number:'1.2-2' }}
                     </h1>
                 </div>
@@ -94,39 +94,55 @@
         </button>
     </div>
 
-    <div class="row g-3 mb-5 no-print animate-slide-up" *ngIf="mostrarDesgloseInversion">
-        <div class="col-md-4 col-lg-3" *ngFor="let item of saldosDetallados">
-            <div class="form-card p-3 h-100 border-start border-4 d-flex flex-column justify-content-center bg-body shadow-sm"
+    <div class="row g-4 mb-5 no-print animate-slide-up" *ngIf="mostrarDesgloseInversion">
+        <div class="col-md-6 col-lg-4" *ngFor="let grupo of desgloseAgrupado">
+            <div class="form-card h-100 shadow-sm border-start border-4 overflow-hidden bg-body"
                 [ngClass]="{
-                    'border-success': item.metodo_pago === 'EFECTIVO',
-                    'border-warning': item.metodo_pago === 'TARJETA',
-                    'border-info': item.metodo_pago === 'TRANSFERENCIA'
+                    'border-success': grupo.moneda === 'ARS',
+                    'border-info': grupo.moneda === 'USD',
+                    'border-primary': grupo.moneda === 'EUR',
+                    'border-secondary': grupo.moneda !== 'ARS' && grupo.moneda !== 'USD' && grupo.moneda !== 'EUR'
                 }">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">
-                        <span *ngIf="item.metodo_pago === 'EFECTIVO' && item.moneda === 'ARS'">Pesos</span>
-                        <span *ngIf="item.metodo_pago === 'EFECTIVO' && item.moneda === 'USD'">Dólares</span>
-                        <span *ngIf="item.metodo_pago === 'EFECTIVO' && item.moneda === 'EUR'">Euros</span>
-                        <span *ngIf="item.metodo_pago === 'TARJETA'">Tarjetas ({{ item.moneda }})</span>
-                        <span *ngIf="item.metodo_pago === 'TRANSFERENCIA'">Transferencias ({{ item.moneda }})</span>
-                        <span *ngIf="item.metodo_pago !== 'EFECTIVO' && item.metodo_pago !== 'TARJETA' && item.metodo_pago !== 'TRANSFERENCIA'">{{ item.metodo_pago }} ({{ item.moneda }})</span>
-                    </div>
-                    <i class="bi fs-5" [ngClass]="{
-                        'bi-cash-coin text-success': item.metodo_pago === 'EFECTIVO',
-                        'bi-credit-card-2-front text-warning': item.metodo_pago === 'TARJETA',
-                        'bi-arrow-left-right text-info': item.metodo_pago === 'TRANSFERENCIA'
-                    }"></i>
+                <!-- Cabecera de la moneda -->
+                <div class="p-3 bg-body-tertiary border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold m-0 d-flex align-items-center gap-2 text-uppercase">
+                      <i class="bi bi-wallet2"></i> Total {{ grupo.moneda }}
+                    </h6>
+                    <span class="badge bg-secondary rounded-pill fs-6">{{ grupo.total | number:'1.2-2' }}</span>
                 </div>
-                <h5 class="fw-bold mb-0" [ngClass]="item.saldo >= 0 ? 'text-dark' : 'text-danger'">
-                    <span *ngIf="item.moneda === 'ARS'">$</span>
-                    <span *ngIf="item.moneda === 'USD'">US$</span>
-                    <span *ngIf="item.moneda === 'EUR'">€</span>
-                    {{ item.saldo | number:'1.2-2' }}
-                </h5>
+                
+                <!-- Métodos -->
+                <div class="p-0">
+                    <div class="border-bottom" *ngFor="let m of grupo.metodos; let last = last" [class.border-bottom-0]="last">
+                        <div class="p-3 bg-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="small text-muted text-uppercase">
+                                    <i class="bi me-1" [ngClass]="{
+                                        'bi-cash text-success': m.metodo === 'EFECTIVO',
+                                        'bi-credit-card text-warning': m.metodo === 'TARJETA',
+                                        'bi-arrow-left-right text-info': m.metodo === 'TRANSFERENCIA',
+                                        'bi-circle text-secondary': m.metodo !== 'EFECTIVO' && m.metodo !== 'TARJETA' && m.metodo !== 'TRANSFERENCIA'
+                                    }"></i> {{ m.metodo }}
+                                </strong>
+                                <span class="fw-bold small">{{ m.total | number:'1.2-2' }}</span>
+                            </div>
+                            
+                            <!-- Detalles (Bancos) -->
+                            <ul class="list-unstyled mb-0 ps-3 border-start border-2 border-secondary border-opacity-25 ms-1">
+                                <li class="d-flex justify-content-between align-items-center mb-1 small" *ngFor="let det of m.detalles">
+                                    <span class="text-truncate text-secondary" style="max-width: 170px;" title="{{ det.banco || 'Sin detalle' }}">
+                                        {{ det.banco || 'Sin detalle' }}
+                                    </span>
+                                    <span class="fw-semibold">{{ det.saldo | number:'1.2-2' }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-12 text-center text-muted small" *ngIf="saldosDetallados.length === 0">
-            <i class="bi bi-info-circle me-1"></i> No hay billeteras registradas aún
+        <div class="col-12 text-center text-muted small py-4" *ngIf="desgloseAgrupado.length === 0">
+            <i class="bi bi-info-circle me-1"></i> No hay billeteras registradas aún o sin saldos.
         </div>
     </div>
 
@@ -137,7 +153,7 @@
         <div class="col-lg-6">
             <div class="form-card h-100 p-0 overflow-hidden d-flex flex-column border-top border-4 border-info">
                 <div class="p-4 border-bottom bg-body">
-                    <h5 class="fw-bold text-info text-dark mb-0 d-flex align-items-center">
+                    <h5 class="fw-bold text-info text-body mb-0 d-flex align-items-center">
                         <div class="bg-info bg-opacity-10 p-2 rounded-3 me-2 text-info"><i
                                 class="bi bi-calculator-fill"></i></div>
                         Conversor de Divisas
@@ -282,9 +298,9 @@
     <div class="form-card p-0 overflow-hidden print-section border border-secondary border-opacity-25 pb-3">
         <div
             class="px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center bg-body border-bottom">
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-check me-2 text-primary"></i> Asientos Diarios
+            <h5 class="fw-bold mb-0 text-body"><i class="bi bi-journal-check me-2 text-primary"></i> Asientos Diarios
                 (Libro Mayor)</h5>
-            <span class="badge bg-light text-muted border px-3 py-2 mt-2 mt-md-0 shadow-sm"><i
+            <span class="badge bg-body-tertiary text-muted border px-3 py-2 mt-2 mt-md-0 shadow-sm"><i
                     class="bi bi-calendar-check me-1"></i> Movimientos del Día</span>
         </div>
 
@@ -310,7 +326,7 @@
                                         [ngClass]="{'bi-box-arrow-in-right text-success': m.monto_real > 0, 'bi-box-arrow-up-right text-danger': m.monto_real < 0}"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                    <div class="fw-bold text-body d-flex align-items-center gap-2">
                                         {{ m.tipo_movimiento === 'EGRESO_GENERAL' ? (m.observaciones || 'Gasto
                                         operativo') : m.tipo_movimiento }}
                                         <span class="badge bg-body-secondary text-muted border fw-bold rounded-pill"
@@ -360,7 +376,7 @@
         <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div>
-                <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-file-earmark-bar-graph me-2 text-primary"></i> Cierre
+                <h5 class="fw-bold mb-1 text-body"><i class="bi bi-file-earmark-bar-graph me-2 text-primary"></i> Cierre
                     Mensual Contable</h5>
                 <p class="small text-muted mb-0">Generá el reporte completo de un período para presentar al contador.
                 </p>
@@ -475,7 +491,7 @@
                                         <span class="badge rounded-pill" [ngClass]="{
                                             'bg-primary': c.moneda === 'USD',
                                             'bg-success': c.moneda === 'ARS',
-                                            'bg-warning text-dark': c.moneda === 'EUR'
+                                            'bg-warning text-body': c.moneda === 'EUR'
                                         }">{{ c.moneda }}</span>
                                     </td>
                                     <td class="text-end">{{ c.inicial | number:'1.2-2' }}</td>
@@ -512,7 +528,7 @@
                                         <span class="badge rounded-pill" [ngClass]="{
                                             'bg-success': m.tipo_movimiento === 'PAGO_CLIENTE' || m.tipo_movimiento === 'INGRESO',
                                             'bg-danger': m.tipo_movimiento === 'PAGO_PROVEEDOR' || m.tipo_movimiento === 'EGRESO' || m.tipo_movimiento === 'GASTO',
-                                            'bg-warning text-dark': m.tipo_movimiento.includes('TARJETA'),
+                                            'bg-warning text-body': m.tipo_movimiento.includes('TARJETA'),
                                             'bg-secondary': m.tipo_movimiento.includes('ANULACION')
                                         }" style="font-size: 0.6rem;">{{ m.tipo_movimiento }}</span>
                                     </td>
@@ -543,7 +559,7 @@
         <div class="form-card modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-header border-bottom-0 pb-0 px-4 pt-4">
                 <div>
-                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-credit-card-2-front text-primary me-2"></i>
+                    <h5 class="fw-bold text-body mb-1"><i class="bi bi-credit-card-2-front text-primary me-2"></i>
                         Cancelar Deuda de Tarjeta</h5>
                     <p class="small text-muted mb-0">Se generarán 2 asientos: cancelación del pasivo + egreso real del
                         medio de pago.</p>

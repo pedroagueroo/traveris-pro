@@ -46,10 +46,10 @@
         <tbody>
           <tr *ngFor="let cliente of clientesPaginados" class="animate-slide-up">
             <td class="ps-4">
-              <span class="badge bg-light text-muted border">#{{ cliente.id }}</span>
+              <span class="badge bg-body-tertiary text-muted border">#{{ cliente.id }}</span>
             </td>
             <td>
-              <div class="fw-bold text-dark d-flex align-items-center">
+              <div class="fw-bold text-body d-flex align-items-center">
                 {{ cliente.nombre_completo }}
                 <button *ngIf="esCumpleaniosHoy(cliente.fecha_nacimiento)" 
                         class="btn btn-sm btn-outline-warning ms-2 rounded-pill py-0 px-2 shadow-sm border-2 animate-pulse"
@@ -86,7 +86,7 @@
       </table>
     </div>
 
-    <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+    <div class="p-3 bg-body-tertiary border-top d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center gap-3">
         <small class="text-muted">
           Página <b>{{ paginaActual }}</b> de <b>{{ totalPaginas || 1 }}</b>
@@ -125,7 +125,7 @@
       <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
         <div>
           <span class="label-tech">GESTIÓN DE PERFIL</span>
-          <h4 class="fw-bold text-dark mb-0">
+          <h4 class="fw-bold text-body mb-0">
             {{ (clienteEditando.nombre_completo || 'Editar Ficha') | uppercase }}
           </h4>
         </div>
@@ -251,7 +251,7 @@
         </div>
       </div>
 
-      <div class="bg-light p-4 d-flex justify-content-end gap-3 border-top">
+      <div class="bg-body-tertiary p-4 d-flex justify-content-end gap-3 border-top">
         <button type="button" class="btn btn-light fw-bold px-4" (click)="cerrarModal()">Descartar</button>
         <button type="button" class="btn btn-elite px-5 shadow" (click)='guardarCambios()'
           [disabled]="!clienteEditando.nombre_completo || !clienteEditando.dni_pasaporte">

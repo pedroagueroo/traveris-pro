@@ -4,11 +4,12 @@ import { AuthService } from '../../services/auth';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { InputMaskDirective } from '../../directives/input-mask.directive';
 
 @Component({
   selector: 'app-cliente-nuevo',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, InputMaskDirective],
   templateUrl: './cliente-nuevo.html',
 })
 export class ClienteNuevo {

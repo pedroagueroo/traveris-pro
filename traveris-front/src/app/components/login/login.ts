@@ -17,6 +17,7 @@ export class Login {
   errorLogin: boolean = false;
   loading: boolean = false;
   errorMessage: string = '';
+  verPassword = false;
 
   constructor(private auth: AuthService, private router: Router) {}
 
@@ -24,6 +25,10 @@ export class Login {
     if (this.auth.estaLogueado()) {
       this.router.navigate(['/dashboard']);
     }
+  }
+
+  togglePasswordVisibility() {
+    this.verPassword = !this.verPassword;
   }
 
   onLogin() {

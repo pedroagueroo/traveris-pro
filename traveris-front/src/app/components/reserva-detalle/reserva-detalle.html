@@ -122,15 +122,24 @@
           <h5 class="fw-bold m-0 text-primary"><i class="bi bi-map-fill me-2"></i> Itinerario Detallado</h5>
           <p class="small text-muted mb-0 mt-1">Todos los servicios confirmados para esta operación.</p>
         </div>
-        <div class="p-4 flex-grow-1 overflow-auto" style="max-height: 75vh;">
+        
+        <!-- Toggle Botón -->
+        <div class="px-4 py-3 bg-light border-bottom text-center">
+            <button class="btn btn-outline-primary rounded-pill fw-bold btn-sm px-4" (click)="mostrarDesgloseServicio = !mostrarDesgloseServicio">
+                <i class="bi" [ngClass]="mostrarDesgloseServicio ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+                {{ mostrarDesgloseServicio ? 'Ocultar Itinerario de Servicios' : 'Ver Itinerario Completo' }}
+            </button>
+        </div>
+
+        <div class="p-4 flex-grow-1 overflow-auto d-flex flex-row flex-nowrap gap-3 pb-3" style="max-width: 100%; overflow-x: auto; overflow-y: hidden;" *ngIf="mostrarDesgloseServicio">
           <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0"
-            class="text-center py-5 text-muted">
+            class="text-center py-5 text-muted w-100">
             <i class="bi bi-calendar-x fs-1 opacity-25"></i>
             <p class="mt-2 fw-bold">Sin servicios cargados</p>
           </div>
 
           <div *ngFor="let s of reserva.servicios_items; let i = index"
-            class="border rounded-4 mb-3 overflow-hidden shadow-sm">
+            class="border rounded-4 overflow-hidden shadow-sm flex-shrink-0" style="width: 350px;">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-body">
               <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-dark text-white px-3 py-2 rounded-pill text-uppercase fw-bold"
@@ -262,7 +271,7 @@
         <div class="vstack gap-3">
           <!-- Desglose por servicio -->
           <div class="mt-3" *ngIf="reserva.servicios_items && reserva.servicios_items.length > 0">
-            <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill mb-2" (click)="mostrarDesgloseServicio = !mostrarDesgloseServicio">
+            <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill mb-2 cursor-pointer" (click)="mostrarDesgloseServicio = !mostrarDesgloseServicio">
               <i class="bi" [class.bi-chevron-down]="!mostrarDesgloseServicio" [class.bi-chevron-up]="mostrarDesgloseServicio"></i>
               {{ mostrarDesgloseServicio ? 'Ocultar' : 'Ver' }} Desglose por Servicio
             </button>
@@ -300,14 +309,14 @@
         <h6 class="fw-bold mb-3 text-info text-dark text-uppercase small"><i class="bi bi-cash-coin me-2"></i> Pago /
           Cobro</h6>
 
-        <select class="form-select mb-3 bg-body text-dark fw-bold border-secondary shadow-sm rounded-pill"
+        <select class="form-select mb-3 bg-body text-dark fw-bold border-secondary shadow-sm rounded-pill cursor-pointer"
           [(ngModel)]="nuevoPago.tipo_movimiento">
           <option value="PAGO_CLIENTE">Cobro Recibido (Cliente)</option>
           <option value="PAGO_PROVEEDOR">Pago Emitido (Operador)</option>
         </select>
 
-        <!-- Selector de servicio (opcional) -->
-        <select class="form-select mb-3 bg-body border-2 rounded-3 small" [(ngModel)]="nuevoPago.observaciones"
+        <!-- Datos Opcionales -->
+        <select class="form-select mb-3 bg-body border-2 rounded-3 small cursor-pointer" [(ngModel)]="nuevoPago.observaciones"
           *ngIf="reserva.servicios_items && reserva.servicios_items.length > 0">
           <option value="">Pago general (sin asignar a servicio)</option>
           <option *ngFor="let s of reserva.servicios_items; let i = index"
@@ -322,11 +331,11 @@
             <div class="input-premium-group h-100">
               <span class="input-premium-icon bg-body"><i class="bi bi-currency-dollar"></i></span>
               <input type="number" class="form-control input-premium bg-body fw-bold" [(ngModel)]="nuevoPago.monto"
-                placeholder="0.00">
+                placeholder="0.00" min="0.01">
             </div>
           </div>
           <div class="col-5">
-            <select class="form-select bg-body h-100 border-2 rounded-3" [(ngModel)]="nuevoPago.moneda">
+            <select class="form-select bg-body h-100 border-2 rounded-3 cursor-pointer" [(ngModel)]="nuevoPago.moneda">
               <option value="USD">USD</option>
               <option value="ARS">ARS</option>
               <option value="EUR">EUR</option>
@@ -334,80 +343,20 @@
           </div>
         </div>
 
-        <select class="form-select mb-3 bg-body border-2 rounded-3" [(ngModel)]="nuevoPago.metodo_pago">
-          <option value="EFECTIVO">Efectivo</option>
-          <option value="TRANSFERENCIA">Transferencia</option>
-          <option value="TARJETA">Tarjeta</option>
-          <option value="MERCADOPAGO">MercadoPago</option>
+        <select class="form-select mb-3 bg-body border-2 rounded-3 cursor-pointer shadow-sm border-info" [(ngModel)]="nuevoPago.metodo_pago" (change)="onMetodoPagoChange()">
+          <option value="EFECTIVO">Efectivo Físico</option>
+          <optgroup label="Tarjetas Guardadas">
+              <option *ngFor="let t of tarjetasGuardadas" [value]="'TARJETA'">💳 {{ t.nombre_banco }} ({{ t.nro_tarjeta_completo }})</option>
+              <option value="ADD_TARJETA" class="text-primary">+ Nueva Tarjeta...</option>
+          </optgroup>
+          <optgroup label="Transferencias Guardadas">
+              <option *ngFor="let tr of transferenciasGuardadas" [value]="'TRANSFERENCIA'">🏦 {{ tr.banco_alias }}</option>
+              <option value="ADD_TRANSFERENCIA" class="text-primary">+ Nueva Transferencia...</option>
+          </optgroup>
         </select>
 
-        <!-- === DATOS DE TARJETA (refactorizado) === -->
-        <div *ngIf="nuevoPago.metodo_pago === 'TARJETA'"
-          class="card-form-premium mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.7rem;">
-              <i class="bi bi-credit-card-2-front me-1"></i> Información del Plástico
-            </div>
-            <div class="card-brand-pill" *ngIf="bancoDetectado">
-              {{ bancoDetectado }}
-            </div>
-          </div>
-
-          <div class="row g-2 mb-2">
-            <div class="col-12">
-              <input type="text" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.numero"
-                placeholder="0000 0000 0000 0000" maxlength="19" (input)="detectarBanco()">
-            </div>
-          </div>
-
-          <div class="row g-2 mb-2">
-            <div class="col-6">
-              <input type="text" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.vencimiento"
-                placeholder="MM/AAAA" maxlength="7">
-            </div>
-            <div class="col-6">
-              <input type="password" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.cvv"
-                placeholder="CVV" maxlength="4">
-            </div>
-          </div>
-
-          <div class="row g-2 mb-2">
-            <div class="col-6">
-              <label class="small text-muted fw-bold" style="font-size: 0.65rem;">CUOTAS</label>
-              <select class="form-select bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.cuotas">
-                <option [ngValue]="1">1 cuota (sin interés)</option>
-                <option [ngValue]="3">3 cuotas</option>
-                <option [ngValue]="6">6 cuotas</option>
-                <option [ngValue]="9">9 cuotas</option>
-                <option [ngValue]="12">12 cuotas</option>
-                <option [ngValue]="18">18 cuotas</option>
-                <option [ngValue]="24">24 cuotas</option>
-              </select>
-            </div>
-            <div class="col-6">
-              <label class="small text-muted fw-bold" style="font-size: 0.65rem;">INTERÉS %</label>
-              <input type="number" class="form-control bg-body border-2 rounded-3" [(ngModel)]="datosTarjeta.interes"
-                placeholder="0" min="0" max="100" step="0.5">
-            </div>
-          </div>
-
-          <!-- Resumen de cuotas -->
-          <div class="bg-body rounded-3 p-2 mt-2 border" *ngIf="datosTarjeta.cuotas > 1 && nuevoPago.monto > 0">
-            <div class="d-flex justify-content-between small">
-              <span class="text-muted">{{ datosTarjeta.cuotas }} cuotas de:</span>
-              <span class="fw-bold text-primary">{{ nuevoPago.moneda }} {{ montoPorCuota | number:'1.2-2' }}</span>
-            </div>
-            <div class="d-flex justify-content-between small" *ngIf="datosTarjeta.interes > 0">
-              <span class="text-muted">Total con interés:</span>
-              <span class="fw-bold text-danger">{{ nuevoPago.moneda }} {{ montoTotalConInteres | number:'1.2-2'
-                }}</span>
-            </div>
-          </div>
-        </div>
-
-
         <input type="text" class="form-control mb-3 bg-body border-2 rounded-3" [(ngModel)]="nuevoPago.observaciones"
-          placeholder="Observaciones (opcional)">
+          placeholder="Observaciones (opcional)" maxlength="300">
 
         <button class="btn btn-dark w-100 fw-bold rounded-pill shadow" (click)="guardarPago()"
           [disabled]="!nuevoPago.monto">
@@ -454,6 +403,9 @@
             <div class="d-flex gap-1 flex-shrink-0">
               <button class="btn btn-sm btn-outline-primary rounded-pill px-2" (click)="verRecibo(r)" title="Ver">
                 <i class="bi bi-eye"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-dark rounded-pill px-2" (click)="descargarReciboPDF(r.id)" title="Imprimir PDF">
+                <i class="bi bi-file-earmark-pdf"></i>
               </button>
               <button class="btn btn-sm btn-outline-danger rounded-pill px-2" (click)="anularRecibo(r.id)"
                 *ngIf="!r.anulado" title="Anular">
@@ -540,9 +492,6 @@
         </label>
       </div>
     </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <!-- MODAL PREVIEW DOCUMENTOS (Voucher / Cotización) -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div *ngIf="mostrarPreview"
@@ -1023,4 +972,165 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- VOUCHER DE VIAJE (OCULTO, SOLO IMPRESIÓN) -->
+  <!-- ========================================== -->
+  <div id="documento-imprimible" class="d-none d-print-block" *ngIf="imprimiendoVoucher">
+    <div class="row align-items-center mb-5 border-bottom border-dark pb-3">
+      <div class="col-6">
+        <h1 class="fw-bold fs-1 m-0 text-dark" style="letter-spacing: -1px;">Voucher de Viaje</h1>
+        <div class="badge bg-dark mt-2 fs-6">Ref. #{{reserva.id}}</div>
+      </div>
+      <div class="col-6 text-end">
+        <div class="fs-4 fw-bold text-dark">VICKA TURISMO</div>
+        <div class="text-muted small">Agencia de Viajes</div>
+      </div>
+    </div>
+
+    <div class="row mb-5">
+      <div class="col-6">
+        <div class="small fw-bold text-muted mb-1">TITULAR RESPONSABLE</div>
+        <div class="fs-5 fw-bold text-dark">{{ reserva.nombre_titular }}</div>
+        <div class="text-muted"><i class="bi bi-calendar me-1"></i> {{ reserva.fecha_viaje_salida | date:'dd/MM/yyyy' }} - {{ reserva.fecha_viaje_regreso | date:'dd/MM/yyyy' }}</div>
+      </div>
+      <div class="col-6 text-end">
+        <div class="small fw-bold text-muted mb-1">DESTINO FINAL</div>
+        <div class="fs-5 fw-bold text-dark">{{ reserva.destino_final }}</div>
+      </div>
+    </div>
+
+    <div class="mb-5" *ngIf="reserva.pasajeros && reserva.pasajeros.length > 0">
+      <h6 class="fw-bold border-bottom border-dark pb-2 mb-3"><i class="bi bi-people-fill me-2"></i>Pasajeros Acompañantes</h6>
+      <div class="row g-2">
+        <div class="col-6" *ngFor="let p of reserva.pasajeros">
+          <div class="border rounded px-3 py-2 bg-light">
+            <span class="fw-bold">{{ p.nombre_completo }}</span>
+            <span class="badge bg-secondary ms-2" *ngIf="p.tipo_pasajero !== 'ADULTO'">{{p.tipo_pasajero}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <h6 class="fw-bold border-bottom border-dark pb-2 mb-3"><i class="bi bi-map-fill me-2"></i>Itinerario y Servicios</h6>
+      
+      <div *ngIf="!reserva.servicios_items || reserva.servicios_items.length === 0" class="text-muted fst-italic">
+        No se han registrado servicios detallados.
+      </div>
+
+      <div class="card border-dark mb-3" *ngFor="let s of reserva.servicios_items">
+        <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between">
+          <span><span class="badge bg-light text-dark me-2">{{ s.tipo_item }}</span> {{ s.nombre_item || s.tipo_item }}</span>
+        </div>
+        <div class="card-body p-3">
+          
+          <!-- HOTEL -->
+          <div class="row g-3" *ngIf="s.tipo_item === 'HOTEL'">
+            <div class="col-4"><small class="text-muted d-block">HOTEL</small><strong>{{ s.hotel_nombre }}</strong></div>
+            <div class="col-4"><small class="text-muted d-block">CIUDAD</small><strong>{{ s.ciudad }}</strong></div>
+            <div class="col-4"><small class="text-muted d-block">RÉGIMEN</small><strong>{{ s.regimen }}</strong></div>
+            <div class="col-4"><small class="text-muted d-block">CHECK-IN</small><strong>{{ s.check_in | date:'dd/MM/yyyy' }}</strong></div>
+            <div class="col-4"><small class="text-muted d-block">CHECK-OUT</small><strong>{{ s.check_out | date:'dd/MM/yyyy' }}</strong></div>
+          </div>
+
+          <!-- VUELO -->
+          <div class="row g-3" *ngIf="s.tipo_item === 'VUELO'">
+            <div class="col-3"><small class="text-muted d-block">AEROLÍNEA</small><strong>{{ s.aerolinea }}</strong></div>
+            <div class="col-3"><small class="text-muted d-block">VUELO</small><strong>{{ s.nro_vuelo }}</strong></div>
+            <div class="col-3"><small class="text-muted d-block">ORIGEN</small><strong>{{ s.origen }}</strong></div>
+            <div class="col-3"><small class="text-muted d-block">DESTINO</small><strong>{{ s.destino }}</strong></div>
+            <div class="col-3"><small class="text-muted d-block">SALIDA</small><strong>{{ s.excursion_fecha | date:'dd/MM/yyyy' }} {{ s.hora_salida }}</strong></div>
+            <div class="col-3"><small class="text-muted d-block">LLEGADA</small><strong>{{ s.fecha_llegada_vuelo ? (s.fecha_llegada_vuelo | date:'dd/MM/yyyy') : (s.excursion_fecha | date:'dd/MM/yyyy') }} {{ s.hora_llegada }}</strong></div>
+            <div class="col-3"><small class="text-muted d-block">PNR</small><strong class="text-primary">{{ s.pnr }}</strong></div>
+          </div>
+
+          <!-- ASISTENCIA -->
+          <div class="row g-3" *ngIf="s.tipo_item === 'ASISTENCIA'">
+            <div class="col-4"><small class="text-muted d-block">PLAN</small><strong>{{ s.plan_asistencia }}</strong></div>
+            <div class="col-4"><small class="text-muted d-block">NRO PÓLIZA</small><strong>{{ s.nro_poliza }}</strong></div>
+            <div class="col-4"><small class="text-muted d-block">COBERTURA</small><strong>{{ s.cobertura_detalles }}</strong></div>
+          </div>
+
+          <!-- CRUCERO -->
+          <div class="row g-3" *ngIf="s.tipo_item === 'CRUCERO'">
+            <div class="col-4"><small class="text-muted d-block">CRUCERO</small><strong>{{ s.crucero_nombre }}</strong></div>
+            <div class="col-4"><small class="text-muted d-block">CABINA</small><strong>{{ s.crucero_cabina }}</strong></div>
+            <div class="col-4"><small class="text-muted d-block">ITINERARIO</small><strong>{{ s.crucero_itinerario }}</strong></div>
+          </div>
+          
+          <!-- VISA / SERVICIO GENERAL -->
+          <div class="col-12 mt-2" *ngIf="s.servicio_descripcion || s.observaciones_servicio">
+              <small class="text-muted d-block mb-1">DETALLES EXTRA</small>
+              <div>{{ s.servicio_descripcion || s.observaciones_servicio }}</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-5 pt-3 border-top border-dark text-muted small fst-italic">
+      ¡Gracias por confiar en Vicka Turismo! Le deseamos un excelente viaje. <br>
+      Por emergencias o consultas operativas, contactarse a nuestros canales oficiales.
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ MODAL: Nueva Tarjeta ═══ -->
+<div class="modal fade show d-block" *ngIf="mostrarModalNuevaTarjeta"
+    style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="form-card modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-bottom-0 pb-0 px-4 pt-4">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-credit-card-2-front text-primary me-2"></i> Nueva Tarjeta</h5>
+                    <p class="small text-muted mb-0">Ingresá los datos completos de la tarjeta</p>
+                </div>
+                <button type="button" class="btn-close" (click)="mostrarModalNuevaTarjeta = false"></button>
+            </div>
+            <div class="modal-body px-4 py-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="small fw-bold text-muted mb-2">NÚMERO DE TARJETA</label>
+                        <input type="text" class="form-control premium-standalone fw-bold fs-5 text-center letter-spacing-1"
+                            [(ngModel)]="nuevaTarjeta.nro_tarjeta_completo" appInputMask="tarjeta"
+                            placeholder="XXXX XXXX XXXX XXXX"
+                            (input)="detectarBancoFrontend(nuevaTarjeta.nro_tarjeta_completo)">
+                        <div class="text-center mt-2" *ngIf="bancoDetectado">
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-bank me-1"></i> {{ bancoDetectado }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted mb-2">VENCIMIENTO</label>
+                        <input type="text" class="form-control premium-standalone text-center fw-bold"
+                            [(ngModel)]="nuevaTarjeta.vencimiento" appInputMask="vencimiento"
+                            placeholder="MM/YY">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted mb-2">FRANQUICIA</label>
+                        <select class="form-select premium-standalone" [(ngModel)]="nuevaTarjeta.franquicia">
+                            <option value="VISA">Visa</option>
+                            <option value="MASTERCARD">Mastercard</option>
+                            <option value="AMEX">American Express</option>
+                            <option value="OTRA">Otra</option>
+                        </select>
+                    </div>
+                    <div class="col-12" *ngIf="!bancoDetectado">
+                        <label class="small fw-bold text-muted mb-2">BANCO (si no se detectó automáticamente)</label>
+                        <input type="text" class="form-control premium-standalone" [(ngModel)]="nuevaTarjeta.nombre_banco"
+                            placeholder="Ej: Banco Galicia">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 px-4 pb-4">
+                <button class="btn btn-outline-secondary rounded-pill px-4" (click)="mostrarModalNuevaTarjeta = false">Cancelar</button>
+                <button class="btn btn-primary rounded-pill fw-bold shadow px-4" (click)="confirmarNuevaTarjeta()"
+                    [disabled]="!nuevaTarjeta.nro_tarjeta_completo || nuevaTarjeta.nro_tarjeta_completo.length < 19">
+                    <i class="bi bi-check-circle me-2"></i> Guardar Tarjeta
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

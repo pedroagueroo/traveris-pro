@@ -49,8 +49,17 @@
               <span class="badge bg-light text-muted border">#{{ cliente.id }}</span>
             </td>
             <td>
-              <div class="fw-bold text-dark">{{ cliente.nombre_completo }}</div>
-              <div class="extra-small text-muted">{{ cliente.nacionalidad || 'Argentino' }}</div>
+              <div class="fw-bold text-dark d-flex align-items-center">
+                {{ cliente.nombre_completo }}
+                <button *ngIf="esCumpleaniosHoy(cliente.fecha_nacimiento)" 
+                        class="btn btn-sm btn-outline-warning ms-2 rounded-pill py-0 px-2 shadow-sm border-2 animate-pulse"
+                        style="font-size: 0.75rem;"
+                        title="¡Es su cumpleaños! Enviar correo"
+                        (click)="enviarFelizCumple(cliente)">
+                  <i class="bi bi-gift-fill me-1"></i> ¡Feliz Cumple!
+                </button>
+              </div>
+              <div class="extra-small text-muted mt-1">{{ cliente.nacionalidad || 'Argentino' }}</div>
             </td>
             <td>
               <div class="fw-semibold">{{ cliente.dni_pasaporte }}</div>
@@ -78,9 +87,17 @@
     </div>
 
     <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
-      <small class="text-muted">
-        Página <b>{{ paginaActual }}</b> de <b>{{ totalPaginas || 1 }}</b>
-      </small>
+      <div class="d-flex align-items-center gap-3">
+        <small class="text-muted">
+          Página <b>{{ paginaActual }}</b> de <b>{{ totalPaginas || 1 }}</b>
+        </small>
+        <select class="form-select form-select-sm" style="width: auto;" [(ngModel)]="itemsPorPagina" (change)="paginaActual = 1">
+          <option [ngValue]="5">5 por página</option>
+          <option [ngValue]="10">10 por página</option>
+          <option [ngValue]="20">20 por página</option>
+          <option [ngValue]="50">50 por página</option>
+        </select>
+      </div>
       <div class="btn-group shadow-sm">
         <button class="btn btn-white btn-sm border" [disabled]="paginaActual === 1"
           (click)="paginaActual = paginaActual - 1">

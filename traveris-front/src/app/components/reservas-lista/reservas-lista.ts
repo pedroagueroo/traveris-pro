@@ -3,16 +3,45 @@ import { ApiService } from '../../services/api';
 import { AuthService } from '../../services/auth';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-reservas-lista',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './reservas-lista.html'
 })
 export class ReservasListaComponent implements OnInit {
   reservas: any[] = [];
   reservasCompletas: any[] = [];
+  
+  // Paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 10;
+  terminoBusqueda: string = '';
+
+  get reservasFiltradas() {
+    const termino = this.terminoBusqueda.toLowerCase();
+    return this.reservas.filter((r: any) =>
+      (r.titular_nombre && r.titular_nombre.toLowerCase().includes(termino)) ||
+      (r.destino_final && r.destino_final.toLowerCase().includes(termino)) ||
+      (r.id && r.id.toString().includes(termino))
+    );
+  }
+
+  get reservasPaginadas() {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.reservasFiltradas.slice(inicio, fin);
+  }
+
+  get totalPaginas() {
+    return Math.ceil(this.reservasFiltradas.length / this.itemsPorPagina);
+  }
+
+  onSearchChange() {
+    this.paginaActual = 1;
+  }
 
   constructor(
     private api: ApiService,

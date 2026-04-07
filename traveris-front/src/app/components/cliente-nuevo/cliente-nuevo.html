@@ -48,7 +48,8 @@
                         <div class="input-premium-group">
                             <span class="input-premium-icon"><i class="bi bi-person-badge"></i></span>
                             <input type="text" class="form-control input-premium" name="nombre" [(ngModel)]="clienteEditando.nombre_completo"
-                                   #nombre="ngModel" required [class.is-invalid]="nombre.invalid && nombre.touched" placeholder="Ej: Juan Pérez">
+                                   #nombre="ngModel" required maxlength="45" [class.is-invalid]="nombre.invalid && nombre.touched" placeholder="Ej: Juan Pérez">
+                            <div class="text-end text-muted" style="font-size:0.65rem" *ngIf="clienteEditando.nombre_completo">{{clienteEditando.nombre_completo.length}}/45</div>
                         </div>
                         <div class="text-danger small fw-bold mt-1" *ngIf="nombre.invalid && nombre.touched">
                             <i class="bi bi-exclamation-circle me-1"></i> El nombre es obligatorio.
@@ -59,7 +60,7 @@
                         <div class="input-premium-group">
                             <span class="input-premium-icon"><i class="bi bi-card-text"></i></span>
                             <input type="text" class="form-control input-premium fw-bold" name="dni" [(ngModel)]="clienteEditando.dni_pasaporte"
-                                   #dni="ngModel" required minlength="7" [class.is-invalid]="dni.invalid && dni.touched" placeholder="Sin puntos ni espacios">
+                                   #dni="ngModel" required minlength="7" maxlength="10" appInputMask="dni" [class.is-invalid]="dni.invalid && dni.touched" placeholder="Ej: 42.123.456">
                         </div>
                     </div>
                 </div>
@@ -71,14 +72,14 @@
                         <label class="small fw-bold text-muted mb-2">CORREO ELECTRÓNICO</label>
                         <div class="input-premium-group">
                             <span class="input-premium-icon"><i class="bi bi-envelope"></i></span>
-                            <input type="email" class="form-control input-premium" [(ngModel)]="clienteEditando.email" name="email" placeholder="ejemplo@correo.com">
+                            <input type="email" class="form-control input-premium" [(ngModel)]="clienteEditando.email" name="email" maxlength="100" placeholder="ejemplo@correo.com">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label class="small fw-bold text-muted mb-2">TELÉFONO / CELULAR</label>
                         <div class="input-premium-group">
                             <span class="input-premium-icon"><i class="bi bi-whatsapp"></i></span>
-                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.telefono" name="tel" placeholder="+54 9 ...">
+                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.telefono" name="tel" minlength="10" maxlength="25" placeholder="+54 9 ...">
                         </div>
                     </div>
                 </div>
@@ -128,14 +129,14 @@
                         <label class="small fw-bold text-muted mb-2">NACIONALIDAD</label>
                         <div class="input-premium-group">
                             <span class="input-premium-icon"><i class="bi bi-globe-americas"></i></span>
-                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.nacionalidad" name="nac" placeholder="Ej: Argentino">
+                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.nacionalidad" name="nac" maxlength="50" placeholder="Ej: Argentino">
                         </div>
                     </div>
                     <div class="col-md-12">
                         <label class="small fw-bold text-muted mb-2">CUIT / CUIL</label>
                         <div class="input-premium-group">
                             <span class="input-premium-icon"><i class="bi bi-briefcase"></i></span>
-                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.cuit_cuil" name="cuit" placeholder="XX-XXXXXXXX-X">
+                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.cuit_cuil" name="cuit" minlength="10" maxlength="13" placeholder="XX-XXXXXXXX-X">
                         </div>
                     </div>
                 </div>
@@ -147,7 +148,7 @@
                         <label class="small fw-bold text-primary mb-2">NRO. PASAPORTE</label>
                         <div class="input-premium-group">
                             <span class="input-premium-icon border-primary text-primary"><i class="bi bi-journal-album"></i></span>
-                            <input type="text" class="form-control input-premium border-primary text-primary fw-bold" [(ngModel)]="clienteEditando.pasaporte_nro" name="pnro" placeholder="Número Alfumérico">
+                            <input type="text" class="form-control input-premium border-primary text-primary fw-bold" [(ngModel)]="clienteEditando.pasaporte_nro" name="pnro" maxlength="20" placeholder="Número Alfanumérico">
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -188,12 +189,13 @@
                         <label class="small fw-bold text-muted mb-2">COMIDA ESPECIAL / ALERGIAS</label>
                         <div class="input-premium-group">
                             <span class="input-premium-icon"><i class="bi bi-cup-hot"></i></span>
-                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.pref_comida" name="comida" placeholder="Ej: Celíaco, Vegano...">
+                            <input type="text" class="form-control input-premium" [(ngModel)]="clienteEditando.pref_comida" name="comida" maxlength="100" placeholder="Ej: Celíaco, Vegano...">
                         </div>
                     </div>
                     <div class="col-md-12">
                         <label class="small fw-bold text-danger mb-2">OBSERVACIONES MÉDICAS O DE SALUD IMPORTANTES</label>
-                        <textarea class="form-control premium-standalone border-danger border-opacity-50" rows="4" [(ngModel)]="clienteEditando.observaciones_salud" name="obs" placeholder="Indique detalles vitales para el viaje..."></textarea>
+                        <textarea class="form-control premium-standalone border-danger border-opacity-50" rows="4" [(ngModel)]="clienteEditando.observaciones_salud" name="obs" maxlength="500" placeholder="Indique detalles vitales para el viaje..."></textarea>
+                        <div class="text-end text-muted" style="font-size:0.65rem" *ngIf="clienteEditando.observaciones_salud">{{clienteEditando.observaciones_salud.length}}/500</div>
                     </div>
                 </div>
             </div>

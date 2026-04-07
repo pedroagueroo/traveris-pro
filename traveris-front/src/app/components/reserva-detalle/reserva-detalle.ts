@@ -4,17 +4,21 @@ import { ApiService } from '../../services/api';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth';
+import { InputMaskDirective } from '../../directives/input-mask.directive';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-reserva-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, InputMaskDirective],
   templateUrl: './reserva-detalle.html',
   styleUrls: ['./reserva-detalle.css']
 })
 export class ReservaDetalleComponent implements OnInit {
 
   mostrarPreview: boolean = false;
+  imprimiendoVoucher: boolean = false;
   tipoDoc: 'VOUCHER' | 'COTIZACION' = 'VOUCHER';
   today = new Date();
 
@@ -71,12 +75,14 @@ export class ReservaDetalleComponent implements OnInit {
     public auth: AuthService
   ) { }
 
-  ngOnInit(): void {
-    const idParam = this.route.snapshot.paramMap.get('id');
-    if (idParam) {
-      this.idReserva = parseInt(idParam, 10);
-      this.cargarData();
-    }
+  ngOnInit() {
+    this.route.paramMap.subscribe(params => {
+      this.idReserva = Number(params.get('id'));
+      if (this.idReserva) {
+        this.cargarData();
+        this.cargarMetodosFinancieros();
+      }
+    });
   }
 
   // ============================================================
@@ -150,52 +156,75 @@ export class ReservaDetalleComponent implements OnInit {
   }
 
   // ============================================================
-  // DETECCIÓN DE BANCO POR BIN (primeros dígitos)
+  // FINANZAS: Tarjetas y Transferencias (Importadas de API)
   // ============================================================
+  tarjetasGuardadas: any[] = [];
+  transferenciasGuardadas: any[] = [];
 
-  detectarBanco() {
-    const num = (this.datosTarjeta.numero || '').replace(/\s/g, '');
-    if (num.length < 4) { this.bancoDetectado = ''; return; }
+  cargarMetodosFinancieros() {
+      const empresa = this.auth.getNombreEmpresa();
+      this.api.getTarjetasGuardadas(empresa).subscribe((res: any[]) => this.tarjetasGuardadas = res);
+      this.api.getTransferenciasGuardadas(empresa).subscribe((res: any[]) => this.transferenciasGuardadas = res);
+  }
 
-    const prefix = num.substring(0, 6);
+  // Modal Tarjeta
+  mostrarModalNuevaTarjeta: boolean = false;
+  nuevaTarjeta: any = { nombre_banco: '', franquicia: 'VISA', nro_tarjeta_completo: '', vencimiento: '', cuotas: 1 };
 
+  detectarBancoFrontend(nro: string) {
+    const num = (nro || '').replace(/\s/g, '');
+    if (num.length < 6) { this.bancoDetectado = ''; return; }
+    const p = num.substring(0, 6);
     if (num.startsWith('4')) {
-      if (prefix.startsWith('451761') || prefix.startsWith('450799')) { this.bancoDetectado = 'Banco Nación (Visa)'; return; }
-      if (prefix.startsWith('450601') || prefix.startsWith('455002')) { this.bancoDetectado = 'Banco Provincia (Visa)'; return; }
-      if (prefix.startsWith('427562') || prefix.startsWith('450903')) { this.bancoDetectado = 'Banco Galicia (Visa)'; return; }
-      if (prefix.startsWith('472825') || prefix.startsWith('476507')) { this.bancoDetectado = 'BBVA (Visa)'; return; }
-      if (prefix.startsWith('426211') || prefix.startsWith('403478')) { this.bancoDetectado = 'Santander (Visa)'; return; }
-      if (prefix.startsWith('458767') || prefix.startsWith('415829')) { this.bancoDetectado = 'Banco Macro (Visa)'; return; }
-      this.bancoDetectado = 'Visa'; return;
+      if (p.startsWith('451761') || p.startsWith('450799')) this.bancoDetectado = 'Banco Nación (Visa)';
+      else if (p.startsWith('450601') || p.startsWith('455002')) this.bancoDetectado = 'Banco Provincia (Visa)';
+      else if (p.startsWith('427562') || p.startsWith('450903')) this.bancoDetectado = 'Banco Galicia (Visa)';
+      else if (p.startsWith('472825') || p.startsWith('476507')) this.bancoDetectado = 'BBVA (Visa)';
+      else if (p.startsWith('426211') || p.startsWith('403478')) this.bancoDetectado = 'Santander (Visa)';
+      else this.bancoDetectado = 'Visa';
+    } else if (num.startsWith('5')) {
+      if (p.startsWith('515070') || p.startsWith('520063')) this.bancoDetectado = 'Banco Nación (MC)';
+      else if (p.startsWith('531463')) this.bancoDetectado = 'Banco Galicia (MC)';
+      else this.bancoDetectado = 'Mastercard';
+    } else if (num.startsWith('3')) {
+      this.bancoDetectado = 'American Express';
+    } else {
+      this.bancoDetectado = '';
     }
-    if (num.startsWith('5') || (parseInt(prefix) >= 222100 && parseInt(prefix) <= 272099)) {
-      if (prefix.startsWith('515073') || prefix.startsWith('525547')) { this.bancoDetectado = 'Banco Nación (MC)'; return; }
-      if (prefix.startsWith('517562') || prefix.startsWith('528956')) { this.bancoDetectado = 'Banco Galicia (MC)'; return; }
-      if (prefix.startsWith('546553') || prefix.startsWith('525499')) { this.bancoDetectado = 'BBVA (MC)'; return; }
-      if (prefix.startsWith('544407') || prefix.startsWith('548510')) { this.bancoDetectado = 'Santander (MC)'; return; }
-      this.bancoDetectado = 'Mastercard'; return;
-    }
-    if (num.startsWith('34') || num.startsWith('37')) { this.bancoDetectado = 'American Express'; return; }
-    if (prefix.startsWith('604244') || prefix.startsWith('589657')) { this.bancoDetectado = 'Cabal'; return; }
-    if (prefix.startsWith('589562')) { this.bancoDetectado = 'Tarjeta Naranja'; return; }
-
-    this.bancoDetectado = 'Otro';
+    if (this.bancoDetectado) this.nuevaTarjeta.nombre_banco = this.bancoDetectado;
   }
 
-  // Calcula monto por cuota con interés
-  get montoPorCuota(): number {
-    if (!this.nuevoPago.monto || this.datosTarjeta.cuotas < 1) return 0;
-    const montoConInteres = this.nuevoPago.monto * (1 + (this.datosTarjeta.interes / 100));
-    return montoConInteres / this.datosTarjeta.cuotas;
-  }
-
-  get montoTotalConInteres(): number {
-    if (!this.nuevoPago.monto) return 0;
-    return this.nuevoPago.monto * (1 + (this.datosTarjeta.interes / 100));
+  onMetodoPagoChange() {
+      if (this.nuevoPago.metodo_pago === 'ADD_TARJETA') {
+          this.nuevaTarjeta = { nombre_banco: '', franquicia: 'VISA', nro_tarjeta_completo: '', vencimiento: '', cuotas: 1 };
+          this.bancoDetectado = '';
+          this.mostrarModalNuevaTarjeta = true;
+          this.nuevoPago.metodo_pago = 'EFECTIVO'; // reset while modal is open
+      } else if (this.nuevoPago.metodo_pago === 'ADD_TRANSFERENCIA') {
+          const alias = prompt("Banco o Alias destino de la Transferencia:");
+          if (alias) {
+              const payload = {
+                  empresa_nombre: this.auth.getNombreEmpresa(),
+                  banco_alias: alias,
+                  cbu_cvu: '',
+                  titular: ''
+              };
+              this.api.agregarTransferencia(payload).subscribe({
+                  next: (res) => {
+                      this.transferenciasGuardadas.push(res);
+                      this.nuevoPago.metodo_pago = 'TRANSFERENCIA';
+                      this.nuevoPago.observaciones = (this.nuevoPago.observaciones || '') + ` [Transferencia recibida a ${res.banco_alias}]`;
+                  },
+                  error: () => { alert("Error al agregar medio de transferencia"); this.nuevoPago.metodo_pago = 'EFECTIVO'; }
+              });
+          } else {
+              this.nuevoPago.metodo_pago = 'EFECTIVO';
+          }
+      }
   }
 
   // ============================================================
-  // GUARDAR PAGO + GENERAR RECIBO AUTOMÁTICO + CUOTAS
+  // GUARDAR PAGO + GENERAR RECIBO AUTOMÁTICO
   // ============================================================
 
   guardarPago() {
@@ -203,45 +232,21 @@ export class ReservaDetalleComponent implements OnInit {
       return alert("El monto es obligatorio");
     }
 
-    // Validaciones extra si es tarjeta
-    if (this.nuevoPago.metodo_pago === 'TARJETA') {
-      const num = (this.datosTarjeta.numero || '').replace(/\s/g, '');
-      if (num.length < 13) return alert("Ingresá un número de tarjeta válido");
-      if (!this.datosTarjeta.vencimiento) return alert("Ingresá la fecha de vencimiento de la tarjeta");
-      if (!this.datosTarjeta.cvv || this.datosTarjeta.cvv.length < 3) return alert("Ingresá el CVV");
-    }
-
     this.nuevoPago.id_reserva = this.idReserva;
 
-    const esTarjeta = this.nuevoPago.metodo_pago === 'TARJETA';
-    const cuotas = esTarjeta ? (this.datosTarjeta.cuotas || 1) : 1;
-    const montoTotalReal = esTarjeta ? this.montoTotalConInteres : this.nuevoPago.monto;
-
-    // Si hay cuotas > 1, generar un movimiento por cada cuota con fecha primer día de cada mes
-    if (esTarjeta && cuotas > 1) {
-      this.registrarPagoEnCuotas(montoTotalReal, cuotas);
-    } else {
-      this.registrarPagoUnico(montoTotalReal);
-    }
-  }
-
-  private registrarPagoUnico(monto: number) {
-    const esTarjeta = this.nuevoPago.metodo_pago === 'TARJETA';
     const payloadCaja: any = {
       ...this.nuevoPago,
-      monto: monto,
-      metodo_pago: this.nuevoPago.metodo_pago,
       empresa_nombre: this.auth.getNombreEmpresa(),
       categoria: 'RESERVA',
-      tarjeta_banco: esTarjeta ? this.bancoDetectado : null,
-      tarjeta_cuotas: esTarjeta ? this.datosTarjeta.cuotas : null,
-      tarjeta_interes: esTarjeta ? this.datosTarjeta.interes : null,
-      tarjeta_monto_total: esTarjeta ? this.montoTotalConInteres : null
+      tarjeta_banco: null,
+      tarjeta_cuotas: null,
+      tarjeta_interes: null,
+      tarjeta_monto_total: null
     };
 
     this.api.crearMovimientoCaja(payloadCaja).subscribe({
       next: (movimientoCreado: any) => {
-        this.generarReciboAutomatico(movimientoCreado.id, monto);
+        this.generarReciboAutomatico(movimientoCreado.id, this.nuevoPago.monto);
       },
       error: (err: any) => {
         alert("Error al registrar el pago: " + (err.error?.error || "Error de servidor"));
@@ -402,31 +407,65 @@ export class ReservaDetalleComponent implements OnInit {
     setTimeout(() => window.print(), 200);
   }
 
-  enviarDocumento(tipo: string, conArchivos: boolean) {
+  enviarDocumento(tipo: 'VOUCHER' | 'COTIZACION', conArchivos: boolean) {
     if (!this.reserva.email_titular) {
       alert("El cliente no tiene un email registrado.");
       return;
     }
 
-    if (!confirm(`¿Enviar ${tipo} ${conArchivos ? 'con archivos adjuntos ' : ''}a ${this.reserva.email_titular}?`)) {
+    if (!confirm(`¿Generar documento y enviarlo ${conArchivos ? 'con archivos adjuntos ' : ''}por correo a ${this.reserva.email_titular}?`)) {
       return;
     }
 
-    const datosMail: any = {
-      destinatario: this.reserva.email_titular,
-      nombreCliente: this.reserva.nombre_titular,
-      tipoDoc: tipo,
-      destino: this.reserva.destino_final,
-      adjuntarArchivos: conArchivos
-    };
+    // Forza renderizado en DOM para capturar
+    this.tipoDoc = tipo;
+    this.mostrarPreview = true;
 
-    this.api.enviarDocumentoReserva(this.idReserva, datosMail).subscribe({
-      next: (res: any) => {
-        const archMsg = res.archivosAdjuntos > 0 ? ` (${res.archivosAdjuntos} archivo(s) adjunto(s))` : '';
-        alert(`¡${tipo} enviado correctamente a ${this.reserva.email_titular}!${archMsg}`);
-      },
-      error: (err: any) => alert("Error al enviar: " + (err.error?.error || "Falla de conexión con el servidor de correo"))
-    });
+    // Pequeño timeout para que Angular dibuje el `#documento-imprimible`
+    setTimeout(async () => {
+      const element = document.getElementById('documento-imprimible');
+      if (!element) {
+        this.mostrarPreview = false;
+        return alert("Error al visualizar el documento para generación.");
+      }
+
+      try {
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        // A4 dimension: 210 x 297 mm
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        const pdfBase64 = pdf.output('datauristring'); // string base64 completo
+        
+        this.mostrarPreview = false;
+
+        const datosMail: any = {
+          destinatario: this.reserva.email_titular,
+          nombreCliente: this.reserva.nombre_titular,
+          tipoDoc: tipo,
+          destino: this.reserva.destino_final,
+          adjuntarArchivos: conArchivos,
+          pdfBase64: pdfBase64
+        };
+
+        this.api.enviarDocumentoReserva(this.idReserva, datosMail).subscribe({
+          next: (res: any) => {
+            const archMsg = res.archivosAdjuntos > 0 ? ` (${res.archivosAdjuntos} archivo(s) adjunto(s))` : '';
+            alert(`¡${tipo} enviado correctamente a ${this.reserva.email_titular}!${archMsg}`);
+          },
+          error: (err: any) => alert("Error al enviar: " + (err.error?.error || "Falla de conexión con el servidor de correo SMTP"))
+        });
+
+      } catch (err) {
+        console.error(err);
+        this.mostrarPreview = false;
+        alert("Error procesando imagen para PDF.");
+      }
+    }, 600); // 600ms de ventana para renderizado completo
   }
 
   obtenerArchivos() {
@@ -500,6 +539,36 @@ export class ReservaDetalleComponent implements OnInit {
     });
   }
 
-  imprimirVoucherTotal() { window.print(); }
+  // Function removed as per user request
+
+  descargarReciboPDF(id: number) {
+    const url = this.api.getReciboPDFUrl(id);
+    window.open(url, '_blank');
+  }
+
+  confirmarNuevaTarjeta() {
+    const nro = this.nuevaTarjeta.nro_tarjeta_completo.replace(/\s/g, '');
+    if (nro.length < 16) return alert("Ingresá los 16 dígitos de la tarjeta");
+    if (!this.nuevaTarjeta.vencimiento || this.nuevaTarjeta.vencimiento.length < 5) return alert("Ingresá el vencimiento MM/YY");
+
+    const payload = {
+      empresa_nombre: this.auth.getNombreEmpresa(),
+      nombre_banco: this.nuevaTarjeta.nombre_banco || this.bancoDetectado || 'Desconocido',
+      franquicia: this.nuevaTarjeta.franquicia,
+      nro_tarjeta_completo: this.nuevaTarjeta.nro_tarjeta_completo,
+      vencimiento: this.nuevaTarjeta.vencimiento
+    };
+
+    this.api.crearTarjetaGuardada(payload).subscribe({
+      next: (res: any) => {
+        this.tarjetasGuardadas.push(res);
+        this.nuevoPago.metodo_pago = 'TARJETA';
+        this.nuevoPago.observaciones = (this.nuevoPago.observaciones || '') +
+          ` [Pagado con ${res.nombre_banco} - *${nro.slice(-4)}]`;
+        this.mostrarModalNuevaTarjeta = false;
+      },
+      error: () => { alert("Error al agregar tarjeta"); }
+    });
+  }
 }
-
+

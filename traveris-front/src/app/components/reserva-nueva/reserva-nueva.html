@@ -78,7 +78,8 @@
           <div class="input-premium-group">
             <span class="input-premium-icon"><i class="bi bi-geo-alt"></i></span>
             <input type="text" class="form-control input-premium" [(ngModel)]="reserva.destino_final"
-              placeholder="Ej: Madrid, París y Roma">
+              placeholder="Ej: Madrid, París y Roma" maxlength="80">
+            <div class="text-end text-muted" style="font-size:0.65rem" *ngIf="reserva.destino_final">{{reserva.destino_final.length}}/80</div>
           </div>
         </div>
 
@@ -142,22 +143,16 @@
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="fw-bold text-primary m-0"><i class="bi bi-airplane-engines-fill me-2"></i>Itinerario y Finanzas</h5>
         <div class="dropdown">
-          <button class="btn btn-outline-primary rounded-pill fw-bold px-3 dropdown-toggle" data-bs-toggle="dropdown">
+          <button class="btn btn-outline-primary rounded-pill fw-bold px-3 dropdown-toggle cursor-pointer" data-bs-toggle="dropdown">
             <i class="bi bi-plus-lg me-1"></i> Agregar Servicio
           </button>
           <ul class="dropdown-menu shadow-lg">
-            <li><a class="dropdown-item" (click)="agregarServicio('HOTEL')"><i class="bi bi-building me-2"></i>
-                Hotel</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('VUELO')"><i class="bi bi-airplane me-2"></i>
-                Vuelo</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('ASISTENCIA')"><i class="bi bi-shield-check me-2"></i>
-                Asistencia</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('VISA')"><i class="bi bi-passport me-2"></i> Visa</a>
-            </li>
-            <li><a class="dropdown-item" (click)="agregarServicio('CRUCERO')"><i class="bi bi-water me-2"></i>
-                Crucero</a></li>
-            <li><a class="dropdown-item" (click)="agregarServicio('SERVICIO')"><i class="bi bi-star me-2"></i> Excursión
-                / Otro</a></li>
+            <li><a class="dropdown-item cursor-pointer" (click)="agregarServicio('HOTEL')"><i class="bi bi-building me-2"></i> Hotel</a></li>
+            <li><a class="dropdown-item cursor-pointer" (click)="agregarServicio('VUELO')"><i class="bi bi-airplane me-2"></i> Vuelo</a></li>
+            <li><a class="dropdown-item cursor-pointer" (click)="agregarServicio('ASISTENCIA')"><i class="bi bi-shield-check me-2"></i> Asistencia</a></li>
+            <li><a class="dropdown-item cursor-pointer" (click)="agregarServicio('VISA')"><i class="bi bi-passport me-2"></i> Visa</a></li>
+            <li><a class="dropdown-item cursor-pointer" (click)="agregarServicio('CRUCERO')"><i class="bi bi-water me-2"></i> Crucero</a></li>
+            <li><a class="dropdown-item cursor-pointer" (click)="agregarServicio('SERVICIO')"><i class="bi bi-star me-2"></i> Excursión / Otro</a></li>
           </ul>
         </div>
       </div>
@@ -190,12 +185,19 @@
           </button>
         </div>
 
-        <!-- Campos comunes de costos -->
+        <!-- Campos comunes de costos y proveedores -->
         <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="small fw-bold text-muted mb-1">COSTO NETO OPERADOR</label>
-            <div class="input-group">
-                <select class="form-select border-danger" style="max-width: 100px;" [(ngModel)]="s.moneda_costo" (change)="recalcularTodo()">
+            <label class="small fw-bold text-muted mb-1">PROVEEDOR / MAYORISTA DEL SERVICIO</label>
+            <select class="form-select border-warning shadow-sm cursor-pointer" [(ngModel)]="s.id_proveedor" (change)="onProveedorChange(s)">
+                <option [ngValue]="null">-- Sin vincular --</option>
+                <option *ngFor="let p of proveedores" [ngValue]="p.id">{{ p.nombre_comercial }}</option>
+                <option value="ADD_PROVEEDOR" class="text-primary fw-bold">+ Cargar Nuevo Proveedor...</option>
+            </select>
+            
+            <label class="small fw-bold text-muted mb-1 mt-3">COSTO NETO OPERADOR</label>
+            <div class="input-group shadow-sm">
+                <select class="form-select border-danger text-danger fw-bold cursor-pointer" style="max-width: 100px;" [(ngModel)]="s.moneda_costo" (change)="recalcularTodo()">
                     <option value="USD">USD</option>
                     <option value="ARS">ARS</option>
                     <option value="EUR">EUR</option>
@@ -203,10 +205,11 @@
                 <input type="number" class="form-control border-danger" [(ngModel)]="s.costo_neto_operador" (input)="recalcularTodo()">
             </div>
           </div>
-          <div class="col-md-6">
-            <label class="small fw-bold text-muted mb-1">VENTA AL CLIENTE</label>
-             <div class="input-group">
-                <select class="form-select border-success" style="max-width: 100px;" [(ngModel)]="s.moneda_venta" (change)="recalcularTodo()">
+          
+          <div class="col-md-6 d-flex flex-column justify-content-end">
+            <label class="small fw-bold text-muted mb-1 mt-3">VENTA BRUTA AL CLIENTE</label>
+             <div class="input-group shadow-sm">
+                <select class="form-select border-success text-success fw-bold cursor-pointer" style="max-width: 100px;" [(ngModel)]="s.moneda_venta" (change)="recalcularTodo()">
                     <option value="USD">USD</option>
                     <option value="ARS">ARS</option>
                     <option value="EUR">EUR</option>
@@ -218,17 +221,13 @@
 
         <!-- Datos operativos por servicio -->
         <div class="row g-3 mb-3">
-          <div class="col-md-4">
-            <label class="small fw-bold text-muted mb-1">OPERADOR / MAYORISTA</label>
-            <input type="text" class="form-control" [(ngModel)]="s.detalles.operador_mayorista" placeholder="Operador">
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label class="small fw-bold text-muted mb-1">N° EXPEDIENTE / FILE</label>
-            <input type="text" class="form-control" [(ngModel)]="s.detalles.nro_expediente" placeholder="Referencia">
+            <input type="text" class="form-control" [(ngModel)]="s.detalles.nro_expediente" placeholder="Referencia" maxlength="50">
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label class="small fw-bold text-muted mb-1">OBSERVACIONES</label>
-            <input type="text" class="form-control" [(ngModel)]="s.detalles.observaciones" placeholder="Notas...">
+            <input type="text" class="form-control" [(ngModel)]="s.detalles.observaciones" placeholder="Notas..." maxlength="300">
           </div>
         </div>
 
@@ -267,9 +266,11 @@
               class="form-control" [(ngModel)]="s.detalles.pnr"></div>
           <div class="col-md-3"><label class="small fw-bold text-muted mb-1">FECHA SALIDA</label><input type="date"
               class="form-control" [(ngModel)]="s.detalles.fecha"></div>
-          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">HORA SALIDA</label><input type="time"
+          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">HORA SALIDA</label><input type="time"
               class="form-control" [(ngModel)]="s.detalles.hora_salida"></div>
-          <div class="col-md-3"><label class="small fw-bold text-muted mb-1">HORA LLEGADA</label><input type="time"
+          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">FECHA LLEG.</label><input type="date"
+              class="form-control" [(ngModel)]="s.detalles.fecha_llegada_vuelo"></div>
+          <div class="col-md-2"><label class="small fw-bold text-muted mb-1">HORA LLEG.</label><input type="time"
               class="form-control" [(ngModel)]="s.detalles.hora_llegada"></div>
         </div>
 
@@ -310,20 +311,7 @@
         </div>
       </div>
 
-      <!-- Finanzas: Gastos y Totales -->
-      <div class="section-divider mt-4">Resumen Financiero</div>
-      <div class="row g-3 mb-4">
-        <div class="col-md-6">
-          <label class="small fw-bold text-muted mb-1">GASTOS ADMINISTRATIVOS (USD)</label>
-          <input type="number" class="form-control" [(ngModel)]="reserva.gastos_administrativos_usd"
-            (input)="recalcularTodo()">
-        </div>
-        <div class="col-md-6">
-          <label class="small fw-bold text-muted mb-1">BONIFICACIÓN / DESCUENTO (USD)</label>
-          <input type="number" class="form-control" [(ngModel)]="reserva.bonificacion_descuento_usd"
-            (input)="recalcularTodo()">
-        </div>
-      </div>
+      <!-- Finanzas: Gastos y Totales obsoletos eliminados en Fase 3 -->
 
       <!-- Totales -->
       <div class="row g-3 mt-2">
@@ -388,21 +376,21 @@
         <div class="input-premium-group mb-4">
           <span class="input-premium-icon"><i class="bi bi-person"></i></span>
           <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.nombre_completo"
-            placeholder="Nombre y Apellido" autocomplete="off">
+            placeholder="Nombre y Apellido" autocomplete="off" maxlength="45">
         </div>
 
         <label class="small fw-bold text-muted mb-2">DNI / PASAPORTE *</label>
         <div class="input-premium-group mb-4">
           <span class="input-premium-icon"><i class="bi bi-card-text"></i></span>
           <input type="text" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.dni_pasaporte"
-            placeholder="Número de documento" autocomplete="off">
+            placeholder="Ej: 42.123.456" autocomplete="off" maxlength="10" minlength="7">
         </div>
 
         <label class="small fw-bold text-muted mb-2">EMAIL (OPCIONAL)</label>
         <div class="input-premium-group">
           <span class="input-premium-icon"><i class="bi bi-envelope"></i></span>
           <input type="email" class="form-control input-premium" [(ngModel)]="nuevoClienteRapido.email"
-            placeholder="correo@ejemplo.com" autocomplete="off">
+            placeholder="correo@ejemplo.com" autocomplete="off" maxlength="100">
         </div>
       </div>
 

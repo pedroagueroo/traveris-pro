@@ -10,6 +10,18 @@
         </button>
     </div>
 
+    <div class="glass-card p-3 mb-4">
+        <div class="input-group">
+            <span class="input-group-text border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 ps-0 shadow-none"
+                   placeholder="Buscar por ID, destino o cliente..." 
+                   [(ngModel)]="terminoBusqueda" 
+                   (input)="onSearchChange()">
+        </div>
+    </div>
+
     <div class="glass-card p-2 mb-4">
         <div class="d-flex flex-wrap align-items-center gap-3">
             <button class="btn btn-outline-danger border-2 fw-bold px-3" (click)="eliminarTodasReservas()">
@@ -42,7 +54,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let r of reservas" class="animate-slide-up">
+                    <tr *ngFor="let r of reservasPaginadas" class="animate-slide-up">
                         <td class="ps-4">
                             <span class="fw-bold text-primary">#{{ r.id }}</span>
                         </td>
@@ -101,6 +113,30 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <small class="text-muted">
+                    Página <b>{{ paginaActual }}</b> de <b>{{ totalPaginas || 1 }}</b>
+                </small>
+                <select class="form-select form-select-sm" style="width: auto;" [(ngModel)]="itemsPorPagina" (change)="paginaActual = 1">
+                    <option [ngValue]="5">5 por página</option>
+                    <option [ngValue]="10">10 por página</option>
+                    <option [ngValue]="20">20 por página</option>
+                    <option [ngValue]="50">50 por página</option>
+                </select>
+            </div>
+            <div class="btn-group shadow-sm">
+                <button class="btn btn-white btn-sm border" [disabled]="paginaActual === 1"
+                        (click)="paginaActual = paginaActual - 1">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </button>
+                <button class="btn btn-white btn-sm border" [disabled]="paginaActual >= totalPaginas"
+                        (click)="paginaActual = paginaActual + 1">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>

@@ -121,7 +121,10 @@
   </div>
 
   <!-- Right side -->
-  <div class="topbar-right">
-    <span class="topbar-agency d-none d-md-block">{{ auth.getNombreEmpresa() }}</span>
+  <div class="topbar-right d-flex align-items-center gap-3">
+    <span class="topbar-agency d-none d-md-block fw-bold text-muted">{{ auth.getNombreEmpresa() }}</span>
+    <button class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center text-primary border" style="width: 40px; height: 40px;" routerLink="/configuracion" title="Configuración del Sistema">
+        <i class="bi bi-gear-fill fs-5"></i>
+    </button>
   </div>
 </header>

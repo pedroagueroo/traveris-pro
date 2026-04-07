@@ -41,6 +41,9 @@ export class Caja implements OnInit {
   cargandoCierre: boolean = false;
   mostrarCierre: boolean = false;
 
+  // --- Desglose Inversion ---
+  mostrarDesgloseInversion: boolean = false;
+
   // --- Modal Pago Tarjeta ---
   mostrarModalTarjeta: boolean = false;
   pagoTarjeta: any = {

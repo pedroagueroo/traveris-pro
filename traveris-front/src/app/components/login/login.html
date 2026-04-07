@@ -73,16 +73,23 @@
             <i class="bi bi-lock-fill"></i>
             Contraseña
           </label>
-          <input 
-            type="password" 
-            id="pass" 
-            name="pass"
-            [(ngModel)]="credenciales.pass" 
-            placeholder="Ingresá tu contraseña"
-            [class.input-error]="errorLogin && !credenciales.pass"
-            autocomplete="current-password"
-            required
-          >
+          <div class="position-relative">
+            <input 
+              [type]="verPassword ? 'text' : 'password'" 
+              id="pass" 
+              name="pass"
+              [(ngModel)]="credenciales.pass" 
+              placeholder="Ingresá tu contraseña"
+              [class.input-error]="errorLogin && !credenciales.pass"
+              autocomplete="current-password"
+              style="padding-right: 45px;"
+              required
+            >
+            <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted border-0 shadow-none p-2" 
+                    (click)="togglePasswordVisibility()" tabindex="-1">
+              <i class="bi fs-5" [ngClass]="verPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+            </button>
+          </div>
         </div>
 
         <button type="submit" class="login-btn" [disabled]="loading">

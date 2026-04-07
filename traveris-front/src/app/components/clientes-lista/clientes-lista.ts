@@ -59,6 +59,35 @@ export class ClientesListaComponent implements OnInit {
     });
   }
 
+  // --- LÓGICA DE CUMPLEAÑOS ---
+  esCumpleaniosHoy(fechaIso: string): boolean {
+    if (!fechaIso) return false;
+    const datePart = fechaIso.split('T')[0]; // yyyy-MM-dd
+    if (!datePart) return false;
+    const [year, month, day] = datePart.split('-');
+    
+    const today = new Date();
+    // getMonth() is 0-indexed, so we add 1.
+    const currentMonth = (today.getMonth() + 1).toString().padStart(2, '0');
+    const currentDay = today.getDate().toString().padStart(2, '0');
+
+    return month === currentMonth && day === currentDay;
+  }
+
+  enviarFelizCumple(cliente: any): void {
+    if (!cliente.email) {
+      alert(`El cliente ${cliente.nombre_completo} no tiene un email registrado.`);
+      return;
+    }
+
+    if (confirm(`¿Enviar correo de Feliz Cumpleaños a ${cliente.nombre_completo} (${cliente.email})?`)) {
+      this.api.enviarSaludoCumple({ email: cliente.email, nombre: cliente.nombre_completo }).subscribe({
+        next: () => alert(`¡Mail de cumpleaños enviado a ${cliente.nombre_completo}!`),
+        error: (err: any) => alert('Error al enviar el correo: ' + (err.error?.error || 'Verifique configuración SMTP'))
+      });
+    }
+  }
+
   exportarExcel() {
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.clientes);
     const wb: XLSX.WorkBook = XLSX.utils.book_new();

@@ -14,6 +14,9 @@ import { CommonModule } from '@angular/common';
 })
 export class ReservaNuevaComponent implements OnInit {
   clientes: any[] = [];
+  proveedores: any[] = [];
+  tarjetasGuardadas: any[] = [];
+  transferenciasGuardadas: any[] = [];
   pasoActivo: number = 1;
 
   // Variables para Edición — FIX: reservaId es string | null (viene de paramMap)
@@ -35,8 +38,6 @@ export class ReservaNuevaComponent implements OnInit {
     cotizacion_dolar: 0,
     operador_mayorista: '',
     nro_expediente_operador: '',
-    gastos_administrativos_usd: 0,
-    bonificacion_descuento_usd: 0,
     total_venta_final_usd: 0,
     costo_total_operador_usd: 0,
     moneda_pago: 'USD',
@@ -66,10 +67,27 @@ export class ReservaNuevaComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Carga de clientes
-    this.api.getClientesPorAgencia(this.auth.getNombreEmpresa()).subscribe({
+    // Carga de clientes y configuraciones financieras
+    const empresa = this.auth.getNombreEmpresa();
+    
+    this.api.getClientesPorAgencia(empresa).subscribe({
       next: (data: any[]) => this.clientes = data,
-      error: (err: any) => console.error(err)
+      error: (err: any) => console.error('Error clientes:', err)
+    });
+
+    this.api.getProveedores(empresa).subscribe({
+      next: (data: any[]) => this.proveedores = data,
+      error: (err: any) => console.error('Error proveedores:', err)
+    });
+
+    this.api.getTarjetasGuardadas(empresa).subscribe({
+      next: (data: any[]) => this.tarjetasGuardadas = data,
+      error: (err: any) => console.error('Error tarjetas:', err)
+    });
+
+    this.api.getTransferenciasGuardadas(empresa).subscribe({
+      next: (data: any[]) => this.transferenciasGuardadas = data,
+      error: (err: any) => console.error('Error transferencias:', err)
     });
 
     // LÓGICA DE DETECCIÓN DE EDICIÓN
@@ -109,6 +127,12 @@ export class ReservaNuevaComponent implements OnInit {
           this.reserva.fecha_viaje_regreso = this.reserva.fecha_viaje_regreso.split('T')[0];
         }
 
+        // Formatear fechas de vuelos
+        this.vuelos.forEach((v: any) => {
+          if (v.fecha_salida) v.fecha_salida = v.fecha_salida.split('T')[0];
+          if (v.fecha_llegada) v.fecha_llegada = v.fecha_llegada.split('T')[0];
+        });
+
         // Formatear fechas de servicios
         this.servicios.forEach((s: any) => {
           if (s.detalles.check_in) s.detalles.check_in = s.detalles.check_in.split('T')[0];
@@ -139,7 +163,8 @@ export class ReservaNuevaComponent implements OnInit {
   agregarVuelo() {
     this.vuelos.push({
       aerolinea: '', nro_vuelo: '', codigo_pnr: '',
-      origen_iata: '', destino_iata: '', fecha_salida: ''
+      origen_iata: '', destino_iata: '', fecha_salida: '',
+      fecha_llegada: '', hora_salida: '', hora_llegada: ''
     });
   }
   quitarVuelo(i: number) { this.vuelos.splice(i, 1); }
@@ -150,6 +175,8 @@ export class ReservaNuevaComponent implements OnInit {
       tipo_item: tipo,
       moneda_venta: 'USD',
       moneda_costo: 'USD',
+      metodo_pago: 'EFECTIVO',
+      id_proveedor: null,
       costo_neto_operador: 0,
       venta_bruta_cliente: 0,
       detalles: { ...baseOperativo }
@@ -196,13 +223,6 @@ export class ReservaNuevaComponent implements OnInit {
       }
     });
 
-    const gastos = Number(this.reserva.gastos_administrativos_usd) || 0;
-    const desc = Number(this.reserva.bonificacion_descuento_usd) || 0;
-
-    // Gastos extras globales impactan momentáneamente al USD hasta que se migren
-    this.totalesVenta.USD += gastos - desc;
-
-    // Mantener variables legacy
     this.reserva.total_venta_final_usd = this.totalesVenta.USD;
     this.reserva.costo_total_operador_usd = this.totalesCosto.USD;
     
@@ -247,6 +267,8 @@ export class ReservaNuevaComponent implements OnInit {
         tipo_item: s.tipo_item || null,
         moneda_venta: s.moneda_venta || 'USD',
         moneda_costo: s.moneda_costo || 'USD',
+        metodo_pago: s.metodo_pago || 'EFECTIVO',
+        id_proveedor: this.sanitizeNumber(s.id_proveedor),
         costo_neto_operador: this.sanitizeNumber(s.costo_neto_operador) ?? 0,
         venta_bruta_cliente: this.sanitizeNumber(s.venta_bruta_cliente) ?? 0,
         detalles
@@ -283,7 +305,6 @@ export class ReservaNuevaComponent implements OnInit {
     };
 
     if (this.esEdicion) {
-      // FIX: reservaId es string, api.actualizarReserva acepta any — sin error TS
       this.api.actualizarReserva(this.reservaId, payload).subscribe({
         next: () => {
           alert("¡Legajo Maestro Actualizado!");
@@ -330,6 +351,76 @@ export class ReservaNuevaComponent implements OnInit {
       },
       error: (err: any) => alert("Error al registrar cliente: " + (err.error?.error || 'Falla de conexión'))
     });
+  }
+
+  // Lógica Dinámica de Dropdowns de Pagos
+  onMetodoPagoChange(s: any) {
+      if (s.metodo_pago === 'ADD_TARJETA') {
+          const bank = prompt("Banco o Tarjeta:");
+          const nro = prompt("Últimos 4 números:");
+          if (bank && nro) {
+              const payload = {
+                  empresa_nombre: this.auth.getNombreEmpresa(),
+                  nombre_banco: bank,
+                  franquicia: 'VISA',
+                  nro_tarjeta_completo: nro,
+                  vencimiento: '12/99'
+              };
+              this.api.crearTarjetaGuardada(payload).subscribe({
+                  next: (res) => {
+                      this.tarjetasGuardadas.push(res);
+                      s.metodo_pago = 'TARJETA';
+                      if (!s.detalles) s.detalles = {};
+                      s.detalles.observaciones = (s.detalles.observaciones || '') + ` [Pago con ${res.nombre_banco} - ${res.nro_tarjeta_completo}]`;
+                  },
+                  error: () => { alert("Error al agregar tarjeta"); s.metodo_pago = 'EFECTIVO'; }
+              });
+          } else {
+              s.metodo_pago = 'EFECTIVO';
+          }
+      } else if (s.metodo_pago === 'ADD_TRANSFERENCIA') {
+          const alias = prompt("Banco o Alias de Transferencia:");
+          if (alias) {
+              const payload = {
+                  empresa_nombre: this.auth.getNombreEmpresa(),
+                  banco_alias: alias,
+                  cbu_cvu: '',
+                  titular: ''
+              };
+              this.api.agregarTransferencia(payload).subscribe({
+                  next: (res) => {
+                      this.transferenciasGuardadas.push(res);
+                      s.metodo_pago = 'TRANSFERENCIA';
+                      if (!s.detalles) s.detalles = {};
+                      s.detalles.observaciones = (s.detalles.observaciones || '') + ` [Transf a ${res.banco_alias}]`;
+                  },
+                  error: () => { alert("Error al agregar medio de transferencia"); s.metodo_pago = 'EFECTIVO'; }
+              });
+          } else {
+              s.metodo_pago = 'EFECTIVO';
+          }
+      }
+  }
+
+  onProveedorChange(s: any) {
+      if (s.id_proveedor === 'ADD_PROVEEDOR') {
+          const nombre = prompt("Nombre comercial del Proveedor:");
+          if (nombre) {
+              const payload = {
+                  empresa_nombre: this.auth.getNombreEmpresa(),
+                  nombre_comercial: nombre
+              };
+              this.api.agregarProveedor(payload).subscribe({
+                  next: (res) => {
+                      this.proveedores.push(res);
+                      s.id_proveedor = res.id;
+                  },
+                  error: () => { alert("Error al agregar proveedor"); s.id_proveedor = null; }
+              });
+          } else {
+              s.id_proveedor = null;
+          }
+      }
   }
 
   volver() { this.router.navigate(['/reservas']); }

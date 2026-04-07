@@ -6,6 +6,15 @@
 
 /* ==================== FONTS ==================== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import 'ngx-toastr/toastr';
+
+select,
+select.form-select,
+.dropdown-item,
+[data-bs-toggle="dropdown"] {
+  cursor: pointer !important;
+}
 
 /* ==================== THEME VARIABLES ==================== */
 

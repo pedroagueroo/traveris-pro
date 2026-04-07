@@ -20,7 +20,7 @@
     <!-- ROW 1: Saldos Generales Principales -->
     <!-- CORREGIDO: color white forzado con style inline para que no lo pise el tema claro -->
     <div class="row g-4 mb-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-card p-4 h-100 position-relative overflow-hidden shadow"
                 style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff !important;">
                 <i class="bi bi-wallet2 position-absolute"
@@ -34,14 +34,14 @@
                     </div>
                 </div>
                 <div class="position-relative z-1">
-                    <h1 class="fw-bold mb-0 display-5" style="letter-spacing: -1px; color: #ffffff !important;">
+                    <h1 class="fw-bold mb-0 display-5 text-truncate" style="letter-spacing: -1px; color: #ffffff !important;" title="{{ saldos.saldoARS | number:'1.2-2' }}">
                         <span style="opacity: 0.75; font-size: 1.5rem; color: #ffffff;">$</span>{{ saldos.saldoARS |
                         number:'1.2-2' }}
                     </h1>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-card p-4 h-100 position-relative overflow-hidden shadow"
                 style="background: linear-gradient(135deg, #4361ee 0%, #4338ca 100%); color: #ffffff !important;">
                 <i class="bi bi-currency-dollar position-absolute"
@@ -55,8 +55,29 @@
                     </div>
                 </div>
                 <div class="position-relative z-1">
-                    <h1 class="fw-bold mb-0 display-5" style="letter-spacing: -1px; color: #ffffff !important;">
+                    <h1 class="fw-bold mb-0 display-5 text-truncate" style="letter-spacing: -1px; color: #ffffff !important;" title="{{ saldos.saldoUSD | number:'1.2-2' }}">
                         <span style="opacity: 0.75; font-size: 1.5rem; color: #ffffff;">USD</span>{{ saldos.saldoUSD |
+                        number:'1.2-2' }}
+                    </h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-card p-4 h-100 position-relative overflow-hidden shadow"
+                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff !important;">
+                <i class="bi bi-currency-euro position-absolute"
+                    style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.1; color: #ffffff;"></i>
+                <div class="d-flex justify-content-between align-items-start position-relative z-1 mb-3">
+                    <span class="badge bg-white shadow-sm px-3 py-2 rounded-pill fw-bold" style="color: #059669;">SALDO
+                        EN EUROS</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                        style="background: rgba(255,255,255,0.1); width: 40px; height: 40px;">
+                        <i class="bi bi-globe-americas" style="color: #ffffff;"></i>
+                    </div>
+                </div>
+                <div class="position-relative z-1">
+                    <h1 class="fw-bold mb-0 display-5 text-truncate" style="letter-spacing: -1px; color: #ffffff !important;" title="{{ saldosMacro.efectivoEUR | number:'1.2-2' }}">
+                        <span style="opacity: 0.75; font-size: 1.5rem; color: #ffffff;">€</span>{{ saldosMacro.efectivoEUR |
                         number:'1.2-2' }}
                     </h1>
                 </div>
@@ -64,54 +85,48 @@
         </div>
     </div>
 
-    <!-- ROW 2: Detalles de métodos de pago -->
-    <h6 class="fw-bold text-muted text-uppercase small mb-3 no-print"><i class="bi bi-pie-chart-fill me-2"></i> Desglose
-        por Método de Ingreso</h6>
-    <div class="row g-3 mb-5 no-print">
-        <div class="col-md">
-            <div class="form-card p-3 h-100 border-start border-4 border-success d-flex flex-column justify-content-center bg-body shadow-sm">
+    <!-- ROW 2: Detalles de métodos de pago (Desglose por Inversión) -->
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <h6 class="fw-bold text-muted text-uppercase small m-0"><i class="bi bi-pie-chart-fill me-2"></i> Estado General</h6>
+        <button class="btn btn-outline-secondary btn-sm fw-bold rounded-pill" (click)="mostrarDesgloseInversion = !mostrarDesgloseInversion">
+            <i class="bi" [ngClass]="mostrarDesgloseInversion ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+            {{ mostrarDesgloseInversion ? 'Ocultar desglose lineal' : 'Ver desglose por Inversión' }}
+        </button>
+    </div>
+
+    <div class="row g-3 mb-5 no-print animate-slide-up" *ngIf="mostrarDesgloseInversion">
+        <div class="col-md-4 col-lg-3" *ngFor="let item of saldosDetallados">
+            <div class="form-card p-3 h-100 border-start border-4 d-flex flex-column justify-content-center bg-body shadow-sm"
+                [ngClass]="{
+                    'border-success': item.metodo_pago === 'EFECTIVO',
+                    'border-warning': item.metodo_pago === 'TARJETA',
+                    'border-info': item.metodo_pago === 'TRANSFERENCIA'
+                }">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Pesos (ARS)</div>
-                    <i class="bi bi-cash-coin text-success fs-5"></i>
+                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">
+                        <span *ngIf="item.metodo_pago === 'EFECTIVO' && item.moneda === 'ARS'">Pesos</span>
+                        <span *ngIf="item.metodo_pago === 'EFECTIVO' && item.moneda === 'USD'">Dólares</span>
+                        <span *ngIf="item.metodo_pago === 'EFECTIVO' && item.moneda === 'EUR'">Euros</span>
+                        <span *ngIf="item.metodo_pago === 'TARJETA'">Tarjetas ({{ item.moneda }})</span>
+                        <span *ngIf="item.metodo_pago === 'TRANSFERENCIA'">Transferencias ({{ item.moneda }})</span>
+                        <span *ngIf="item.metodo_pago !== 'EFECTIVO' && item.metodo_pago !== 'TARJETA' && item.metodo_pago !== 'TRANSFERENCIA'">{{ item.metodo_pago }} ({{ item.moneda }})</span>
+                    </div>
+                    <i class="bi fs-5" [ngClass]="{
+                        'bi-cash-coin text-success': item.metodo_pago === 'EFECTIVO',
+                        'bi-credit-card-2-front text-warning': item.metodo_pago === 'TARJETA',
+                        'bi-arrow-left-right text-info': item.metodo_pago === 'TRANSFERENCIA'
+                    }"></i>
                 </div>
-                <h5 class="fw-bold mb-0 text-dark">$ {{ saldosMacro.efectivoARS | number:'1.2-2' }}</h5>
+                <h5 class="fw-bold mb-0" [ngClass]="item.saldo >= 0 ? 'text-dark' : 'text-danger'">
+                    <span *ngIf="item.moneda === 'ARS'">$</span>
+                    <span *ngIf="item.moneda === 'USD'">US$</span>
+                    <span *ngIf="item.moneda === 'EUR'">€</span>
+                    {{ item.saldo | number:'1.2-2' }}
+                </h5>
             </div>
         </div>
-        <div class="col-md">
-            <div class="form-card p-3 h-100 border-start border-4 border-success d-flex flex-column justify-content-center bg-body shadow-sm">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Dólares (USD)</div>
-                    <i class="bi bi-cash-coin text-success fs-5"></i>
-                </div>
-                <h5 class="fw-bold mb-0 text-dark">US$ {{ saldosMacro.efectivoUSD | number:'1.2-2' }}</h5>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="form-card p-3 h-100 border-start border-4 border-success d-flex flex-column justify-content-center bg-body shadow-sm">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Euros (EUR)</div>
-                    <i class="bi bi-cash-coin text-success fs-5"></i>
-                </div>
-                <h5 class="fw-bold mb-0 text-dark">€ {{ saldosMacro.efectivoEUR | number:'1.2-2' }}</h5>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="form-card p-3 h-100 border-start border-4 border-warning d-flex flex-column justify-content-center bg-body shadow-sm">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Tarjeta</div>
-                    <i class="bi bi-credit-card-2-front text-warning fs-5"></i>
-                </div>
-                <h5 class="fw-bold mb-0 text-dark">$ {{ saldosMacro.tarjetas | number:'1.2-2' }}</h5>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="form-card p-3 h-100 border-start border-4 border-info d-flex flex-column justify-content-center bg-body shadow-sm">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem;">Transferencias</div>
-                    <i class="bi bi-arrow-left-right text-info fs-5"></i>
-                </div>
-                <h5 class="fw-bold mb-0 text-dark">$ {{ saldosMacro.transferencias | number:'1.2-2' }}</h5>
-            </div>
+        <div class="col-12 text-center text-muted small" *ngIf="saldosDetallados.length === 0">
+            <i class="bi bi-info-circle me-1"></i> No hay billeteras registradas aún
         </div>
     </div>
 
@@ -371,80 +386,151 @@
                 <button class="btn btn-primary rounded-pill fw-bold shadow-sm px-4" (click)="generarCierreMensual()"
                     [disabled]="cargandoCierre">
                     <i class="bi bi-printer me-1"></i>
-                    {{ cargandoCierre ? 'Generando...' : 'Generar e Imprimir' }}
+                    {{ cargandoCierre ? 'Generando...' : 'Generar Reporte' }}
                 </button>
             </div>
         </div>
 
-        <div *ngIf="cierreMensual && mostrarCierre" class="mt-4 p-4 bg-body-secondary rounded-4 border print-section" id="cierre-mensual-print">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold mb-0"><i class="bi bi-check-circle text-success me-2"></i> Cierre {{
-                    getNombreMes(cierreMensual.periodo.mes) }} {{ cierreMensual.periodo.anio }}</h6>
-                <div class="d-flex gap-2 no-print">
-                    <button class="btn btn-sm btn-primary rounded-pill fw-bold px-3" (click)="imprimirCierreMensualPDF()">
-                        <i class="bi bi-file-earmark-pdf me-1"></i> Descargar PDF
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary rounded-pill"
-                        (click)="mostrarCierre = false">Cerrar</button>
-                </div>
-            </div>
-            <div class="row g-3 mb-3">
-                <div class="col-md-3">
-                    <div class="p-3 bg-body rounded-3 border text-center">
-                        <div class="small fw-bold text-muted" style="font-size: 0.65rem;">RESULTADO ARS</div>
-                        <div class="h5 fw-bold mb-0"
-                            [ngClass]="cierreMensual.totales.totalARS >= 0 ? 'text-success' : 'text-danger'">$ {{
-                            cierreMensual.totales.totalARS | number:'1.2-2' }}</div>
+        <!-- ═══ NUEVO CIERRE MENSUAL ═══ -->
+        <div *ngIf="cierreMensual && mostrarCierre" class="mt-4 print-section" id="cierre-mensual-print">
+
+            <!-- Header del reporte -->
+            <div class="p-4 bg-dark text-white rounded-top-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-1 text-uppercase">Resumen de Movimientos</h4>
+                        <div class="small opacity-75">{{ cierreMensual.empresa }} · {{ getNombreMes(cierreMensual.periodo.mes) }} {{ cierreMensual.periodo.anio }}</div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3 bg-body rounded-3 border text-center">
-                        <div class="small fw-bold text-muted" style="font-size: 0.65rem;">RESULTADO USD</div>
-                        <div class="h5 fw-bold mb-0"
-                            [ngClass]="cierreMensual.totales.totalUSD >= 0 ? 'text-success' : 'text-danger'">US$ {{
-                            cierreMensual.totales.totalUSD | number:'1.2-2' }}</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3 bg-body rounded-3 border text-center">
-                        <div class="small fw-bold text-muted" style="font-size: 0.65rem;">MOVIMIENTOS</div>
-                        <div class="h5 fw-bold mb-0 text-dark">{{ cierreMensual.totales.cantidadMovimientos }}</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3 bg-body rounded-3 border text-center border-success">
-                        <div class="small fw-bold text-success" style="font-size: 0.65rem;">UTILIDAD BRUTA</div>
-                        <div class="h5 fw-bold mb-0 text-success">US$ {{ cierreMensual.rentabilidad.utilidadBruta |
-                            number:'1.2-2' }}</div>
+                    <div class="d-flex gap-2 no-print">
+                        <button class="btn btn-sm btn-outline-light rounded-pill fw-bold px-3" (click)="imprimirCierreMensualPDF()">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Descargar PDF
+                        </button>
+                        <button class="btn btn-sm btn-outline-light rounded-pill" (click)="mostrarCierre = false">Cerrar</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Desglose detallado por método de pago -->
-            <div class="row g-3" *ngIf="cierreMensual.desglose">
-                <div class="col-12">
-                    <div class="p-3 bg-body rounded-3 border">
-                        <h6 class="fw-bold small text-muted text-uppercase mb-3"><i class="bi bi-list-columns me-1"></i> Desglose por Método de Pago</h6>
-                        <table class="table table-sm table-bordered mb-0 small">
-                            <thead class="table-light">
+            <div class="bg-body-secondary border border-top-0 rounded-bottom-4 p-4">
+
+                <!-- Totales rápidos -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-body rounded-3 border text-center shadow-sm">
+                            <div class="small fw-bold text-muted" style="font-size: 0.65rem;">TOTAL PESOS</div>
+                            <div class="h5 fw-bold mb-0" [ngClass]="cierreMensual.totales.pesos >= 0 ? 'text-success' : 'text-danger'">
+                                $ {{ cierreMensual.totales.pesos | number:'1.2-2' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-body rounded-3 border text-center shadow-sm">
+                            <div class="small fw-bold text-muted" style="font-size: 0.65rem;">TOTAL USD</div>
+                            <div class="h5 fw-bold mb-0" [ngClass]="cierreMensual.totales.monExtranjeraUSD >= 0 ? 'text-success' : 'text-danger'">
+                                US$ {{ cierreMensual.totales.monExtranjeraUSD | number:'1.2-2' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-body rounded-3 border text-center shadow-sm">
+                            <div class="small fw-bold text-muted" style="font-size: 0.65rem;">TOTAL EUR</div>
+                            <div class="h5 fw-bold mb-0" [ngClass]="cierreMensual.totales.monExtranjeraEUR >= 0 ? 'text-success' : 'text-danger'">
+                                € {{ cierreMensual.totales.monExtranjeraEUR | number:'1.2-2' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-body rounded-3 border text-center shadow-sm border-success">
+                            <div class="small fw-bold text-success" style="font-size: 0.65rem;">UTILIDAD BRUTA</div>
+                            <div class="h5 fw-bold mb-0 text-success">US$ {{ cierreMensual.rentabilidad?.utilidadBruta | number:'1.2-2' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABLA PRINCIPAL: Saldos de Cuentas -->
+                <div class="p-3 bg-body rounded-3 border shadow-sm mb-4">
+                    <h6 class="fw-bold small text-uppercase text-muted mb-3"><i class="bi bi-wallet2 me-1"></i> Saldos de Cuentas</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0 small">
+                            <thead class="table-dark">
                                 <tr>
-                                    <th>Método</th>
-                                    <th class="text-end">Ingresos</th>
-                                    <th class="text-end">Egresos</th>
-                                    <th class="text-end fw-bold">Neto</th>
+                                    <th class="ps-3">Cuenta</th>
+                                    <th class="text-center">Moneda</th>
+                                    <th class="text-end">Inicial</th>
+                                    <th class="text-end text-success">Ingresos</th>
+                                    <th class="text-end text-danger">Egresos</th>
+                                    <th class="text-end pe-3 fw-bold">Saldo</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr *ngFor="let d of cierreMensual.desglose">
-                                    <td class="fw-bold">{{ d.metodo_pago }}</td>
-                                    <td class="text-end text-success">{{ d.ingresos | number:'1.2-2' }}</td>
-                                    <td class="text-end text-danger">{{ d.egresos | number:'1.2-2' }}</td>
-                                    <td class="text-end fw-bold" [class.text-success]="d.neto >= 0" [class.text-danger]="d.neto < 0">{{ d.neto | number:'1.2-2' }}</td>
+                                <tr *ngFor="let c of cierreMensual.saldosCuentas" class="align-middle">
+                                    <td class="ps-3 fw-bold">
+                                        <i class="bi me-1" [ngClass]="{
+                                            'bi-cash-stack text-success': c.metodo_pago === 'EFECTIVO',
+                                            'bi-credit-card text-primary': c.metodo_pago === 'TARJETA',
+                                            'bi-bank text-info': c.metodo_pago === 'TRANSFERENCIA'
+                                        }"></i>
+                                        {{ c.cuenta }}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill" [ngClass]="{
+                                            'bg-primary': c.moneda === 'USD',
+                                            'bg-success': c.moneda === 'ARS',
+                                            'bg-warning text-dark': c.moneda === 'EUR'
+                                        }">{{ c.moneda }}</span>
+                                    </td>
+                                    <td class="text-end">{{ c.inicial | number:'1.2-2' }}</td>
+                                    <td class="text-end text-success fw-bold">{{ c.ingresos > 0 ? '+' : '' }}{{ c.ingresos | number:'1.2-2' }}</td>
+                                    <td class="text-end text-danger fw-bold">{{ c.egresos > 0 ? '-' : '' }}{{ c.egresos | number:'1.2-2' }}</td>
+                                    <td class="text-end pe-3 fw-bold fs-6" [ngClass]="c.saldo >= 0 ? 'text-success' : 'text-danger'">
+                                        {{ c.saldo | number:'1.2-2' }}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                <!-- Detalle de movimientos del mes -->
+                <div class="p-3 bg-body rounded-3 border shadow-sm">
+                    <h6 class="fw-bold small text-uppercase text-muted mb-3"><i class="bi bi-list-ol me-1"></i> Movimientos del Período ({{ cierreMensual.movimientos?.length || 0 }})</h6>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-striped mb-0 small">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Método</th>
+                                    <th>Reserva</th>
+                                    <th class="text-end">Monto</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let m of cierreMensual.movimientos">
+                                    <td class="text-nowrap">{{ m.fecha_pago | date:'dd/MM HH:mm' }}</td>
+                                    <td>
+                                        <span class="badge rounded-pill" [ngClass]="{
+                                            'bg-success': m.tipo_movimiento === 'PAGO_CLIENTE' || m.tipo_movimiento === 'INGRESO',
+                                            'bg-danger': m.tipo_movimiento === 'PAGO_PROVEEDOR' || m.tipo_movimiento === 'EGRESO' || m.tipo_movimiento === 'GASTO',
+                                            'bg-warning text-dark': m.tipo_movimiento.includes('TARJETA'),
+                                            'bg-secondary': m.tipo_movimiento.includes('ANULACION')
+                                        }" style="font-size: 0.6rem;">{{ m.tipo_movimiento }}</span>
+                                    </td>
+                                    <td class="fw-bold">{{ m.metodo_pago }}</td>
+                                    <td>
+                                        <span *ngIf="m.nombre_titular" class="text-truncate d-inline-block" style="max-width: 120px;">{{ m.nombre_titular }}</span>
+                                        <span *ngIf="!m.nombre_titular" class="text-muted">—</span>
+                                    </td>
+                                    <td class="text-end fw-bold" [ngClass]="m.monto_real >= 0 ? 'text-success' : 'text-danger'">
+                                        {{ m.moneda }} {{ m.monto_real | number:'1.2-2' }}
+                                    </td>
+                                    <td class="text-muted text-truncate" style="max-width: 200px;">{{ m.observaciones || '—' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

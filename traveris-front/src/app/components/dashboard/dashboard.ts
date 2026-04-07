@@ -61,28 +61,46 @@ export class Dashboard implements OnInit {
   cargarRadar() {
     const empresa = this.auth.getNombreEmpresa();
     this.radarError = '';
+    this.alertasRadar = [];
 
+    let vCargados: any[] = [];
+    let cCargados: any[] = [];
+
+    // Cargar vencimientos
     this.api.getRadarVencimientos(empresa).subscribe({
       next: (vencimientos: any[]) => {
-        const v = vencimientos.map((i: any) => ({ ...i, tipoAlerta: 'PAGO' }));
-
-        this.api.getRadarCumpleanios(empresa).subscribe({
-          next: (cumples: any[]) => {
-            const c = cumples.map((i: any) => ({ ...i, tipoAlerta: 'CUMPLE' }));
-            this.alertasRadar = [...v, ...c];
-            this.mostrarAlertas = this.alertasRadar.length > 0;
-          },
-          error: (err: any) => {
-            this.radarError = 'Error al cargar cumpleaños';
-            console.error(err);
-          }
-        });
+        vCargados = vencimientos.map((i: any) => ({ ...i, tipoAlerta: 'PAGO' }));
+        this.procesarAlertas(vCargados, cCargados);
       },
       error: (err: any) => {
-        this.radarError = 'Error al cargar alertas de vencimiento';
+        this.radarError = 'Error al cargar vencimientos.';
         console.error(err);
+        this.procesarAlertas([], cCargados);
       }
     });
+
+    // Cargar cumpleaños
+    this.api.getRadarCumpleanios(empresa).subscribe({
+      next: (cumples: any[]) => {
+        cCargados = cumples.map((i: any) => ({ ...i, tipoAlerta: 'CUMPLE' }));
+        this.procesarAlertas(vCargados, cCargados);
+      },
+      error: (err: any) => {
+        console.error("No se pudo cargar cumpleaños:", err);
+        this.procesarAlertas(vCargados, []);
+      }
+    });
+  }
+
+  private procesarAlertas(v: any[], c: any[]) {
+    // Almacena y actualiza el arreglo general mezclando resultados (pueden llegar en distinto tiempo)
+    const unidos = [...v, ...c];
+    // Como las requests asincrónicas se fusionan aquí, usamos un map para asegurar unicidad
+    // aunque en este caso son arrays disjuntos por tipo de alerta.
+    this.alertasRadar = unidos.filter((val, index, self) => 
+      index === self.findIndex((t) => t.id === val.id && t.tipoAlerta === val.tipoAlerta)
+    );
+    this.mostrarAlertas = this.alertasRadar.length > 0;
   }
 
   enviarFelicidades(persona: any) {

@@ -265,4 +265,38 @@ export class ApiService {
   anularRecibo(id: number): Observable<any> {
     return this.http.put(`${this.URL}/recibos/anular/${id}`, {});
   }
+
+  // ==========================================
+  // CAJA (TRANSFERENCIAS)
+  // ==========================================
+
+  getTransferenciasGuardadas(empresa: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/caja/transferencias/${empresa}`);
+  }
+
+  agregarTransferencia(data: any): Observable<any> {
+    return this.http.post<any>(`${this.URL}/caja/transferencias`, data);
+  }
+
+  // ==========================================
+  // PROVEEDORES
+  // ==========================================
+  getProveedores(empresa: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.URL}/proveedores/${empresa}`);
+  }
+
+  agregarProveedor(data: any): Observable<any> {
+    return this.http.post<any>(`${this.URL}/proveedores`, data);
+  }
+
+  eliminarProveedor(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.URL}/proveedores/${id}`);
+  }
+
+  // ==========================================
+  // RECIBOS PDF
+  // ==========================================
+  getReciboPDFUrl(id: number): string {
+    return `${this.URL}/recibos/pdf/${id}`;
+  }
 }
